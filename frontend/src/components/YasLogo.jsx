@@ -6,8 +6,7 @@ export default function YasLogo({ size = 60, style = {} }) {
       src={logoUrl}
       alt="Yas"
       width={size}
-      height={size}
-      style={{ objectFit: 'contain', display: 'block', ...style }}
+      style={{ height: 'auto', display: 'block', ...style }}
       draggable={false}
     />
   );

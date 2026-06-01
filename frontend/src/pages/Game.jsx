@@ -227,6 +227,7 @@ const s = {
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end',
     padding: '0', overflow: 'hidden',
     boxShadow: '0 16px 44px rgba(0,55,125,0.28)',
+    touchAction: 'none', willChange: 'transform', WebkitUserSelect: 'none',
   },
   cardImg: {
     position: 'absolute', inset: 0, width: '100%', height: '100%',
