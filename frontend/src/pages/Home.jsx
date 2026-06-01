@@ -155,6 +155,7 @@ const s = {
     fontSize: 'clamp(30px, 9vw, 52px)',
     lineHeight: 1.05,
     whiteSpace: 'nowrap',
+    textAlign: 'center',
   },
   tYellow: { color: '#FFD100' },
   tBlue: { color: '#5f99d2' },
