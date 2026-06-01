@@ -152,7 +152,7 @@ const s = {
     fontFamily: "'Figtree', sans-serif",
     fontWeight: 900,
     fontStyle: 'italic',
-    fontSize: 52,
+    fontSize: 'clamp(40px, 13vw, 52px)',
     lineHeight: 1.05,
   },
   tYellow: { color: '#FFD100' },

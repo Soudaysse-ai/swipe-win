@@ -62,7 +62,7 @@ export default function Dashboard() {
 const styles = {
   pageTitle: {
     fontFamily: "'Figtree', sans-serif",
-    fontSize: 32,
+    fontSize: 'clamp(24px, 6vw, 32px)',
     color: '#00377D',
     letterSpacing: 2,
     marginBottom: 24,

@@ -74,12 +74,12 @@ export default function AdminPlayers() {
 
 const styles = {
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 },
-  title: { fontFamily: "'Figtree', sans-serif", fontSize: 32, color: '#00377D', letterSpacing: 2 },
-  search: { padding: '10px 16px', borderRadius: 10, border: '2px solid #e5e7eb', fontSize: 14, width: 280, outline: 'none' },
+  title: { fontFamily: "'Figtree', sans-serif", fontSize: 'clamp(24px, 6vw, 32px)', color: '#00377D', letterSpacing: 2 },
+  search: { padding: '12px 16px', borderRadius: 10, border: '2px solid #e5e7eb', fontSize: 16, width: '100%', maxWidth: 320, outline: 'none' },
   tableWrap: { background: 'white', borderRadius: 16, overflow: 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 800, color: '#6b7280', background: '#f9fafb', whiteSpace: 'nowrap' },
-  td: { padding: '12px 16px', fontSize: 14, color: '#374151', borderTop: '1px solid #f3f4f6' },
+  td: { padding: '12px 16px', fontSize: 14, color: '#374151', borderTop: '1px solid #f3f4f6', whiteSpace: 'nowrap' },
   trEven: { background: '#fafbff' },
   btnDetail: { padding: '6px 14px', borderRadius: 8, border: '1px solid #00377D', background: 'white', color: '#00377D', fontWeight: 600, cursor: 'pointer', fontSize: 12 },
   empty: { textAlign: 'center', padding: 32, color: '#9ca3af' },

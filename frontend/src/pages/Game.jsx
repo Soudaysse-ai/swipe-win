@@ -223,7 +223,7 @@ const s = {
   card: {
     position: 'relative', background: '#00377D', borderRadius: 28,
     border: '4px solid #FFD109',
-    width: '100%', height: 440,
+    width: '100%', height: 'clamp(320px, 50vh, 440px)',
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end',
     padding: '0', overflow: 'hidden',
     boxShadow: '0 16px 44px rgba(0,55,125,0.28)',

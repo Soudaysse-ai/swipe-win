@@ -426,8 +426,8 @@ const bulkStyles = {
 };
 
 const styles = {
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
-  title: { fontFamily: "'Figtree', sans-serif", fontSize: 32, color: '#00377D', letterSpacing: 2 },
+  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 },
+  title: { fontFamily: "'Figtree', sans-serif", fontSize: 'clamp(24px, 6vw, 32px)', color: '#00377D', letterSpacing: 2 },
   filterSelect: { padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14 },
   btnAdd: { padding: '8px 18px', borderRadius: 8, border: 'none', background: '#00377D', color: '#FFD100', fontWeight: 700, cursor: 'pointer' },
   btnBulk: { padding: '8px 16px', borderRadius: 8, border: '2px solid #00377D', background: 'white', color: '#00377D', fontWeight: 700, cursor: 'pointer' },
@@ -445,7 +445,7 @@ const styles = {
 
 const qfStyles = {
   box: { background: '#f8faff', border: '2px solid #00377D', borderRadius: 12, padding: 16, marginBottom: 12 },
-  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 },
   field: { display: 'flex', flexDirection: 'column', gap: 4 },
   label: { fontSize: 12, fontWeight: 700, color: '#374151' },
   input: { padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none', fontFamily: 'inherit' },

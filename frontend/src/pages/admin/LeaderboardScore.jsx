@@ -50,12 +50,12 @@ export default function LeaderboardScore() {
 }
 
 const styles = {
-  title: { fontFamily: "'Figtree', sans-serif", fontSize: 32, color: '#00377D', letterSpacing: 2, marginBottom: 24 },
+  title: { fontFamily: "'Figtree', sans-serif", fontSize: 'clamp(24px, 6vw, 32px)', color: '#00377D', letterSpacing: 2, marginBottom: 24 },
   loading: { color: '#64748b' },
   tableWrap: { background: 'white', borderRadius: 16, overflow: 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 800, color: '#6b7280', background: '#f9fafb', whiteSpace: 'nowrap' },
-  td: { padding: '12px 16px', fontSize: 14, color: '#374151', borderTop: '1px solid #f3f4f6' },
+  td: { padding: '12px 16px', fontSize: 14, color: '#374151', borderTop: '1px solid #f3f4f6', whiteSpace: 'nowrap' },
   trEven: { background: '#fafbff' },
   rank: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '50%', fontWeight: 800, fontSize: 13 },
   empty: { textAlign: 'center', padding: 32, color: '#9ca3af' },
