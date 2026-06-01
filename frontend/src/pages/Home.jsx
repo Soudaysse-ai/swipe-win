@@ -215,9 +215,9 @@ const s = {
   },
   checkboxOn: { background: '#FFD100' },
   checkText: {
-    fontSize: 13,
+    fontSize: 11,
     color: '#1a2238',
-    lineHeight: 1.45,
+    lineHeight: 1.4,
     fontWeight: 700,
   },
   error: { color: '#EF4444', fontSize: 13, margin: 0 },
