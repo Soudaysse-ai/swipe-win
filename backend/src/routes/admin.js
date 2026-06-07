@@ -363,6 +363,19 @@ router.delete('/questions/:id', auth('superadmin'), async (req, res) => {
   }
 });
 
+// ── Leaderboard reset ─────────────────────────────────────────────────────────
+
+router.delete('/leaderboard/reset', auth(), async (req, res) => {
+  try {
+    await pool.query('DELETE FROM answers');
+    await pool.query('DELETE FROM sessions');
+    await logAudit(req.admin.id, 'RESET', 'leaderboard', null, null, { reset_at: new Date() });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Audit log helper ──────────────────────────────────────────────────────────
 
 async function logAudit(adminId, action, entity, entityId, oldData, newData) {

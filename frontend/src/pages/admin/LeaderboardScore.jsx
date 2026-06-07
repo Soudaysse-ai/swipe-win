@@ -4,16 +4,38 @@ import api from '../../utils/api';
 export default function LeaderboardScore() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [resetting, setResetting] = useState(false);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
     api.get('/admin/leaderboard/score')
       .then(r => setRows(r.data.leaderboard))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleReset = async () => {
+    if (!window.confirm('Réinitialiser le classement ? Toutes les sessions et réponses seront supprimées définitivement.')) return;
+    setResetting(true);
+    try {
+      await api.delete('/admin/leaderboard/reset');
+      setRows([]);
+    } catch (e) {
+      alert('Erreur : ' + (e.response?.data?.error || e.message));
+    } finally {
+      setResetting(false);
+    }
+  };
 
   return (
     <div>
-      <h2 style={styles.title}>🏆 Classement par Score</h2>
+      <div style={styles.header}>
+        <h2 style={styles.title}>🏆 Classement par Score</h2>
+        <button onClick={handleReset} disabled={resetting} style={styles.resetBtn}>
+          {resetting ? 'Réinitialisation…' : '🗑 Réinitialiser le classement'}
+        </button>
+      </div>
       {loading ? <p style={styles.loading}>Chargement...</p> : (
         <div style={styles.tableWrap}>
           <table style={styles.table}>
@@ -50,7 +72,9 @@ export default function LeaderboardScore() {
 }
 
 const styles = {
-  title: { fontFamily: "'Figtree', sans-serif", fontSize: 'clamp(24px, 6vw, 32px)', color: '#00377D', letterSpacing: 2, marginBottom: 24 },
+  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
+  title: { fontFamily: "'Figtree', sans-serif", fontSize: 'clamp(24px, 6vw, 32px)', color: '#00377D', letterSpacing: 2, margin: 0 },
+  resetBtn: { background: '#ef4444', color: 'white', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer' },
   loading: { color: '#64748b' },
   tableWrap: { background: 'white', borderRadius: 16, overflow: 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
   table: { width: '100%', borderCollapse: 'collapse' },

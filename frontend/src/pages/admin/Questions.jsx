@@ -98,7 +98,7 @@ const FOOTBALL_IMAGES = [
   'https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=800&q=80',
   'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&q=80',
   'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80',
-  'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&q=80',
+  'https://images.unsplash.com/photo-1459865264687-595d652de67e?w=800&q=80',
   'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&q=80',
   'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=800&q=80',
   'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=80',
@@ -106,9 +106,9 @@ const FOOTBALL_IMAGES = [
   'https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=800&q=80',
   'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=800&q=80',
   'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&q=80',
-  'https://images.unsplash.com/photo-1551280857-2b9e0a93f6f4?w=800&q=80',
+  'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=800&q=80',
   'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&q=80',
-  'https://images.unsplash.com/photo-1493924191657-9b0c2a0e9b3a?w=800&q=80',
+  'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&q=80',
 ];
 const randomFootballImage = () => FOOTBALL_IMAGES[Math.floor(Math.random() * FOOTBALL_IMAGES.length)];
 
