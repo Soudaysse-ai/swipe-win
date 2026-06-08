@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pronofoot-backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/soudaysse/pronofoot/backend", "run", "dev"],
+      "port": 4000,
+      "env": {
+        "DATABASE_URL": "postgresql://pronofoot:pronofoot@localhost:5432/pronofoot",
+        "JWT_SECRET": "dev-secret-please-change",
+        "REDIS_URL": "redis://localhost:6379",
+        "CORS_ORIGIN": "http://localhost:5173,http://localhost:5174"
+      }
+    },
+    {
+      "name": "pronofoot-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/soudaysse/pronofoot/frontend", "run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "pronofoot-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/soudaysse/pronofoot/admin", "run", "dev"],
+      "port": 5174
+    }
+  ]
+}
