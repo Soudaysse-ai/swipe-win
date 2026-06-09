@@ -45,15 +45,15 @@ export default function Home() {
 
   return (
     <div style={s.page}>
-      <div style={s.frame}>
-        {/* Top-right yellow blob with logo */}
-        <div style={s.blobWrap}>
-          <Plectre color="yellow" size={520} rotate={-35} style={s.blob} />
-          <div style={s.logoOnBlob}>
-            <YasLogo size={190} />
-          </div>
+      {/* Plectrum + logo : fixé en haut à droite de la PAGE (pas du frame) */}
+      <div style={s.blobWrap}>
+        <Plectre color="yellow" size={520} rotate={-35} style={s.blob} />
+        <div style={s.logoOnBlob}>
+          <YasLogo size={190} />
         </div>
+      </div>
 
+      <div style={s.frame}>
         {/* Title */}
         <h1 style={s.title}>
           <span style={s.tYellow}>Swipe </span>
@@ -115,17 +115,19 @@ const s = {
     background: '#00377D',
     display: 'flex',
     justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
   },
   frame: {
     position: 'relative',
     width: '100%',
     maxWidth: 460,
     minHeight: '100vh',
-    background: '#00377D',
-    overflow: 'hidden',
+    background: 'transparent',
     display: 'flex',
     flexDirection: 'column',
     padding: '0 28px',
+    zIndex: 1,
   },
   blobWrap: {
     position: 'absolute',
@@ -134,6 +136,7 @@ const s = {
     width: 520,
     height: 520,
     pointerEvents: 'none',
+    zIndex: 0,
   },
   blob: {
     position: 'absolute',
