@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import api from '../../utils/api';
 
-const TIERS = ['daily', 'weekly', 'monthly', 'grand'];
-const EMPTY_FORM = { label: '', description: '', image_url: '', tier: 'daily', quantity: 1, is_active: true };
+const TIERS = [
+  { value: '1er_prix', label: '1er prix' },
+  { value: '2eme_prix', label: '2ème prix' },
+  { value: '3eme_prix', label: '3ème prix' },
+];
+const EMPTY_FORM = { label: '', description: '', image_url: '', tier: '1er_prix', quantity: 1, is_active: true };
 
 export default function AdminPrizes() {
   const [prizes, setPrizes] = useState([]);
@@ -70,7 +74,8 @@ export default function AdminPrizes() {
     fetchPrizes();
   }
 
-  const tierColors = { daily: '#22C55E', weekly: '#3b82f6', monthly: '#8b5cf6', grand: '#FFD100' };
+  const tierColors = { '1er_prix': '#FFD100', '2eme_prix': '#94a3b8', '3eme_prix': '#cd7f32' };
+  const tierLabels = { '1er_prix': '1er prix', '2eme_prix': '2ème prix', '3eme_prix': '3ème prix' };
 
   return (
     <div>
@@ -133,7 +138,7 @@ export default function AdminPrizes() {
                     }
                     <div style={styles.prizeInfo}>
                       <span style={{ ...styles.tierBadge, background: tierColors[p.tier] || '#94a3b8' }}>
-                        {p.tier.toUpperCase()}
+                        {tierLabels[p.tier] || p.tier}
                       </span>
                       <div style={styles.prizeLabel}>{p.label}</div>
                       {p.description && <div style={styles.prizeDesc}>{p.description}</div>}
@@ -190,7 +195,7 @@ function PrizeForm({ form, setForm, onSave, onCancel, saving, title }) {
         <div style={formStyles.field}>
           <label style={formStyles.label}>Tier</label>
           <select style={formStyles.input} value={form.tier} onChange={e => f('tier', e.target.value)}>
-            {['daily', 'weekly', 'monthly', 'grand'].map(t => <option key={t} value={t}>{t}</option>)}
+            {TIERS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </div>
         <div style={formStyles.field}>
