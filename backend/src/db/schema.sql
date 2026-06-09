@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS prizes (
   label       VARCHAR(255) NOT NULL,
   description TEXT,
   image_url   VARCHAR(500),
-  tier        VARCHAR(30) DEFAULT 'daily' CHECK (tier IN ('daily','weekly','monthly','grand')),
+  tier        VARCHAR(30) DEFAULT '1er_prix' CHECK (tier IN ('1er_prix','2eme_prix','3eme_prix')),
   quantity    INT DEFAULT 1,
   is_active   BOOLEAN DEFAULT true,
   updated_at  TIMESTAMP DEFAULT NOW(),
