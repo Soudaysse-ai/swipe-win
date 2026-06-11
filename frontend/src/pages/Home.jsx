@@ -29,6 +29,7 @@ export default function Home() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!phone.trim()) return setError('Entrez votre numéro');
+    if (!/^4\d{6}$/.test(phone.trim())) return setError('Le numéro doit commencer par 4 et contenir 7 chiffres (ex: 4451200)');
     if (!agreed) return setError('Veuillez accepter les conditions');
     setLoading(true);
     setError('');

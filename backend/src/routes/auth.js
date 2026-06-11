@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 router.post('/subscribe', async (req, res) => {
   const { phone, name } = req.body;
   if (!phone) return res.status(400).json({ error: 'Numéro requis' });
+  if (!/^\+2694\d{6}$/.test(phone)) return res.status(400).json({ error: 'Numéro invalide (doit commencer par 4 et contenir 7 chiffres)' });
 
   try {
     let result = await pool.query('SELECT * FROM players WHERE phone = $1', [phone]);
