@@ -194,6 +194,32 @@ router.put('/settings/prizes-enabled', auth(), async (req, res) => {
   }
 });
 
+// Réglage global : mettre le jeu en pause (bloque le démarrage de nouvelles sessions)
+router.get('/settings/game-paused', auth(), async (req, res) => {
+  try {
+    const r = await pool.query("SELECT value FROM settings WHERE key = 'game_paused'");
+    const paused = r.rows.length && r.rows[0].value === 'true';
+    res.json({ paused });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/settings/game-paused', auth(), async (req, res) => {
+  const { paused } = req.body;
+  if (typeof paused !== 'boolean') return res.status(400).json({ error: 'paused (booléen) requis' });
+  try {
+    await pool.query(
+      `INSERT INTO settings (key, value, updated_at) VALUES ('game_paused', $1, NOW())
+       ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()`,
+      [paused ? 'true' : 'false']
+    );
+    res.json({ paused });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/prizes', auth(), async (req, res) => {
   const { label, description, image_url, tier, quantity } = req.body;
   if (!label) return res.status(400).json({ error: 'Label requis' });

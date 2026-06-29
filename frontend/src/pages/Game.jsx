@@ -19,6 +19,7 @@ export default function Game() {
   const [swipeDelta, setSwipeDelta] = useState(0);
   const [questionStartTime, setQuestionStartTime] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [paused, setPaused] = useState(false);
   const timerRef = useRef(null);
   const touchStartX = useRef(null);
   const isDragging = useRef(false);
@@ -51,7 +52,14 @@ export default function Game() {
       setQuestions(qRes.data.questions);
       setSessionId(sRes.data.session.id);
       setLoading(false);
-    } catch { navigate('/'); }
+    } catch (err) {
+      if (err.response?.data?.paused) {
+        setPaused(true);
+        setLoading(false);
+      } else {
+        navigate('/');
+      }
+    }
   }
 
   const handleAnswer = useCallback(async (userAnswer) => {
@@ -105,6 +113,29 @@ export default function Game() {
     <div style={s.loading}>
       <YasLogo size={70} />
       <p style={{ color: '#00377D', marginTop: 16, fontWeight: 800 }}>Chargement...</p>
+    </div>
+  );
+
+  if (paused) return (
+    <div style={s.loading}>
+      <YasLogo size={70} />
+      <p style={{ fontSize: 48, marginTop: 16 }}>⏸</p>
+      <p style={{ color: '#00377D', marginTop: 8, fontWeight: 800, fontSize: 18, textAlign: 'center', padding: '0 24px' }}>
+        Le jeu est en pause pour le moment.
+      </p>
+      <p style={{ color: '#64748b', marginTop: 4, fontSize: 14, textAlign: 'center', padding: '0 24px' }}>
+        Reviens un peu plus tard !
+      </p>
+      <button
+        style={{
+          marginTop: 24, padding: '14px 28px', borderRadius: 14, border: 'none',
+          background: '#FFD100', color: '#00377D', fontFamily: "'Figtree', sans-serif",
+          fontWeight: 900, fontSize: 16, cursor: 'pointer',
+        }}
+        onClick={() => navigate('/')}
+      >
+        Retour à l'accueil
+      </button>
     </div>
   );
 

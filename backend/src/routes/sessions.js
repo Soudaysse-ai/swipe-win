@@ -4,12 +4,28 @@ const pool = require('../db/pool');
 const { v4: uuidv4 } = require('uuid');
 const { calcSessionScore } = require('../utils/score');
 
+// GET /api/sessions/game-status — le jeu est-il en pause ?
+router.get('/game-status', async (req, res) => {
+  try {
+    const r = await pool.query("SELECT value FROM settings WHERE key = 'game_paused'");
+    const paused = r.rows.length && r.rows[0].value === 'true';
+    res.json({ paused });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/sessions/start
 router.post('/start', async (req, res) => {
   const { player_id } = req.body;
   if (!player_id) return res.status(400).json({ error: 'player_id requis' });
 
   try {
+    const paused = await pool.query("SELECT value FROM settings WHERE key = 'game_paused'");
+    if (paused.rows.length && paused.rows[0].value === 'true') {
+      return res.status(403).json({ error: 'Le jeu est actuellement en pause', paused: true });
+    }
+
     const result = await pool.query(
       'INSERT INTO sessions (id, player_id) VALUES ($1, $2) RETURNING *',
       [uuidv4(), player_id]

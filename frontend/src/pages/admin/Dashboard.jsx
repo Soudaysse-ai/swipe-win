@@ -15,13 +15,27 @@ function StatCard({ label, value, sub, color = '#00377D' }) {
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [gamePaused, setGamePaused] = useState(false);
 
   useEffect(() => {
     api.get('/admin/dashboard/stats')
       .then(r => setStats(r.data))
       .catch(() => {})
       .finally(() => setLoading(false));
+    api.get('/admin/settings/game-paused')
+      .then(r => setGamePaused(r.data.paused))
+      .catch(() => {});
   }, []);
+
+  async function toggleGamePaused() {
+    const next = !gamePaused;
+    setGamePaused(next);
+    try {
+      await api.put('/admin/settings/game-paused', { paused: next });
+    } catch {
+      setGamePaused(!next); // rollback en cas d'erreur
+    }
+  }
 
   if (loading) return <div style={styles.loading}>Chargement...</div>;
 
@@ -33,6 +47,25 @@ export default function Dashboard() {
   return (
     <div>
       <h2 style={styles.pageTitle}>Dashboard</h2>
+
+      <div style={styles.toggleBar}>
+        <div>
+          <div style={styles.toggleTitle}>⏸ Pause du jeu</div>
+          <div style={styles.toggleHint}>
+            {gamePaused
+              ? 'Le jeu est en pause : les joueurs ne peuvent plus démarrer de nouvelle partie.'
+              : 'Le jeu est actif : les joueurs peuvent jouer normalement.'}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={toggleGamePaused}
+          style={{ ...styles.switch, background: gamePaused ? '#EF4444' : '#22C55E' }}
+          aria-label="Mettre le jeu en pause"
+        >
+          <span style={{ ...styles.switchKnob, transform: gamePaused ? 'translateX(24px)' : 'translateX(0)' }} />
+        </button>
+      </div>
 
       <div style={styles.statsGrid}>
         <StatCard label="Joueurs inscrits" value={stats?.total_players} color="#00377D" />
@@ -67,6 +100,11 @@ const styles = {
     letterSpacing: 2,
     marginBottom: 24,
   },
+  toggleBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: 'white', borderRadius: 14, padding: '16px 20px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 24 },
+  toggleTitle: { fontWeight: 800, fontSize: 15, color: '#00377D' },
+  toggleHint: { fontSize: 13, color: '#6b7280', marginTop: 2 },
+  switch: { position: 'relative', width: 52, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background 0.2s', padding: 0 },
+  switchKnob: { position: 'absolute', top: 2, left: 2, width: 24, height: 24, borderRadius: '50%', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'transform 0.2s' },
   statsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
