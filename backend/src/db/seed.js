@@ -128,6 +128,36 @@ const questions = [
   { id: 'wc_107', text_fr: 'La Ligue des Champions est réservée aux équipes nationales', answer: false, difficulty: 'medium' },
   { id: 'wc_108', text_fr: 'Un match nul est impossible en phase de groupes', answer: false, difficulty: 'medium' },
   { id: 'wc_109', text_fr: 'Le carton jaune signifie l\'expulsion immédiate du joueur', answer: false, difficulty: 'easy' },
+
+  // --- Lot de questions vérifiées (medium / hard uniquement) ---
+  { id: 'wc_110', text_fr: 'Miroslav Klose est le meilleur buteur de l\'histoire des Coupes du Monde avec 16 buts', answer: true, difficulty: 'hard' },
+  { id: 'wc_111', text_fr: 'Just Fontaine détient le record de buts en une seule Coupe du Monde avec 13 buts en 1958', answer: true, difficulty: 'hard' },
+  { id: 'wc_112', text_fr: 'Lionel Messi est le meilleur buteur de l\'histoire de la Coupe du Monde', answer: false, difficulty: 'hard' },
+  { id: 'wc_113', text_fr: 'L\'Allemagne a remporté 4 Coupes du Monde', answer: true, difficulty: 'medium' },
+  { id: 'wc_114', text_fr: 'Le Brésil est la seule équipe à avoir participé à toutes les phases finales de Coupe du Monde', answer: true, difficulty: 'hard' },
+  { id: 'wc_115', text_fr: 'La Coupe du Monde 2026 comptera 48 équipes', answer: true, difficulty: 'medium' },
+  { id: 'wc_116', text_fr: 'La Coupe du Monde 2022 au Qatar a été la première organisée dans un pays arabe', answer: true, difficulty: 'medium' },
+  { id: 'wc_117', text_fr: 'Le Maroc a été la première équipe africaine à atteindre les demi-finales d\'une Coupe du Monde en 2022', answer: true, difficulty: 'medium' },
+  { id: 'wc_118', text_fr: 'Le Cameroun a été la première équipe africaine à atteindre les quarts de finale, en 1990', answer: true, difficulty: 'hard' },
+  { id: 'wc_119', text_fr: 'Le Sénégal a battu la France lors du match d\'ouverture de la Coupe du Monde 2002', answer: true, difficulty: 'hard' },
+  { id: 'wc_120', text_fr: 'Andrés Iniesta a inscrit le but vainqueur de l\'Espagne en prolongation de la finale 2010', answer: true, difficulty: 'hard' },
+  { id: 'wc_121', text_fr: 'Kylian Mbappé a inscrit un triplé lors de la finale de la Coupe du Monde 2022', answer: true, difficulty: 'medium' },
+  { id: 'wc_122', text_fr: 'L\'Argentine a remporté 3 Coupes du Monde', answer: true, difficulty: 'medium' },
+  { id: 'wc_123', text_fr: 'Roberto Baggio a manqué son tir au but lors de la finale de la Coupe du Monde 1994', answer: true, difficulty: 'hard' },
+  { id: 'wc_124', text_fr: 'La toute première Coupe du Monde, en 1930, ne comptait que 13 équipes', answer: true, difficulty: 'hard' },
+  { id: 'wc_125', text_fr: 'L\'Angleterre a remporté 2 Coupes du Monde', answer: false, difficulty: 'medium' },
+  { id: 'wc_126', text_fr: 'Le Mexique a déjà remporté une Coupe du Monde', answer: false, difficulty: 'medium' },
+  { id: 'wc_127', text_fr: 'Cristiano Ronaldo a remporté la Coupe du Monde avec le Portugal', answer: false, difficulty: 'medium' },
+  { id: 'wc_128', text_fr: 'Le Portugal a remporté la Coupe du Monde 2006', answer: false, difficulty: 'medium' },
+  { id: 'wc_129', text_fr: 'Le Brésil a remporté la Coupe du Monde 1966', answer: false, difficulty: 'hard' },
+  { id: 'wc_130', text_fr: 'Les Pays-Bas ont déjà remporté une Coupe du Monde', answer: false, difficulty: 'hard' },
+  { id: 'wc_131', text_fr: 'Le Brésil a remporté la Coupe du Monde 2014 organisée à domicile', answer: false, difficulty: 'medium' },
+  { id: 'wc_132', text_fr: 'La France a remporté la Coupe du Monde 2022', answer: false, difficulty: 'medium' },
+  { id: 'wc_133', text_fr: 'L\'Italie n\'a remporté que 2 Coupes du Monde', answer: false, difficulty: 'hard' },
+  { id: 'wc_134', text_fr: 'La première Coupe du Monde de l\'histoire a eu lieu en 1950', answer: false, difficulty: 'medium' },
+  { id: 'wc_135', text_fr: 'Diego Maradona a remporté la Coupe du Monde 1986 avec le Brésil', answer: false, difficulty: 'medium' },
+  { id: 'wc_136', text_fr: 'Pelé n\'a remporté qu\'une seule Coupe du Monde dans sa carrière', answer: false, difficulty: 'hard' },
+  { id: 'wc_137', text_fr: 'Emiliano Martínez a remporté le Gant d\'or de meilleur gardien de la Coupe du Monde 2022', answer: true, difficulty: 'hard' },
 ];
 
 // Banque de photos football pour donner une image à chaque carte
@@ -180,7 +210,7 @@ async function seed() {
     // Seed prize
     await client.query(`
       INSERT INTO prizes (label, tier, quantity, is_active)
-      VALUES ('Samsung Galaxy S25+', 'grand', 1, true)
+      VALUES ('Samsung Galaxy S25+', '1er_prix', 1, true)
       ON CONFLICT DO NOTHING
     `);
 
