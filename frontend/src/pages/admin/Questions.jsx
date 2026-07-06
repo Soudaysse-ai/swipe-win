@@ -120,6 +120,7 @@ export default function AdminQuestions() {
   const [showAdd, setShowAdd] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [catFilter, setCatFilter] = useState('all');
 
   useEffect(() => { fetch(); }, []);
 
@@ -153,7 +154,10 @@ export default function AdminQuestions() {
     fetch();
   }
 
-  const filtered = filter === 'all' ? questions : questions.filter(q => q.is_active === (filter === 'active'));
+  const categories = [...new Set(questions.map(q => q.category))].sort();
+  const filtered = questions
+    .filter(q => filter === 'all' || q.is_active === (filter === 'active'))
+    .filter(q => catFilter === 'all' || q.category === catFilter);
 
   function downloadXLSX() {
     const rows = questions.length ? questions : SAMPLE_ROWS;
@@ -165,6 +169,10 @@ export default function AdminQuestions() {
       <div style={styles.header}>
         <h2 style={styles.title}>❓ Questions</h2>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <select style={styles.filterSelect} value={catFilter} onChange={e => setCatFilter(e.target.value)}>
+            <option value="all">Tous les thèmes</option>
+            {categories.map(c => <option key={c} value={c}>{c === 'coupe_du_monde' ? '⚽ Football' : c === 'comores' ? '🇰🇲 Comores' : c}</option>)}
+          </select>
           <select style={styles.filterSelect} value={filter} onChange={e => setFilter(e.target.value)}>
             <option value="all">Toutes</option>
             <option value="active">Actives</option>
