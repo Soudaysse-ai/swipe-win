@@ -81,9 +81,11 @@ export default function Home() {
               <input
                 style={s.phoneInput}
                 type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
                 placeholder="000 0000"
                 value={phone}
-                onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
+                onChange={e => { setPhone(e.target.value.replace(/\D/g, '')); setError(''); }}
                 maxLength={7}
               />
             </div>
@@ -100,8 +102,8 @@ export default function Home() {
 
             {error && <p style={s.error}>{error}</p>}
 
-            <button style={s.btn} type="submit" disabled={loading}>
-              {loading ? '...' : 'Continuer'}
+            <button style={{ ...s.btn, opacity: loading ? 0.6 : 1, cursor: loading ? 'wait' : 'pointer' }} type="submit" disabled={loading}>
+              {loading ? 'Connexion…' : 'Continuer'}
             </button>
           </form>
         )}

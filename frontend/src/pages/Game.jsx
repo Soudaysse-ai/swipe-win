@@ -20,9 +20,12 @@ export default function Game() {
   const [questionStartTime, setQuestionStartTime] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
+  const [imgBroken, setImgBroken] = useState(false);
   const timerRef = useRef(null);
   const touchStartX = useRef(null);
   const isDragging = useRef(false);
+  const answering = useRef(false);
+  const handleAnswerRef = useRef(null);
 
   useEffect(() => { initGame(); return () => clearInterval(timerRef.current); }, []);
 
@@ -33,7 +36,7 @@ export default function Game() {
       clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         setTimeLeft(t => {
-          if (t <= 1) { clearInterval(timerRef.current); handleAnswer(null); return 0; }
+          if (t <= 1) { clearInterval(timerRef.current); handleAnswerRef.current?.(null); return 0; }
           return t - 1;
         });
       }, 1000);
@@ -41,12 +44,29 @@ export default function Game() {
     return () => clearInterval(timerRef.current);
   }, [current, loading, feedback]);
 
+  // Réponse au clavier sur desktop : ← = faux, → = vrai
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); handleAnswerRef.current?.(false); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); handleAnswerRef.current?.(true); }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Précharge l'image de la question suivante pour éviter le flash
+  useEffect(() => {
+    setImgBroken(false);
+    const next = questions[current + 1];
+    if (next?.image_url) { const img = new Image(); img.src = next.image_url; }
+  }, [current, questions]);
+
   async function initGame() {
     const player = JSON.parse(localStorage.getItem('sw_player') || 'null');
     if (!player) return navigate('/');
     try {
       const [qRes, sRes] = await Promise.all([
-        api.get('/questions/random?count=15'),
+        api.get(`/questions/random?count=${TOTAL_QUESTIONS}`),
         api.post('/sessions/start', { player_id: player.id }),
       ]);
       setQuestions(qRes.data.questions);
@@ -63,8 +83,15 @@ export default function Game() {
   }
 
   const handleAnswer = useCallback(async (userAnswer) => {
-    if (feedback || !sessionId || questions.length === 0) return;
+    if (feedback || answering.current || !sessionId || questions.length === 0) return;
+    answering.current = true;
     clearInterval(timerRef.current);
+
+    // Réaction immédiate : la carte s'envole dans le sens de la réponse
+    // (pas de vol en cas de timeout — la carte reste en place)
+    if (userAnswer === true) { setSwipeDir('right'); setSwipeDelta(560); }
+    else if (userAnswer === false) { setSwipeDir('left'); setSwipeDelta(-560); }
+
     const q = questions[current];
     const responseTimeMs = questionStartTime ? Date.now() - questionStartTime : TIME_LIMIT * 1000;
     let isCorrect = false;
@@ -81,17 +108,22 @@ export default function Game() {
     }
     setTimeout(() => {
       setFeedback(null); setSwipeDelta(0); setSwipeDir(null);
+      answering.current = false;
       if (current + 1 >= questions.length) endGame();
       else setCurrent(c => c + 1);
     }, 850);
   }, [feedback, sessionId, questions, current, questionStartTime]);
 
+  // Toujours pointer vers la dernière version (timer + clavier)
+  useEffect(() => { handleAnswerRef.current = handleAnswer; }, [handleAnswer]);
+
   async function endGame() {
+    const total = questions.length || TOTAL_QUESTIONS;
     try {
       const { data } = await api.post(`/sessions/${sessionId}/end`);
-      navigate('/game-over', { state: { session: data.session, total: TOTAL_QUESTIONS } });
+      navigate('/game-over', { state: { session: data.session, total } });
     } catch {
-      navigate('/game-over', { state: { session: { score, correct_count: 0 }, total: TOTAL_QUESTIONS } });
+      navigate('/game-over', { state: { session: { score, correct_count: 0 }, total } });
     }
   }
 
@@ -103,7 +135,9 @@ export default function Game() {
     setSwipeDir(d > 30 ? 'right' : d < -30 ? 'left' : null);
   }
   function dragEnd() {
+    if (!isDragging.current) return;
     isDragging.current = false;
+    if (answering.current) return;
     if (swipeDelta > 80) handleAnswer(true);
     else if (swipeDelta < -80) handleAnswer(false);
     else { setSwipeDelta(0); setSwipeDir(null); }
@@ -140,6 +174,7 @@ export default function Game() {
   );
 
   const q = questions[current];
+  const total = questions.length || TOTAL_QUESTIONS;
   const timerPct = (timeLeft / TIME_LIMIT) * 100;
   const timerColor = timeLeft > 20 ? '#22C55E' : timeLeft > 10 ? '#FFD109' : '#EF4444';
   const rot = swipeDelta * 0.05;
@@ -160,7 +195,7 @@ export default function Game() {
       {/* Timer */}
       <div style={s.timerWrap}>
         <div style={s.timerHead}>
-          <span style={s.progressText}>Question {current + 1}/{TOTAL_QUESTIONS}</span>
+          <span style={s.progressText}>Question {current + 1}/{total}</span>
           <span style={{ ...s.timeText, color: timerColor }}>⏱ {timeLeft}s</span>
         </div>
         <div style={s.timerTrack}>
@@ -176,53 +211,57 @@ export default function Game() {
 
       {/* Card */}
       <div style={s.cardZone}>
-        <div
-          style={{
-            ...s.card,
-            transform: `translateX(${swipeDelta}px) rotate(${rot}deg)`,
-            transition: isDragging.current ? 'none' : 'transform 0.3s ease',
-            cursor: isDragging.current ? 'grabbing' : 'grab',
-            borderColor: swipeDir === 'right' ? '#22C55E' : swipeDir === 'left' ? '#EF4444' : '#FFD109',
-          }}
-          onTouchStart={e => dragStart(e.touches[0].clientX)}
-          onTouchMove={e => dragMove(e.touches[0].clientX)}
-          onTouchEnd={dragEnd}
-          onMouseDown={e => dragStart(e.clientX)}
-          onMouseMove={e => dragMove(e.clientX)}
-          onMouseUp={dragEnd}
-          onMouseLeave={dragEnd}
-        >
+        <div style={s.cardWrap}>
+          <div
+            style={{
+              ...s.card,
+              transform: `translateX(${swipeDelta}px) rotate(${rot}deg)`,
+              transition: isDragging.current ? 'none' : 'transform 0.35s ease',
+              cursor: isDragging.current ? 'grabbing' : 'grab',
+              opacity: Math.abs(swipeDelta) > 400 ? 0 : 1,
+              borderColor: swipeDir === 'right' ? '#22C55E' : swipeDir === 'left' ? '#EF4444' : '#FFD109',
+            }}
+            onTouchStart={e => dragStart(e.touches[0].clientX)}
+            onTouchMove={e => dragMove(e.touches[0].clientX)}
+            onTouchEnd={dragEnd}
+            onMouseDown={e => dragStart(e.clientX)}
+            onMouseMove={e => dragMove(e.clientX)}
+            onMouseUp={dragEnd}
+            onMouseLeave={dragEnd}
+          >
+            {/* Photo background (or fallback si absente ou cassée) */}
+            {q.image_url && !imgBroken ? (
+              <img src={q.image_url} alt="" style={s.cardImg} draggable={false} onError={() => setImgBroken(true)} />
+            ) : (
+              <div style={s.cardFallback}>
+                <Plectre color="yellow" size={120} rotate={-20} style={{ opacity: 0.25 }} />
+                <span style={s.fallbackBall}>⚽</span>
+              </div>
+            )}
+
+            {/* Swipe stamps */}
+            <div style={{ ...s.stamp, ...s.stampVrai, opacity: swipeDir === 'right' ? 1 : 0 }}>VRAI ✓</div>
+            <div style={{ ...s.stamp, ...s.stampFaux, opacity: swipeDir === 'left' ? 1 : 0 }}>✕ FAUX</div>
+
+            {/* Bottom gradient + question */}
+            <div style={s.cardGradient} />
+            <p style={s.question}>{q.text_fr}</p>
+            <p style={s.hint}>← Glisse pour répondre →</p>
+          </div>
+
+          {/* Feedback : reste centré pendant que la carte s'envole */}
           {feedback && (
             <div style={{ ...s.overlay, background: feedback === 'correct' ? 'rgba(34,197,94,0.92)' : 'rgba(239,68,68,0.92)' }}>
-              <span style={{ fontSize: 90 }}>{feedback === 'correct' ? '✅' : '❌'}</span>
+              <span style={s.overlayEmoji}>{feedback === 'correct' ? '✅' : '❌'}</span>
             </div>
           )}
-
-          {/* Photo background (or fallback) */}
-          {q.image_url ? (
-            <img src={q.image_url} alt="" style={s.cardImg} draggable={false} />
-          ) : (
-            <div style={s.cardFallback}>
-              <Plectre color="yellow" size={120} rotate={-20} style={{ opacity: 0.25 }} />
-              <span style={s.fallbackBall}>⚽</span>
-            </div>
-          )}
-
-          {/* Swipe stamps */}
-          <div style={{ ...s.stamp, ...s.stampVrai, opacity: swipeDir === 'right' ? 1 : 0 }}>VRAI ✓</div>
-          <div style={{ ...s.stamp, ...s.stampFaux, opacity: swipeDir === 'left' ? 1 : 0 }}>✕ FAUX</div>
-
-          {/* Bottom gradient + question */}
-          <div style={s.cardGradient} />
-          <p style={s.question}>{q.text_fr}</p>
-          <p style={s.hint}>← Glisse pour répondre →</p>
         </div>
       </div>
 
       {/* Buttons */}
       <div style={s.buttons}>
-        <button style={s.btnFaux} onClick={() => handleAnswer(false)} disabled={!!feedback}>✕</button>
-        <button style={s.btnVrai} onClick={() => handleAnswer(true)} disabled={!!feedback}>✓</button>
+        <button style={{ ...s.btnFaux, opacity: feedback ? 0.5 : 1 }} onClick={() => handleAnswer(false)} disabled={!!feedback}>✕</button>
+        <button style={{ ...s.btnVrai, opacity: feedback ? 0.5 : 1 }} onClick={() => handleAnswer(true)} disabled={!!feedback}>✓</button>
       </div>
     </div>
   );
@@ -251,10 +290,10 @@ const s = {
   swFaux: { color: '#EF4444', background: 'rgba(239,68,68,0.12)' },
   swVrai: { color: '#22C55E', background: 'rgba(34,197,94,0.12)' },
   cardZone: { flex: 1, width: '100%', maxWidth: 460, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 },
+  cardWrap: { position: 'relative', width: '100%', height: 'clamp(320px, 50vh, 440px)' },
   card: {
-    position: 'relative', background: '#00377D', borderRadius: 28,
+    position: 'absolute', inset: 0, background: '#00377D', borderRadius: 28,
     border: '4px solid #FFD109',
-    width: '100%', height: 'clamp(320px, 50vh, 440px)',
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end',
     padding: '0', overflow: 'hidden',
     boxShadow: '0 16px 44px rgba(0,55,125,0.28)',
@@ -275,7 +314,8 @@ const s = {
     background: 'linear-gradient(to top, rgba(0,20,46,0.92) 18%, rgba(0,20,46,0.55) 55%, rgba(0,20,46,0) 100%)',
     pointerEvents: 'none',
   },
-  overlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 24, zIndex: 10 },
+  overlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 28, zIndex: 10, animation: 'sw-pop 0.25s ease' },
+  overlayEmoji: { fontSize: 90 },
   stamp: {
     position: 'absolute', top: 22, padding: '8px 18px', borderRadius: 12,
     fontWeight: 900, fontSize: 22, letterSpacing: 1, color: 'white',

@@ -7,6 +7,8 @@ import Plectre from '../components/Plectre';
 const RADIUS = 72;
 const CIRC = 2 * Math.PI * RADIUS;
 
+const TIER_LABELS = { '1er_prix': '🥇 1er prix', '2eme_prix': '🥈 2ème prix', '3eme_prix': '🥉 3ème prix' };
+
 export default function GameOver() {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -146,7 +148,7 @@ export default function GameOver() {
               <div key={p.id} style={s.prizeItem}>
                 {p.image_url ? <img src={p.image_url} alt={p.label} style={s.prizeImg} /> : <div style={s.prizeEmoji}>🏆</div>}
                 <div>
-                  <span style={s.prizeTier}>{p.tier.toUpperCase()}</span>
+                  <span style={s.prizeTier}>{TIER_LABELS[p.tier] || p.tier}</span>
                   <div style={s.prizeLabel}>{p.label}</div>
                 </div>
               </div>
