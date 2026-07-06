@@ -158,6 +158,28 @@ const questions = [
   { id: 'wc_135', text_fr: 'Diego Maradona a remporté la Coupe du Monde 1986 avec le Brésil', answer: false, difficulty: 'medium' },
   { id: 'wc_136', text_fr: 'Pelé n\'a remporté qu\'une seule Coupe du Monde dans sa carrière', answer: false, difficulty: 'hard' },
   { id: 'wc_137', text_fr: 'Emiliano Martínez a remporté le Gant d\'or de meilleur gardien de la Coupe du Monde 2022', answer: true, difficulty: 'hard' },
+
+  // --- Thème Comores : Indépendance & Histoire ---
+  { id: 'km_01', text_fr: 'Les Comores ont proclamé leur indépendance le 6 juillet 1965', answer: false, difficulty: 'medium', category: 'comores' },
+  { id: 'km_02', text_fr: 'Ahmed Abdallah était le président qui a proclamé l\'indépendance des Comores', answer: true, difficulty: 'medium', category: 'comores' },
+  { id: 'km_03', text_fr: 'Les Comores étaient une colonie portugaise avant leur indépendance', answer: false, difficulty: 'medium', category: 'comores' },
+  { id: 'km_04', text_fr: 'Le 6 juillet est un jour férié national aux Comores', answer: true, difficulty: 'medium', category: 'comores' },
+
+  // --- Thème Comores : Culture générale ---
+  { id: 'km_05', text_fr: 'Les Comores sont surnommées "les îles de la Lune"', answer: true, difficulty: 'medium', category: 'comores' },
+  { id: 'km_06', text_fr: 'Les Comores se trouvent dans l\'océan Pacifique', answer: false, difficulty: 'medium', category: 'comores' },
+  { id: 'km_07', text_fr: 'Le drapeau comorien comporte un croissant et quatre étoiles', answer: true, difficulty: 'medium', category: 'comores' },
+  { id: 'km_08', text_fr: 'La monnaie des Comores est le FCFA', answer: false, difficulty: 'medium', category: 'comores' },
+  { id: 'km_09', text_fr: 'Les Comores sont un grand producteur mondial d\'ylang-ylang', answer: true, difficulty: 'medium', category: 'comores' },
+  { id: 'km_10', text_fr: 'Les Comores se situent entre l\'Afrique et l\'Australie', answer: false, difficulty: 'medium', category: 'comores' },
+
+  // --- Thème Comores : Yas ---
+  { id: 'km_11', text_fr: 'Yas Comores a lancé ses activités dans le pays en 2016', answer: true, difficulty: 'medium', category: 'comores' },
+  { id: 'km_12', text_fr: 'Yas Comores a été le premier opérateur à lancer la 5G aux Comores', answer: true, difficulty: 'medium', category: 'comores' },
+  { id: 'km_13', text_fr: 'Le Pass Voyage permet de rester connecté à l\'étranger', answer: true, difficulty: 'medium', category: 'comores' },
+  { id: 'km_14', text_fr: 'Le slogan de Yas est "Yas, vivons connectés."', answer: true, difficulty: 'medium', category: 'comores' },
+  { id: 'km_15', text_fr: 'DagoNet est une offre internet mobile', answer: false, difficulty: 'medium', category: 'comores' },
+  { id: 'km_16', text_fr: 'Yas Comores n\'a aucun lien avec d\'autres pays africains', answer: false, difficulty: 'medium', category: 'comores' },
 ];
 
 // Banque de photos football pour donner une image à chaque carte
@@ -200,11 +222,12 @@ async function seed() {
       const difficulty = q.difficulty || 'medium';
       // image fournie, sinon on en assigne une depuis la banque football
       const image_url = q.image_url || FOOTBALL_IMAGES[i % FOOTBALL_IMAGES.length];
+      const category = q.category || 'coupe_du_monde';
       await client.query(`
         INSERT INTO questions (id, text_fr, answer, category, difficulty, image_url, is_active)
-        VALUES ($1, $2, $3, 'coupe_du_monde', $4, $5, true)
-        ON CONFLICT (id) DO UPDATE SET text_fr = $2, answer = $3, difficulty = $4, image_url = COALESCE(questions.image_url, $5)
-      `, [q.id, q.text_fr, q.answer, difficulty, image_url]);
+        VALUES ($1, $2, $3, $6, $4, $5, true)
+        ON CONFLICT (id) DO UPDATE SET text_fr = $2, answer = $3, difficulty = $4, category = $6, image_url = COALESCE(questions.image_url, $5)
+      `, [q.id, q.text_fr, q.answer, difficulty, image_url, category]);
     }
 
     // Seed prize

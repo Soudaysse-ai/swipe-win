@@ -9,6 +9,7 @@ import AdminLeaderboardScore from './pages/admin/LeaderboardScore';
 import AdminLeaderboardSpeed from './pages/admin/LeaderboardSpeed';
 import AdminPrizes from './pages/admin/Prizes';
 import AdminQuestions from './pages/admin/Questions';
+import AdminThemes from './pages/admin/Themes';
 import AdminPlayers from './pages/admin/Players';
 import AdminPlayerDetail from './pages/admin/PlayerDetail';
 import { AdminAuthProvider, useAdminAuth } from './hooks/useAdminAuth';
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="leaderboard/speed" element={<AdminLeaderboardSpeed />} />
             <Route path="prizes" element={<AdminPrizes />} />
             <Route path="questions" element={<AdminQuestions />} />
+            <Route path="themes" element={<AdminThemes />} />
             <Route path="players" element={<AdminPlayers />} />
             <Route path="players/:id" element={<AdminPlayerDetail />} />
           </Route>

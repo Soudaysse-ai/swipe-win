@@ -10,6 +10,7 @@ const navItems = [
   { to: '/admin/leaderboard/speed', label: '⚡ Rapidité' },
   { to: '/admin/prizes', label: '🎁 Lots' },
   { to: '/admin/questions', label: '❓ Questions' },
+  { to: '/admin/themes', label: '🎨 Thèmes' },
   { to: '/admin/players', label: '👥 Joueurs' },
 ];
 
