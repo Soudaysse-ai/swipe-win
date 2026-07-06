@@ -235,7 +235,7 @@ export default function Game() {
             ) : (
               <div style={s.cardFallback}>
                 <Plectre color="yellow" size={120} rotate={-20} style={{ opacity: 0.25 }} />
-                <span style={s.fallbackBall}>⚽</span>
+                <span style={s.fallbackBall}>{q.category === 'coupe_du_monde' ? '⚽' : q.category === 'comores' ? '🏝️' : '🎯'}</span>
               </div>
             )}
 

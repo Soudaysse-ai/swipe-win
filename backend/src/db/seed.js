@@ -160,26 +160,27 @@ const questions = [
   { id: 'wc_137', text_fr: 'Emiliano Martínez a remporté le Gant d\'or de meilleur gardien de la Coupe du Monde 2022', answer: true, difficulty: 'hard' },
 
   // --- Thème Comores : Indépendance & Histoire ---
-  { id: 'km_01', text_fr: 'Les Comores ont proclamé leur indépendance le 6 juillet 1965', answer: false, difficulty: 'medium', category: 'comores' },
-  { id: 'km_02', text_fr: 'Ahmed Abdallah était le président qui a proclamé l\'indépendance des Comores', answer: true, difficulty: 'medium', category: 'comores' },
-  { id: 'km_03', text_fr: 'Les Comores étaient une colonie portugaise avant leur indépendance', answer: false, difficulty: 'medium', category: 'comores' },
-  { id: 'km_04', text_fr: 'Le 6 juillet est un jour férié national aux Comores', answer: true, difficulty: 'medium', category: 'comores' },
+  // Images liées aux Comores (île, océan, lune…) — jamais la banque football.
+  { id: 'km_01', text_fr: 'Les Comores ont proclamé leur indépendance le 6 juillet 1965', answer: false, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=800&q=80' },
+  { id: 'km_02', text_fr: 'Ahmed Abdallah était le président qui a proclamé l\'indépendance des Comores', answer: true, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80' },
+  { id: 'km_03', text_fr: 'Les Comores étaient une colonie portugaise avant leur indépendance', answer: false, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80' },
+  { id: 'km_04', text_fr: 'Le 6 juillet est un jour férié national aux Comores', answer: true, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80' },
 
   // --- Thème Comores : Culture générale ---
-  { id: 'km_05', text_fr: 'Les Comores sont surnommées "les îles de la Lune"', answer: true, difficulty: 'medium', category: 'comores' },
-  { id: 'km_06', text_fr: 'Les Comores se trouvent dans l\'océan Pacifique', answer: false, difficulty: 'medium', category: 'comores' },
-  { id: 'km_07', text_fr: 'Le drapeau comorien comporte un croissant et quatre étoiles', answer: true, difficulty: 'medium', category: 'comores' },
-  { id: 'km_08', text_fr: 'La monnaie des Comores est le FCFA', answer: false, difficulty: 'medium', category: 'comores' },
-  { id: 'km_09', text_fr: 'Les Comores sont un grand producteur mondial d\'ylang-ylang', answer: true, difficulty: 'medium', category: 'comores' },
-  { id: 'km_10', text_fr: 'Les Comores se situent entre l\'Afrique et l\'Australie', answer: false, difficulty: 'medium', category: 'comores' },
+  { id: 'km_05', text_fr: 'Les Comores sont surnommées "les îles de la Lune"', answer: true, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&q=80' },
+  { id: 'km_06', text_fr: 'Les Comores se trouvent dans l\'océan Pacifique', answer: false, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&q=80' },
+  { id: 'km_07', text_fr: 'Le drapeau comorien comporte un croissant et quatre étoiles', answer: true, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1476673160081-cf065607f449?w=800&q=80' },
+  { id: 'km_08', text_fr: 'La monnaie des Comores est le FCFA', answer: false, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&q=80' },
+  { id: 'km_09', text_fr: 'Les Comores sont un grand producteur mondial d\'ylang-ylang', answer: true, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=80' },
+  { id: 'km_10', text_fr: 'Les Comores se situent entre l\'Afrique et l\'Australie', answer: false, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1509233725247-49e657c54213?w=800&q=80' },
 
   // --- Thème Comores : Yas ---
-  { id: 'km_11', text_fr: 'Yas Comores a lancé ses activités dans le pays en 2016', answer: true, difficulty: 'medium', category: 'comores' },
-  { id: 'km_12', text_fr: 'Yas Comores a été le premier opérateur à lancer la 5G aux Comores', answer: true, difficulty: 'medium', category: 'comores' },
-  { id: 'km_13', text_fr: 'Le Pass Voyage permet de rester connecté à l\'étranger', answer: true, difficulty: 'medium', category: 'comores' },
-  { id: 'km_14', text_fr: 'Le slogan de Yas est "Yas, vivons connectés."', answer: true, difficulty: 'medium', category: 'comores' },
-  { id: 'km_15', text_fr: 'DagoNet est une offre internet mobile', answer: false, difficulty: 'medium', category: 'comores' },
-  { id: 'km_16', text_fr: 'Yas Comores n\'a aucun lien avec d\'autres pays africains', answer: false, difficulty: 'medium', category: 'comores' },
+  { id: 'km_11', text_fr: 'Yas Comores a lancé ses activités dans le pays en 2016', answer: true, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80' },
+  { id: 'km_12', text_fr: 'Yas Comores a été le premier opérateur à lancer la 5G aux Comores', answer: true, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1516044734145-07ca8eef8731?w=800&q=80' },
+  { id: 'km_13', text_fr: 'Le Pass Voyage permet de rester connecté à l\'étranger', answer: true, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80' },
+  { id: 'km_14', text_fr: 'Le slogan de Yas est "Yas, vivons connectés."', answer: true, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80' },
+  { id: 'km_15', text_fr: 'DagoNet est une offre internet mobile', answer: false, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1516044734145-07ca8eef8731?w=800&q=80' },
+  { id: 'km_16', text_fr: 'Yas Comores n\'a aucun lien avec d\'autres pays africains', answer: false, difficulty: 'medium', category: 'comores', image_url: 'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=800&q=80' },
 ];
 
 // Banque de photos football pour donner une image à chaque carte

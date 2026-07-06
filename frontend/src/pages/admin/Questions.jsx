@@ -93,24 +93,46 @@ async function parseXLSX(arrayBuffer) {
 const EMPTY = { id: '', text_fr: '', text_ar: '', answer: true, category: 'coupe_du_monde', difficulty: 'medium', is_active: true, image_url: '' };
 
 // Banque d'images football (Unsplash) pour l'option "aléatoire"
-const FOOTBALL_IMAGES = [
-  'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&q=80',
-  'https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=800&q=80',
-  'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&q=80',
-  'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80',
-  'https://images.unsplash.com/photo-1459865264687-595d652de67e?w=800&q=80',
-  'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&q=80',
-  'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=800&q=80',
-  'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=80',
-  'https://images.unsplash.com/photo-1606925797300-0b35e9d1794e?w=800&q=80',
-  'https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=800&q=80',
-  'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=800&q=80',
-  'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&q=80',
-  'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=800&q=80',
-  'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&q=80',
-  'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&q=80',
-];
-const randomFootballImage = () => FOOTBALL_IMAGES[Math.floor(Math.random() * FOOTBALL_IMAGES.length)];
+// Banques d'images par thème : le bouton "Aléatoire" pioche dans celle
+// qui correspond à la catégorie de la question en cours d'édition.
+const IMAGE_BANKS = {
+  coupe_du_monde: [
+    'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&q=80',
+    'https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=800&q=80',
+    'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&q=80',
+    'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80',
+    'https://images.unsplash.com/photo-1459865264687-595d652de67e?w=800&q=80',
+    'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&q=80',
+    'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=800&q=80',
+    'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=80',
+    'https://images.unsplash.com/photo-1606925797300-0b35e9d1794e?w=800&q=80',
+    'https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=800&q=80',
+    'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=800&q=80',
+    'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&q=80',
+    'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=800&q=80',
+    'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&q=80',
+    'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&q=80',
+  ],
+  comores: [
+    'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=800&q=80', // île vue du ciel
+    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', // plage
+    'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80', // océan vu du ciel
+    'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80', // plage palmiers
+    'https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&q=80', // pleine lune
+    'https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&q=80',    // océan sous l'eau
+    'https://images.unsplash.com/photo-1476673160081-cf065607f449?w=800&q=80', // plage
+    'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&q=80', // billets
+    'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=80', // fleurs jaunes
+    'https://images.unsplash.com/photo-1509233725247-49e657c54213?w=800&q=80', // palmiers océan
+    'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80', // smartphone
+    'https://images.unsplash.com/photo-1516044734145-07ca8eef8731?w=800&q=80', // réseau internet
+    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80', // avion
+  ],
+};
+const randomImage = (category) => {
+  const bank = IMAGE_BANKS[category] || IMAGE_BANKS.coupe_du_monde;
+  return bank[Math.floor(Math.random() * bank.length)];
+};
 
 export default function AdminQuestions() {
   const [questions, setQuestions] = useState([]);
@@ -274,7 +296,7 @@ function QForm({ form, setForm, onSave, onCancel, isNew }) {
               onChange={e => f('image_url', e.target.value)}
               placeholder="https://… ou cliquez sur Aléatoire"
             />
-            <button type="button" style={qfStyles.btnRandom} onClick={() => f('image_url', randomFootballImage())}>
+            <button type="button" style={qfStyles.btnRandom} onClick={() => f('image_url', randomImage(form.category))}>
               🎲 Aléatoire
             </button>
             {form.image_url && (
