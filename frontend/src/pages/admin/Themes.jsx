@@ -3,7 +3,6 @@ import api from '../../utils/api';
 
 // Libellés + emoji connus ; les thèmes inconnus s'affichent tels quels
 const THEME_META = {
-  all: { label: 'Tous les thèmes', emoji: '🌍', desc: 'Les questions de tous les thèmes sont mélangées.' },
   coupe_du_monde: { label: 'Football / Coupe du Monde', emoji: '⚽', desc: 'Quiz football, Coupe du Monde et règles du jeu.' },
   comores: { label: 'Comores', emoji: '🇰🇲', desc: 'Indépendance, histoire, culture générale et Yas Comores.' },
 };
@@ -43,22 +42,17 @@ export default function AdminThemes() {
     }
   }
 
-  const cards = [
-    { category: 'all', total: themes.reduce((s, t) => s + parseInt(t.total), 0), active_count: themes.reduce((s, t) => s + parseInt(t.active_count), 0) },
-    ...themes,
-  ];
-
   return (
     <div>
       <h2 style={styles.title}>🎨 Thèmes du jeu</h2>
       <p style={styles.hint}>
-        Le thème actif détermine les questions posées aux joueurs. Choisis un thème pour une édition spéciale
-        (ex : fête de l'indépendance) puis reviens au football ou à tous les thèmes.
+        Le thème actif détermine les questions posées aux joueurs. Un seul thème est servi à la fois :
+        choisis un thème pour une édition spéciale (ex : fête de l'indépendance) puis reviens au football.
       </p>
 
       {loading ? <p>Chargement...</p> : (
         <div style={styles.grid}>
-          {cards.map(t => {
+          {themes.map(t => {
             const m = meta(t.category);
             const isActive = activeTheme === t.category;
             return (

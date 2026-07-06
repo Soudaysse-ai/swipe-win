@@ -210,22 +210,20 @@ router.get('/themes', auth(), async (req, res) => {
       `),
       pool.query("SELECT value FROM settings WHERE key = 'active_theme'"),
     ]);
-    const active_theme = setting.rows.length ? setting.rows[0].value : 'all';
+    const active_theme = setting.rows.length ? setting.rows[0].value : 'coupe_du_monde';
     res.json({ themes: cats.rows, active_theme });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Choisir le thème actif ('all' = tous les thèmes mélangés)
+// Choisir le thème actif (un seul thème à la fois, jamais de mélange)
 router.put('/settings/active-theme', auth(), async (req, res) => {
   const { theme } = req.body;
   if (!theme || typeof theme !== 'string') return res.status(400).json({ error: 'theme (chaîne) requis' });
   try {
-    if (theme !== 'all') {
-      const exists = await pool.query('SELECT 1 FROM questions WHERE category = $1 LIMIT 1', [theme]);
-      if (!exists.rows.length) return res.status(404).json({ error: 'Thème introuvable' });
-    }
+    const exists = await pool.query('SELECT 1 FROM questions WHERE category = $1 LIMIT 1', [theme]);
+    if (!exists.rows.length) return res.status(404).json({ error: 'Thème introuvable' });
     await pool.query(
       `INSERT INTO settings (key, value, updated_at) VALUES ('active_theme', $1, NOW())
        ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()`,
