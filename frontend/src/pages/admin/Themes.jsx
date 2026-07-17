@@ -66,6 +66,8 @@ export default function AdminThemes() {
                 </div>
                 {isActive ? (
                   <div style={styles.activeBadge}>✓ Thème actif</div>
+                ) : parseInt(t.active_count) === 0 ? (
+                  <div style={styles.disabledBadge}>Aucune question active — réactivez-en d'abord</div>
                 ) : (
                   <button style={styles.btnActivate} disabled={saving} onClick={() => activate(t.category)}>
                     Activer ce thème
@@ -92,4 +94,5 @@ const styles = {
   cardMeta: { fontSize: 12, color: '#9ca3af', fontWeight: 700 },
   activeBadge: { marginTop: 'auto', alignSelf: 'flex-start', background: '#FFD100', color: '#00377D', fontWeight: 800, fontSize: 13, padding: '8px 16px', borderRadius: 10 },
   btnActivate: { marginTop: 'auto', alignSelf: 'flex-start', background: '#00377D', color: 'white', fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer' },
+  disabledBadge: { marginTop: 'auto', alignSelf: 'flex-start', background: '#f1f5f9', color: '#94a3b8', fontWeight: 700, fontSize: 12, padding: '8px 16px', borderRadius: 10 },
 };

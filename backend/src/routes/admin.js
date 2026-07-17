@@ -222,8 +222,8 @@ router.put('/settings/active-theme', auth(), async (req, res) => {
   const { theme } = req.body;
   if (!theme || typeof theme !== 'string') return res.status(400).json({ error: 'theme (chaîne) requis' });
   try {
-    const exists = await pool.query('SELECT 1 FROM questions WHERE category = $1 LIMIT 1', [theme]);
-    if (!exists.rows.length) return res.status(404).json({ error: 'Thème introuvable' });
+    const exists = await pool.query('SELECT 1 FROM questions WHERE category = $1 AND is_active = true LIMIT 1', [theme]);
+    if (!exists.rows.length) return res.status(400).json({ error: 'Ce thème n\'a aucune question active : réactivez des questions avant de l\'utiliser' });
     await pool.query(
       `INSERT INTO settings (key, value, updated_at) VALUES ('active_theme', $1, NOW())
        ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()`,

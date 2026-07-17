@@ -69,6 +69,12 @@ export default function Game() {
         api.get(`/questions/random?count=${TOTAL_QUESTIONS}`),
         api.post('/sessions/start', { player_id: player.id }),
       ]);
+      if (!qRes.data.questions.length) {
+        // Aucun thème actif ne sert de questions : écran d'attente plutôt qu'un crash
+        setPaused(true);
+        setLoading(false);
+        return;
+      }
       setQuestions(qRes.data.questions);
       setSessionId(sRes.data.session.id);
       setLoading(false);
