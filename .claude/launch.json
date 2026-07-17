@@ -2,6 +2,20 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "twabibu-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/soudaysse/medecin-app/frontend", "run", "dev"],
+      "port": 5180,
+      "autoPort": true
+    },
+    {
+      "name": "swipe-win-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/soudaysse/swipe-win/frontend", "run", "dev"],
+      "port": 5173,
+      "autoPort": true
+    },
+    {
       "name": "pronofoot-backend",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "/Users/soudaysse/pronofoot/backend", "run", "dev"],
