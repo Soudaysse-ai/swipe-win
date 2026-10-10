@@ -14,6 +14,9 @@ import { gameName, placeLabel, formatDuration } from '../../lib/format';
 
 const GAMES = {
   connect: lazy(() => import('../../games/connect/ConnectGame')),
+  ludo: lazy(() => import('../../games/ludo/LudoGame')),
+  cards: lazy(() => import('../../games/cards/CardsGame')),
+  penalty: lazy(() => import('../../games/penalty/PenaltyGame')),
 };
 
 // Abonnement aux événements de jeu (animations) pour un match donné.

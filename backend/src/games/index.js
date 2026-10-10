@@ -1,6 +1,9 @@
 // Registre des moteurs de jeu. Ajouter un jeu = ajouter une ligne ici.
 const engines = {
   connect: require('./connect/engine'),
+  ludo: require('./ludo/engine'),
+  cards: require('./cards/engine'),
+  penalty: require('./penalty/engine'),
 };
 
 function getEngine(gameId) {
