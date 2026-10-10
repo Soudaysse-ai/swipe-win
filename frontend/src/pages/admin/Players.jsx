@@ -108,7 +108,7 @@ export default function AdminPlayers() {
                     </span>
                   </td>
                   <td style={styles.td}>
-                    <button style={styles.btnDetail} onClick={() => navigate(`/admin/players/${p.id}`)}>
+                    <button style={styles.btnDetail} onClick={() => navigate(`/admin/quiz/players/${p.id}`)}>
                       Détail →
                     </button>
                   </td>
