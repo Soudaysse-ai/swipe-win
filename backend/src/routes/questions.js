@@ -17,7 +17,7 @@ router.get('/random', async (req, res) => {
     );
     res.json({ questions: result.rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 

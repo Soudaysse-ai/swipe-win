@@ -1,8 +1,6 @@
 require('dotenv').config();
 const pool = require('./pool');
 const bcrypt = require('bcryptjs');
-const fs = require('fs');
-const path = require('path');
 
 const questions = [
   { id: 'wc_01', text_fr: 'La Coupe du Monde 2026 se jouera aux USA, au Canada et au Mexique', answer: true },
@@ -203,21 +201,24 @@ const FOOTBALL_IMAGES = [
 ];
 
 async function seed() {
+  const { migrate } = require('./migrate');
+  await migrate(pool);
   const client = await pool.connect();
   try {
-    // Run schema
-    const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-    await client.query(schema);
+    // Super admin initial : créé seulement s'il n'existe pas (le mot de passe
+    // d'un compte existant n'est plus écrasé — audit S6).
+    const email = process.env.ADMIN_EMAIL || 'admin@yas.km';
+    const exists = await client.query('SELECT 1 FROM admins WHERE LOWER(email) = LOWER($1)', [email]);
+    if (!exists.rows.length) {
+      if (!process.env.ADMIN_PASSWORD) throw new Error('ADMIN_PASSWORD requis pour créer le premier administrateur');
+      const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+      await client.query(
+        `INSERT INTO admins (email, password_hash, role, name) VALUES ($1, $2, 'super_admin', 'Super Admin')`,
+        [email, hash]);
+      console.log(`Super admin créé : ${email}`);
+    }
 
-    // Seed admin
-    const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'changeme123', 10);
-    await client.query(`
-      INSERT INTO admins (email, password_hash, role)
-      VALUES ($1, $2, 'superadmin')
-      ON CONFLICT (email) DO UPDATE SET password_hash = $2
-    `, [process.env.ADMIN_EMAIL || 'admin@yas.km', hash]);
-
-    // Seed questions
+    // Questions du quiz Swipe & Win
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       const difficulty = q.difficulty || 'medium';
@@ -231,17 +232,16 @@ async function seed() {
       `, [q.id, q.text_fr, q.answer, difficulty, image_url, category]);
     }
 
-    // Seed prize
+    // Lot initial du quiz (seulement si aucun lot n'existe)
     await client.query(`
       INSERT INTO prizes (label, tier, quantity, is_active)
-      VALUES ('Samsung Galaxy S25+', '1er_prix', 1, true)
-      ON CONFLICT DO NOTHING
+      SELECT 'Samsung Galaxy S25+', '1er_prix', 1, true WHERE NOT EXISTS (SELECT 1 FROM prizes)
     `);
 
     console.log('✅ Seed terminé avec succès !');
-    console.log(`Admin: ${process.env.ADMIN_EMAIL || 'admin@yas.km'} / ${process.env.ADMIN_PASSWORD || 'changeme123'}`);
   } catch (err) {
-    console.error('Seed error:', err);
+    console.error('Seed error:', err.message);
+    process.exitCode = 1;
   } finally {
     client.release();
     pool.end();

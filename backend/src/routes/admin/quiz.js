@@ -1,37 +1,15 @@
+// Back-office du quiz « Swipe & Win » (fonctionnalité historique conservée),
+// monté sous /api/admin/quiz.
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const pool = require('../db/pool');
-const auth = require('../middleware/auth');
-
-// ── Auth ────────────────────────────────────────────────────────────────────
-
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const result = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
-    const admin = result.rows[0];
-    if (!admin) return res.status(401).json({ error: 'Identifiants invalides' });
-
-    const ok = await bcrypt.compare(password, admin.password_hash);
-    if (!ok) return res.status(401).json({ error: 'Identifiants invalides' });
-
-    const token = jwt.sign(
-      { id: admin.id, email: admin.email, role: admin.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-    res.json({ token, admin: { id: admin.id, email: admin.email, role: admin.role } });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+const pool = require('../../db/pool');
+const auth = require('../../middleware/auth');
+const { logAudit } = require('../../services/audit');
 
 // ── Dashboard stats ─────────────────────────────────────────────────────────
 
-router.get('/dashboard/stats', auth(), async (req, res) => {
+router.get('/dashboard/stats', auth('dashboard.view'), async (req, res) => {
   try {
     const [players, todaySessions, weekSessions, monthSessions, avgScore, todayAnswers, dailySessions] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM players'),
@@ -58,13 +36,13 @@ router.get('/dashboard/stats', auth(), async (req, res) => {
       daily_sessions: dailySessions.rows,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // ── Leaderboards ─────────────────────────────────────────────────────────────
 
-router.get('/leaderboard/score', auth(), async (req, res) => {
+router.get('/leaderboard/score', auth('leaderboards.view'), async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT p.id, p.name, p.phone,
@@ -80,11 +58,11 @@ router.get('/leaderboard/score', auth(), async (req, res) => {
     `);
     res.json({ leaderboard: result.rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
-router.get('/leaderboard/speed', auth(), async (req, res) => {
+router.get('/leaderboard/speed', auth('leaderboards.view'), async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT p.id, p.name, p.phone,
@@ -99,13 +77,13 @@ router.get('/leaderboard/speed', auth(), async (req, res) => {
     `);
     res.json({ leaderboard: result.rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
 
-router.get('/sessions', auth(), async (req, res) => {
+router.get('/sessions', auth('players.view'), async (req, res) => {
   const { page = 1, limit = 50 } = req.query;
   const offset = (page - 1) * limit;
   try {
@@ -119,13 +97,13 @@ router.get('/sessions', auth(), async (req, res) => {
     const total = await pool.query('SELECT COUNT(*) FROM sessions');
     res.json({ sessions: result.rows, total: parseInt(total.rows[0].count) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // ── Players ───────────────────────────────────────────────────────────────────
 
-router.get('/players', auth(), async (req, res) => {
+router.get('/players', auth('players.view'), async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT p.*, COUNT(s.id) AS sessions_count, MAX(s.score) AS best_score
@@ -136,11 +114,11 @@ router.get('/players', auth(), async (req, res) => {
     `);
     res.json({ players: result.rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
-router.get('/players/:id', auth(), async (req, res) => {
+router.get('/players/:id', auth('players.view'), async (req, res) => {
   const { id } = req.params;
   try {
     const player = await pool.query('SELECT * FROM players WHERE id = $1', [id]);
@@ -153,33 +131,33 @@ router.get('/players/:id', auth(), async (req, res) => {
 
     res.json({ player: player.rows[0], sessions: sessions.rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // ── Prizes ────────────────────────────────────────────────────────────────────
 
-router.get('/prizes', auth(), async (req, res) => {
+router.get('/prizes', auth('quiz.manage'), async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM prizes ORDER BY tier, label');
     res.json({ prizes: result.rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // Réglage global : activer/désactiver la distribution de lots
-router.get('/settings/prizes-enabled', auth(), async (req, res) => {
+router.get('/settings/prizes-enabled', auth('quiz.manage'), async (req, res) => {
   try {
     const r = await pool.query("SELECT value FROM settings WHERE key = 'prizes_enabled'");
     const enabled = !r.rows.length || r.rows[0].value !== 'false';
     res.json({ enabled });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
-router.put('/settings/prizes-enabled', auth(), async (req, res) => {
+router.put('/settings/prizes-enabled', auth('quiz.manage'), async (req, res) => {
   const { enabled } = req.body;
   if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'enabled (booléen) requis' });
   try {
@@ -190,14 +168,14 @@ router.put('/settings/prizes-enabled', auth(), async (req, res) => {
     );
     res.json({ enabled });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // ── Thèmes ────────────────────────────────────────────────────────────────────
 
 // Liste des thèmes (catégories distinctes) + thème actif
-router.get('/themes', auth(), async (req, res) => {
+router.get('/themes', auth('quiz.manage'), async (req, res) => {
   try {
     const [cats, setting] = await Promise.all([
       pool.query(`
@@ -213,12 +191,12 @@ router.get('/themes', auth(), async (req, res) => {
     const active_theme = setting.rows.length ? setting.rows[0].value : 'coupe_du_monde';
     res.json({ themes: cats.rows, active_theme });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // Choisir le thème actif (un seul thème à la fois, jamais de mélange)
-router.put('/settings/active-theme', auth(), async (req, res) => {
+router.put('/settings/active-theme', auth('quiz.manage'), async (req, res) => {
   const { theme } = req.body;
   if (!theme || typeof theme !== 'string') return res.status(400).json({ error: 'theme (chaîne) requis' });
   try {
@@ -232,22 +210,22 @@ router.put('/settings/active-theme', auth(), async (req, res) => {
     await logAudit(req.admin.id, 'UPDATE', 'setting', 'active_theme', null, { theme });
     res.json({ active_theme: theme });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // Réglage global : mettre le jeu en pause (bloque le démarrage de nouvelles sessions)
-router.get('/settings/game-paused', auth(), async (req, res) => {
+router.get('/settings/game-paused', auth('quiz.manage'), async (req, res) => {
   try {
     const r = await pool.query("SELECT value FROM settings WHERE key = 'game_paused'");
     const paused = r.rows.length && r.rows[0].value === 'true';
     res.json({ paused });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
-router.put('/settings/game-paused', auth(), async (req, res) => {
+router.put('/settings/game-paused', auth('quiz.manage'), async (req, res) => {
   const { paused } = req.body;
   if (typeof paused !== 'boolean') return res.status(400).json({ error: 'paused (booléen) requis' });
   try {
@@ -258,27 +236,27 @@ router.put('/settings/game-paused', auth(), async (req, res) => {
     );
     res.json({ paused });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
-router.post('/prizes', auth(), async (req, res) => {
+router.post('/prizes', auth('quiz.manage'), async (req, res) => {
   const { label, description, image_url, tier, quantity } = req.body;
   if (!label) return res.status(400).json({ error: 'Label requis' });
   try {
     const result = await pool.query(
       `INSERT INTO prizes (id, label, description, image_url, tier, quantity, updated_by)
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [uuidv4(), label, description, image_url, tier || 'daily', quantity || 1, req.admin.id]
+      [uuidv4(), label, description, image_url, tier || '1er_prix', quantity || 1, req.admin.id]
     );
     await logAudit(req.admin.id, 'CREATE', 'prize', result.rows[0].id, null, result.rows[0]);
     res.status(201).json({ prize: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
-router.put('/prizes/:id', auth(), async (req, res) => {
+router.put('/prizes/:id', auth('quiz.manage'), async (req, res) => {
   const { id } = req.params;
   const { label, description, image_url, tier, quantity, is_active } = req.body;
   try {
@@ -301,11 +279,11 @@ router.put('/prizes/:id', auth(), async (req, res) => {
     await logAudit(req.admin.id, 'UPDATE', 'prize', id, old.rows[0], result.rows[0]);
     res.json({ prize: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
-router.delete('/prizes/:id', auth('superadmin'), async (req, res) => {
+router.delete('/prizes/:id', auth('quiz.manage'), async (req, res) => {
   const { id } = req.params;
   try {
     const old = await pool.query('SELECT * FROM prizes WHERE id = $1', [id]);
@@ -314,22 +292,22 @@ router.delete('/prizes/:id', auth('superadmin'), async (req, res) => {
     await logAudit(req.admin.id, 'DELETE', 'prize', id, old.rows[0], null);
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // ── Questions ─────────────────────────────────────────────────────────────────
 
-router.get('/questions', auth(), async (req, res) => {
+router.get('/questions', auth('quiz.manage'), async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM questions ORDER BY id');
     res.json({ questions: result.rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
-router.post('/questions', auth(), async (req, res) => {
+router.post('/questions', auth('quiz.manage'), async (req, res) => {
   const { id, text_fr, text_ar, answer, category, difficulty, image_url } = req.body;
   if (!id || !text_fr || answer === undefined) return res.status(400).json({ error: 'id, text_fr, answer requis' });
   try {
@@ -340,12 +318,12 @@ router.post('/questions', auth(), async (req, res) => {
     );
     res.status(201).json({ question: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // Import en masse (upsert) — body: { questions: [...] }
-router.post('/questions/bulk', auth(), async (req, res) => {
+router.post('/questions/bulk', auth('quiz.manage'), async (req, res) => {
   const { questions } = req.body;
   if (!Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Un tableau "questions" non vide est requis' });
@@ -392,13 +370,13 @@ router.post('/questions/bulk', auth(), async (req, res) => {
     res.json({ inserted, updated, errors, total: questions.length });
   } catch (err) {
     await client.query('ROLLBACK');
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   } finally {
     client.release();
   }
 });
 
-router.put('/questions/:id', auth(), async (req, res) => {
+router.put('/questions/:id', auth('quiz.manage'), async (req, res) => {
   const { id } = req.params;
   const { text_fr, text_ar, answer, category, difficulty, is_active, image_url } = req.body;
   try {
@@ -417,57 +395,50 @@ router.put('/questions/:id', auth(), async (req, res) => {
     if (!result.rows.length) return res.status(404).json({ error: 'Question introuvable' });
     res.json({ question: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
-router.delete('/questions/:id', auth('superadmin'), async (req, res) => {
+router.delete('/questions/:id', auth('quiz.manage'), async (req, res) => {
   const { id } = req.params;
   try {
     await pool.query('UPDATE questions SET is_active = false WHERE id = $1', [id]);
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // ── Players reset ─────────────────────────────────────────────────────────────
 
-router.delete('/players/reset', auth(), async (req, res) => {
+router.delete('/players/reset', auth('quiz.reset'), async (req, res) => {
   try {
-    await pool.query('DELETE FROM answers');
-    await pool.query('DELETE FROM sessions');
-    await pool.query('DELETE FROM players');
+    await pool.tx(async (db) => {
+      await db.query('UPDATE users SET legacy_player_id = NULL WHERE legacy_player_id IS NOT NULL');
+      await db.query('DELETE FROM answers');
+      await db.query('DELETE FROM sessions');
+      await db.query('DELETE FROM players');
+    });
     await logAudit(req.admin.id, 'RESET', 'players', null, null, { reset_at: new Date() });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 
 // ── Leaderboard reset ─────────────────────────────────────────────────────────
 
-router.delete('/leaderboard/reset', auth(), async (req, res) => {
+router.delete('/leaderboard/reset', auth('quiz.reset'), async (req, res) => {
   try {
-    await pool.query('DELETE FROM answers');
-    await pool.query('DELETE FROM sessions');
+    await pool.tx(async (db) => {
+      await db.query('DELETE FROM answers');
+      await db.query('DELETE FROM sessions');
+    });
     await logAudit(req.admin.id, 'RESET', 'leaderboard', null, null, { reset_at: new Date() });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
-
-// ── Audit log helper ──────────────────────────────────────────────────────────
-
-async function logAudit(adminId, action, entity, entityId, oldData, newData) {
-  await pool.query(
-    `INSERT INTO audit_logs (id, admin_id, action, entity, entity_id, old_data, new_data)
-     VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-    [uuidv4(), adminId, action, entity, entityId,
-     oldData ? JSON.stringify(oldData) : null,
-     newData ? JSON.stringify(newData) : null]
-  );
-}
 
 module.exports = router;
