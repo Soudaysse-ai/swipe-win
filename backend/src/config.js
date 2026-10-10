@@ -6,6 +6,10 @@ const isProd = env === 'production';
 if (isProd && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) {
   throw new Error('JWT_SECRET doit faire au moins 32 caractères en production');
 }
+// Les liens de réinitialisation envoyés par e-mail sont construits à partir d'APP_URL.
+if (isProd && !/^https:\/\//.test(process.env.APP_URL || '')) {
+  throw new Error('APP_URL (https://…) est obligatoire en production pour les liens envoyés par e-mail');
+}
 
 module.exports = {
   env,
@@ -21,7 +25,8 @@ module.exports = {
   phoneRegex: new RegExp(process.env.PHONE_REGEX || '^\\+2694\\d{6}$'),
   // E-mails transactionnels (réinitialisation du mot de passe) via l'API Resend.
   mail: {
-    resendApiKey: process.env.RESEND_API_KEY || '',
+    // Jamais de vrai envoi pendant les tests (adresses fictives → rebonds, réputation du domaine).
+    resendApiKey: env === 'test' ? '' : (process.env.RESEND_API_KEY || ''),
     from: process.env.MAIL_FROM || 'Défi Yas <no-reply@defi-yas.com>',
     replyTo: process.env.MAIL_REPLY_TO || '',
   },

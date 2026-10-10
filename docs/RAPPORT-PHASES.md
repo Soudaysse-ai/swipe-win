@@ -92,6 +92,8 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 - **Tests** : 6 tests d'intégration (inscription sans OTP, lien à usage unique, sessions fermées,
   adresse inconnue sans divulgation, expiration, changement d'e-mail protégé, lien du service client),
   3 tests unitaires de l'appel à l'API Resend, 1 test E2E du parcours complet.
+- **Garde-fous** : en production l'API refuse de démarrer sans `APP_URL` en `https://` (sinon les liens
+  envoyés pointeraient vers `localhost`) ; en mode test la clé Resend est ignorée (aucun envoi réel).
 
 ## Phase 12 — Déploiement
 **Non effectué** : en attente de validation explicite et des accès (voir `DEPLOIEMENT.md`).
@@ -102,7 +104,9 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 1. **Accès production** (base, Render, Vercel, DNS) pour finaliser l'audit, faire la sauvegarde et
    la migration sur staging.
-2. **Resend** : créer la clé API et vérifier le domaine d'expédition. Il n'y a plus de vérification
+2. **Resend** : ✅ clé API (envoi uniquement) et domaine `defi-yas.com` vérifiés le 10/10/2026 par un
+   envoi réel depuis `no-reply@defi-yas.com` (adresse de test Resend `delivered@resend.dev`, accepté).
+   Reste à reporter `RESEND_API_KEY`, `MAIL_FROM` et `APP_URL` sur Render. Il n'y a plus de vérification
    OTP : le numéro saisi à l'inscription n'est pas vérifié. Les joueurs sans e-mail récupèrent leur
    compte via le service client (lien généré dans le back-office).
 3. **Hébergement temps réel** toujours actif ; V1 limitée à **une instance** (Redis à prévoir pour

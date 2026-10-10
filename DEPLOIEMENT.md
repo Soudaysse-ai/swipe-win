@@ -22,7 +22,7 @@
 
 ## Variables d'environnement
 Backend : voir `backend/.env.example` (obligatoires en production : `DATABASE_URL`,
-`JWT_SECRET` ≥ 32 caractères, `CORS_ORIGINS`, `NODE_ENV=production`).
+`JWT_SECRET` ≥ 32 caractères, `CORS_ORIGINS`, `NODE_ENV=production`, `APP_URL` en https — l'API refuse de démarrer sans).
 Frontend : `VITE_API_URL=https://api.defi-yas.com`.
 E-mails : `RESEND_API_KEY`, `MAIL_FROM` (adresse d'un domaine vérifié dans Resend), `APP_URL=https://www.defi-yas.com`.
 
