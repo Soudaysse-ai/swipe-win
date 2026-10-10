@@ -23,7 +23,7 @@ Redis n'est **pas** utilisé en V1 (voir §8).
 
 | Service (cahier des charges) | Implémentation |
 |---|---|
-| Authentication | `services/authService.js`, `services/otpService.js`, `middleware/playerAuth.js`, `middleware/auth.js` (admin) |
+| Authentication | `services/authService.js`, `services/passwordReset.js`, `services/mailer.js` (Resend), `middleware/playerAuth.js`, `middleware/auth.js` (admin) |
 | Player Profile | `services/profiles.js`, `routes/player.js` |
 | Friends | `services/friends.js`, `routes/social.js` |
 | Multiplayer | `realtime/hub.js` (présence), `realtime/rooms.js`, `realtime/socket.js` |
@@ -91,7 +91,7 @@ Limitation de fréquence par événement et par joueur (ex. 6 messages / 10 s da
 
 ## 5. API REST (principales)
 
-- Auth : `POST /api/auth/register|login|logout`, `GET /api/auth/me`, `POST /api/auth/otp/request`, `POST /api/auth/password/reset`
+- Auth : `POST /api/auth/register|login|logout`, `GET /api/auth/me`, `POST /api/auth/password/forgot`, `POST /api/auth/password/reset`
 - Jeux : `GET /api/games`, `GET /api/games/:id`, `GET /api/home`
 - Salons : `POST /api/rooms`, `GET /api/rooms/:code`, `POST /api/rooms/:code/join`
 - Joueurs : `GET /api/players/me`, `/me/stats`, `/me/matches`, `PATCH /api/players/me`, `GET /api/players/:id/public`
@@ -105,9 +105,9 @@ Limitation de fréquence par événement et par joueur (ex. 6 messages / 10 s da
 ## 6. Données
 
 Migrations : `backend/src/db/migrations` (`001` schéma Swipe & Win existant, `002` plateforme,
-`003` données de référence). Toutes additives et rejouables.
+`003` données de référence, `004` e-mail et jetons de réinitialisation). Toutes additives et rejouables.
 
-Utilisateurs (`users`, `profiles`, `auth_sessions`, `otp_codes`, `friendships`, `friend_requests`,
+Utilisateurs (`users`, `profiles`, `auth_sessions`, `password_reset_tokens`, `friendships`, `friend_requests`,
 `blocked_users`) · Jeux (`games`, `game_rules_versions`, `game_rooms`, `room_players`, `matches`,
 `match_players`, `match_events`, `match_results`) · Progression (`player_game_stats`,
 `player_global_stats`, `xp_transactions`, `rating_transactions`, `season_points`,
@@ -127,9 +127,14 @@ ajoute une écriture compensatoire signée par l'administrateur, rien n'est effa
 ## 7. Sécurité et anti-triche
 
 - Mots de passe bcrypt ; sessions joueur révocables (déconnexion, suspension, réinitialisation).
-- OTP SMS (fournisseur HTTP configurable) ; codes hachés, usage unique, 5 essais, 10 min.
+- Pas de vérification OTP par SMS. Mot de passe oublié : lien envoyé par e-mail via l'API Resend ;
+  jeton de 256 bits dont seul le SHA-256 est stocké, usage unique, 30 min, une nouvelle demande
+  annule les précédentes, réponse identique que l'adresse existe ou non, sessions fermées après
+  réinitialisation. E-mail facultatif (obligatoire avec `EMAIL_REQUIRED=true`) ; le changer exige le
+  mot de passe actuel. Sans e-mail : lien remis par le service client depuis le back-office (journalisé).
+  La table `otp_codes` (migration 002) n'est plus utilisée.
 - Permissions administrateur vérifiées **côté serveur** sur chaque route (6 rôles).
-- Limitation de fréquence HTTP (globale, connexion par numéro, OTP) et WebSocket ; seuils
+- Limitation de fréquence HTTP (globale, connexion par numéro, mot de passe oublié) et WebSocket ; seuils
   adaptés aux IP partagées des réseaux mobiles (CGNAT).
 - Validation de toutes les actions par les moteurs ; dés et mélanges côté serveur ; mains
   adverses jamais envoyées ; choix de penalty masqués jusqu'à la révélation.

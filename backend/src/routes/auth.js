@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 const config = require('../config');
 const auth = require('../services/authService');
-const otp = require('../services/otpService');
+const passwordReset = require('../services/passwordReset');
 const profiles = require('../services/profiles');
 const { requirePlayer } = require('../middleware/playerAuth');
 const { ah, clientIp } = require('../lib/http');
@@ -16,7 +16,7 @@ const { AVATARS } = require('../services/avatars');
 // abonnés derrière une même IP mobile partagée.
 const byPhone = (req) => `${req.ip}:${String(req.body?.phone || '').replace(/\D/g, '')}`;
 const authLimiter = limiter({ name: 'auth', max: 10, windowMs: 60_000, key: byPhone });
-const otpLimiter = limiter({ name: 'otp', max: 3, windowMs: 60_000, key: byPhone });
+const forgotLimiter = limiter({ name: 'forgot', max: 3, windowMs: 60_000, key: (req) => `${req.ip}:${String(req.body?.email || '').toLowerCase()}` });
 const ipLimiter = limiter({ name: 'auth-ip', max: 200, windowMs: 60_000 });
 
 const meta = (req) => ({ ip: clientIp(req), userAgent: req.headers['user-agent'] });
@@ -30,15 +30,8 @@ function sessionPayload({ user, session }) {
 
 // Paramètres publics nécessaires à l'écran d'inscription.
 router.get('/config', (_req, res) => {
-  res.json({ otpRequired: config.otp.required, smsAvailable: otp.smsConfigured() || !config.isProd, avatars: AVATARS, phonePrefix: '+269' });
+  res.json({ emailRequired: config.emailRequired, avatars: AVATARS, phonePrefix: '+269', resetTokenMinutes: config.resetTokenMinutes });
 });
-
-router.post('/otp/request', otpLimiter, ah(async (req, res) => {
-  const phone = auth.normalizePhone(req.body.phone);
-  const purpose = req.body.purpose === 'reset' ? 'reset' : 'register';
-  await otp.requestCode(phone, purpose);
-  res.json({ ok: true });
-}));
 
 router.post('/register', ipLimiter, authLimiter, ah(async (req, res) => {
   const out = await auth.register(req.body || {}, meta(req));
@@ -59,10 +52,18 @@ router.get('/me', requirePlayer, ah(async (req, res) => {
   res.json({ user: await profiles.me(req.user.userId) });
 }));
 
-router.post('/password/reset', authLimiter, ah(async (req, res) => {
-  const { phone, code, newPassword } = req.body || {};
-  if (!code) throw bad('CODE_REQUIRED', 'Code requis');
-  await auth.resetPassword({ phone, code, newPassword });
+// Mot de passe oublié : envoie un lien par e-mail (réponse identique que le compte existe ou non).
+router.post('/password/forgot', ipLimiter, forgotLimiter, ah(async (req, res) => {
+  const email = passwordReset.normalizeEmail(req.body?.email);
+  // Traitement en arrière-plan : le temps de réponse ne révèle pas si l'adresse existe.
+  passwordReset.requestReset(email, { ip: clientIp(req) }).catch(err => console.error('mot de passe oublié', err.message));
+  res.json({ ok: true });
+}));
+
+router.post('/password/reset', ipLimiter, ah(async (req, res) => {
+  const { token, newPassword } = req.body || {};
+  if (!token) throw bad('TOKEN_REQUIRED', 'Lien invalide');
+  await auth.resetPassword({ token, newPassword });
   res.json({ ok: true });
 }));
 

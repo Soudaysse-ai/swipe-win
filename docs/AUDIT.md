@@ -17,7 +17,7 @@
 1. Accès lecture à la base PostgreSQL de production (ou un dump récent) pour compter les joueurs existants et valider la migration.
 2. Accès aux tableaux de bord Render (backend) et Vercel (frontend) + au DNS de `defi-yas.com`.
 3. Confirmation que `www.defi-yas.com` sert bien le frontend de ce dépôt.
-4. Un fournisseur SMS (API + identifiants) pour l'OTP des numéros `+269`.
+4. Un compte Resend (clé API + domaine d'expédition vérifié) pour les e-mails de réinitialisation du mot de passe.
 
 ## 2. Stack actuelle
 

@@ -53,13 +53,13 @@ async function globalSummary(userId) {
 
 async function me(userId) {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.phone, u.phone_verified, u.created_at, u.legacy_player_id,
+    `SELECT u.id, u.username, u.avatar, u.phone, u.email, u.created_at, u.legacy_player_id,
             p.bio, p.show_stats, p.allow_invites
        FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.id = $1`, [userId]);
   if (!rows[0]) throw notFound('Joueur introuvable');
   const u = rows[0];
   return {
-    id: u.id, username: u.username, avatar: u.avatar, phone: u.phone, phoneVerified: u.phone_verified,
+    id: u.id, username: u.username, avatar: u.avatar, phone: u.phone, email: u.email,
     createdAt: u.created_at, bio: u.bio, settings: { showStats: u.show_stats !== false, allowInvites: u.allow_invites !== false },
     legacyLinked: !!u.legacy_player_id,
     progress: await globalSummary(userId),

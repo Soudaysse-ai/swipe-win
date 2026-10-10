@@ -75,11 +75,11 @@ router.get('/players', auth('players.view'), ah(async (req, res) => {
   const sortMap = { created_at: 'u.created_at', last_seen_at: 'u.last_seen_at', username: 'LOWER(u.username)', xp: 'g.xp', matches: 'g.matches_played' };
   const sort = `${sortMap[req.query.sort] || 'u.created_at'} ${req.query.dir === 'asc' ? 'ASC' : 'DESC'} NULLS LAST`;
   const like = q ? `%${q.replace(/[%_\\]/g, '\\$&')}%` : null;
-  const where = `WHERE ($1::text IS NULL OR u.username ILIKE $1 ${canPrivate ? 'OR u.phone ILIKE $1' : ''})
+  const where = `WHERE ($1::text IS NULL OR u.username ILIKE $1 ${canPrivate ? 'OR u.phone ILIKE $1 OR u.email ILIKE $1' : ''})
                    AND ($2::text IS NULL OR u.status = $2)
                    AND ($3::date IS NULL OR u.created_at >= $3::date) AND ($4::date IS NULL OR u.created_at < $4::date + 1)`;
   const params = [like, status, /^\d{4}-\d{2}-\d{2}$/.test(req.query.from || '') ? req.query.from : null, /^\d{4}-\d{2}-\d{2}$/.test(req.query.to || '') ? req.query.to : null];
-  const select = `SELECT u.id, u.username, u.avatar, u.status, u.created_at, u.last_seen_at, ${canPrivate ? 'u.phone,' : ''}
+  const select = `SELECT u.id, u.username, u.avatar, u.status, u.created_at, u.last_seen_at, ${canPrivate ? 'u.phone, u.email,' : ''}
                          COALESCE(g.xp, 0)::int AS xp, COALESCE(g.level, 1) AS level, COALESCE(g.matches_played, 0) AS matches,
                          COALESCE(g.wins, 0) AS wins, COALESCE(g.play_time_ms, 0)::bigint AS play_time_ms,
                          (SELECT COUNT(*)::int FROM reports r WHERE r.reported_user_id = u.id AND r.status = 'open') AS open_reports
@@ -89,7 +89,7 @@ router.get('/players', auth('players.view'), ah(async (req, res) => {
     const { rows } = await pool.query(`${select} ORDER BY ${sort} LIMIT 50000`, params);
     await logAudit(req.admin.id, 'EXPORT', 'players', null, null, { count: rows.length, private: canPrivate }, { ip: clientIp(req) });
     return exporter.send(res, req.query.format, 'utilisateurs', [
-      { key: 'id', label: 'Identifiant' }, { key: 'username', label: 'Pseudonyme' }, ...(canPrivate ? [{ key: 'phone', label: 'Téléphone' }] : []),
+      { key: 'id', label: 'Identifiant' }, { key: 'username', label: 'Pseudonyme' }, ...(canPrivate ? [{ key: 'phone', label: 'Téléphone' }, { key: 'email', label: 'E-mail' }] : []),
       { key: 'status', label: 'Statut' }, { key: 'created_at', label: 'Inscription' }, { key: 'last_seen_at', label: 'Dernière activité' },
       { key: 'level', label: 'Niveau' }, { key: 'xp', label: 'XP' }, { key: 'matches', label: 'Parties' }, { key: 'wins', label: 'Victoires' },
       { key: 'play_time_ms', label: 'Temps de jeu (min)', value: r => fmtMs(r.play_time_ms) },
@@ -107,12 +107,12 @@ router.get('/players/:id', auth('players.view'), ah(async (req, res) => {
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw notFound('Joueur introuvable');
   const canPrivate = req.admin.permissions.has('players.view_private');
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.status, u.suspended_until, u.created_at, u.last_seen_at, u.phone, u.phone_verified,
+    `SELECT u.id, u.username, u.avatar, u.status, u.suspended_until, u.created_at, u.last_seen_at, u.phone, u.email,
             u.legacy_player_id, g.xp, g.level, g.matches_played, g.wins, g.play_time_ms, g.active_days
        FROM users u LEFT JOIN player_global_stats g ON g.user_id = u.id WHERE u.id = $1`, [id]);
   const u = rows[0];
   if (!u) throw notFound('Joueur introuvable');
-  if (!canPrivate) delete u.phone;
+  if (!canPrivate) { delete u.phone; delete u.email; }
   const [games, history, reports, actions, season, legacy] = await Promise.all([
     profiles.gameStats(id),
     profiles.matchHistory(id, { limit: 50 }),
@@ -149,8 +149,8 @@ router.post('/players/:id/anonymize', auth('players.anonymize'), ah(async (req, 
   await moderation.anonymize(req.admin, req.params.id, req.body.reason, clientIp(req));
   res.json({ ok: true });
 }));
-router.post('/players/:id/reset-code', auth('players.moderate'), ah(async (req, res) => {
-  res.json(await moderation.resetCode(req.admin, req.params.id, req.body.reason, clientIp(req)));
+router.post('/players/:id/reset-link', auth('players.moderate'), ah(async (req, res) => {
+  res.json(await moderation.resetLink(req.admin, req.params.id, req.body.reason, clientIp(req)));
 }));
 router.post('/players/:id/adjust', auth('leaderboards.correct'), ah(async (req, res) => {
   await moderation.adjustScore(req.admin, req.params.id, req.body || {}, clientIp(req));

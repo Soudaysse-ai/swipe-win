@@ -57,18 +57,18 @@ npm run dev                     # http://localhost:5173 (proxy /api et /socket.i
 | `http://localhost:5173/admin` | Back-office (identifiants du `.env` : `ADMIN_EMAIL` / `ADMIN_PASSWORD`) |
 | `http://localhost:5173/quiz` | Quiz Swipe & gagne |
 
-En développement, les codes OTP sont écrits dans les logs de l'API (`SMS_PROVIDER=console`).
+Mot de passe oublié : un lien est envoyé par e-mail via [Resend](https://resend.com) (`RESEND_API_KEY`). En développement, sans clé, l'e-mail est écrit dans les logs de l'API.
 
 ## Tests
 
 ```bash
 cd backend
-npm test                        # 76 tests unitaires (moteurs, cotes, progression, filtres…)
-TEST_DATABASE_URL=postgresql://…/defiyas_test npm run test:integration   # 21 tests (base de test effacée !)
+npm test                        # 79 tests unitaires (moteurs, cotes, progression, filtres…)
+TEST_DATABASE_URL=postgresql://…/defiyas_test npm run test:integration   # 27 tests (base de test effacée !)
 PAIRS=100 DURATION=30 node scripts/loadtest.js                          # test de charge indicatif
 
 cd frontend
-npm run test:e2e                # API sur :3001 + `npm run dev` requis
+npm run test:e2e                # API sur :3001 + `npm run dev` requis ; E2E_API_LOG=<log de l'API> pour tester le lien e-mail
 ```
 
 La CI GitHub Actions (`.github/workflows/ci.yml`) exécute les tests backend sur

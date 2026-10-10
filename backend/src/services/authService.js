@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db/pool');
 const config = require('../config');
-const otp = require('./otpService');
+const passwordReset = require('./passwordReset');
 const analytics = require('./analytics');
 const { containsBlocked } = require('./contentFilter');
 const { isValidAvatar } = require('./avatars');
@@ -50,17 +50,19 @@ async function register(input, meta = {}) {
   const avatar = input.avatar || 'yas-01';
   if (!isValidAvatar(avatar)) throw bad('AVATAR_INVALID', 'Avatar invalide');
   if (input.acceptTerms !== true) throw bad('TERMS_REQUIRED', 'Vous devez accepter les conditions d\'utilisation');
+  const rawEmail = String(input.email || '').trim();
+  if (!rawEmail && config.emailRequired) throw bad('EMAIL_REQUIRED', 'Adresse e-mail requise');
+  const email = rawEmail ? passwordReset.normalizeEmail(rawEmail) : null;
 
   const result = await pool.tx(async (db) => {
-    let verified = false;
-    if (config.otp.required) {
-      await otp.verifyCode(phone, 'register', input.otpCode, db);
-      verified = true;
-    }
     const exists = await db.query('SELECT 1 FROM users WHERE phone = $1', [phone]);
     if (exists.rows.length) throw conflict('PHONE_TAKEN', 'Un compte existe déjà avec ce numéro');
     const nameTaken = await db.query('SELECT 1 FROM users WHERE LOWER(username) = LOWER($1)', [username]);
     if (nameTaken.rows.length) throw conflict('USERNAME_TAKEN', 'Ce pseudonyme est déjà pris');
+    if (email) {
+      const mailTaken = await db.query('SELECT 1 FROM users WHERE LOWER(email) = $1', [email]);
+      if (mailTaken.rows.length) throw conflict('EMAIL_TAKEN', 'Cette adresse e-mail est déjà utilisée');
+    }
 
     // Migration douce des anciens profils Swipe & Win : même numéro → compte lié.
     const legacy = await db.query(
@@ -69,15 +71,23 @@ async function register(input, meta = {}) {
     );
     const hash = await bcrypt.hash(input.password, 10);
     const { rows } = await db.query(
-      `INSERT INTO users (phone, phone_verified, password_hash, username, avatar, legacy_player_id, terms_accepted_at)
+      `INSERT INTO users (phone, email, password_hash, username, avatar, legacy_player_id, terms_accepted_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *`,
-      [phone, verified, hash, username, avatar, legacy.rows[0]?.id || null]
+      [phone, email, hash, username, avatar, legacy.rows[0]?.id || null]
     );
     const user = rows[0];
     await db.query('INSERT INTO profiles (user_id) VALUES ($1)', [user.id]);
     await db.query('INSERT INTO player_global_stats (user_id) VALUES ($1)', [user.id]);
     const session = await createSession(db, user.id, meta);
     return { user, session };
+  }).catch((err) => {
+    // Deux inscriptions simultanées : l'index unique tranche.
+    if (err.code === '23505') {
+      if (/email/.test(err.constraint || '')) throw conflict('EMAIL_TAKEN', 'Cette adresse e-mail est déjà utilisée');
+      if (/username/.test(err.constraint || '')) throw conflict('USERNAME_TAKEN', 'Ce pseudonyme est déjà pris');
+      throw conflict('PHONE_TAKEN', 'Un compte existe déjà avec ce numéro');
+    }
+    throw err;
   });
   analytics.track('user_registered', { userId: result.user.id, properties: { legacy: !!result.user.legacy_player_id } });
   return result;
@@ -115,16 +125,8 @@ async function logout(sessionId) {
   cache.delete(sessionId);
 }
 
-async function resetPassword({ phone: rawPhone, code, newPassword }) {
-  const phone = normalizePhone(rawPhone);
-  validatePassword(newPassword);
-  await pool.tx(async (db) => {
-    await otp.verifyCode(phone, 'reset', code, db);
-    const hash = await bcrypt.hash(newPassword, 10);
-    const { rows } = await db.query('UPDATE users SET password_hash = $1, phone_verified = true WHERE phone = $2 RETURNING id', [hash, phone]);
-    if (!rows.length) throw bad('ACCOUNT_NOT_FOUND', 'Aucun compte avec ce numéro');
-    await db.query('UPDATE auth_sessions SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL', [rows[0].id]);
-  });
+async function resetPassword({ token, newPassword }) {
+  await passwordReset.resetPassword(token, newPassword, validatePassword);
   cache.clear();
 }
 

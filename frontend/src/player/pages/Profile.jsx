@@ -17,6 +17,9 @@ export default function Profile() {
   const [historyGame, setHistoryGame] = useState('');
   const [edit, setEdit] = useState(false);
   const [form, setForm] = useState({});
+  const [mailEdit, setMailEdit] = useState(false);
+  const [mail, setMail] = useState({ email: '', currentPassword: '' });
+  const [mailError, setMailError] = useState('');
 
   useEffect(() => { playerApi.get('/players/me').then(r => setUser(r.data.player)).catch(() => {}); }, [setUser]);
   useEffect(() => {
@@ -40,8 +43,27 @@ export default function Profile() {
     } catch (err) { toast(apiError(err)); }
   }
 
+  async function saveMail(e) {
+    e.preventDefault();
+    setMailError('');
+    try {
+      const { data } = await playerApi.patch('/players/me', mail);
+      setUser(data.player);
+      setMailEdit(false);
+      setMail({ email: '', currentPassword: '' });
+      toast(data.player.email ? 'E-mail enregistré' : 'E-mail retiré', { icon: '✅' });
+    } catch (err) { setMailError(apiError(err)); }
+  }
+
   return (
     <div className="stack">
+      {!user.email && (
+        <div className="alert info" role="note">
+          <Icon name="lock" size={20} />
+          <span className="grow">Ajoute ton e-mail pour pouvoir récupérer ton mot de passe si tu l'oublies.</span>
+          <button className="btn sm blue" onClick={() => { setMail({ email: '', currentPassword: '' }); setMailEdit(true); }}>Ajouter</button>
+        </div>
+      )}
       <div className="card blue on-blue stack">
         <div className="row">
           <Avatar id={user.avatar} size={72} />
@@ -93,6 +115,21 @@ export default function Profile() {
         <Icon name="logout" size={18} /> Se déconnecter
       </button>
       <p className="tiny muted center">Compte créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')} · {user.phone}{user.legacyLinked ? ' · historique Swipe & Win conservé' : ''}</p>
+      <p className="tiny muted center">
+        E-mail de récupération : {user.email || 'aucun'} ·{' '}
+        <button className="link tiny" onClick={() => { setMail({ email: user.email || '', currentPassword: '' }); setMailEdit(true); }}>{user.email ? 'Modifier' : 'Ajouter'}</button>
+      </p>
+
+      <Sheet open={mailEdit} onClose={() => setMailEdit(false)} label="E-mail de récupération">
+        <form className="stack lg" onSubmit={saveMail}>
+          <h2 className="h3">E-mail de récupération</h2>
+          <p className="small muted">Il reste privé : il sert uniquement à t'envoyer un lien si tu oublies ton mot de passe.</p>
+          <div className="field"><label htmlFor="pem">E-mail</label><div className="input-line"><input id="pem" type="email" inputMode="email" autoComplete="email" value={mail.email} onChange={e => setMail(m => ({ ...m, email: e.target.value }))} /></div></div>
+          <div className="field"><label htmlFor="pcp">Mot de passe actuel</label><div className="input-line"><input id="pcp" type="password" autoComplete="current-password" value={mail.currentPassword} onChange={e => setMail(m => ({ ...m, currentPassword: e.target.value }))} /></div><span className="help">Par sécurité, on te le demande pour changer cette adresse.</span></div>
+          {mailError && <div className="alert error" role="alert">{mailError}</div>}
+          <button className="btn block">Enregistrer</button>
+        </form>
+      </Sheet>
 
       <Sheet open={edit} onClose={() => setEdit(false)} label="Modifier mon profil">
         <div className="stack lg">

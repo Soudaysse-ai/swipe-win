@@ -19,14 +19,15 @@ module.exports = {
   corsOrigins: (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean),
   // Format des numéros acceptés (+269 + 7 chiffres). Par défaut : préfixe 4 (règle du site actuel).
   phoneRegex: new RegExp(process.env.PHONE_REGEX || '^\\+2694\\d{6}$'),
-  otp: {
-    // OTP obligatoire à l'inscription : à activer dès qu'un fournisseur SMS est branché.
-    required: process.env.OTP_REQUIRED === 'true',
-    provider: process.env.SMS_PROVIDER || 'console', // console | http
-    apiUrl: process.env.SMS_API_URL || '',
-    apiKey: process.env.SMS_API_KEY || '',
-    sender: process.env.SMS_SENDER || 'DefiYas',
-    ttlMinutes: 10,
-    maxAttempts: 5,
+  // E-mails transactionnels (réinitialisation du mot de passe) via l'API Resend.
+  mail: {
+    resendApiKey: process.env.RESEND_API_KEY || '',
+    from: process.env.MAIL_FROM || 'Défi Yas <no-reply@defi-yas.com>',
+    replyTo: process.env.MAIL_REPLY_TO || '',
   },
+  // URL publique de l'application (liens envoyés par e-mail).
+  appUrl: (process.env.APP_URL || 'http://localhost:5173').replace(/\/$/, ''),
+  // E-mail obligatoire à l'inscription (facultatif par défaut).
+  emailRequired: process.env.EMAIL_REQUIRED === 'true',
+  resetTokenMinutes: parseInt(process.env.RESET_TOKEN_MINUTES || '30', 10),
 };

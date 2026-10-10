@@ -7,10 +7,11 @@ export function uniquePhone() {
 }
 
 // Crée un compte depuis l'interface (écran d'inscription réel).
-export async function registerViaUi(page, username) {
+export async function registerViaUi(page, username, { email } = {}) {
   const phone = uniquePhone();
   await page.goto('/register');
   await page.getByLabel('Numéro de téléphone').fill(phone);
+  if (email) await page.getByLabel(/^E-mail/).fill(email);
   await page.getByLabel('Pseudonyme').fill(username);
   await page.getByLabel('Mot de passe').fill('motdepasse123');
   await page.locator('label.checkbox').click();

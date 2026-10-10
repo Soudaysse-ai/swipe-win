@@ -7,7 +7,7 @@ const pool = require('../db/pool');
 const hub = require('../realtime/hub');
 const notifications = require('./notifications');
 const authService = require('./authService');
-const otp = require('./otpService');
+const passwordReset = require('./passwordReset');
 const leaderboards = require('./leaderboards');
 const { logAudit } = require('./audit');
 const { levelForXp } = require('./progression');
@@ -69,7 +69,7 @@ async function anonymize(admin, userId, reason, ip) {
     const tag = crypto.randomBytes(8).toString('hex');
     await db.query(
       `UPDATE users SET phone = $2, username = $3, password_hash = $4, status = 'deleted', deleted_at = NOW(),
-              avatar = 'yas-01', phone_verified = false WHERE id = $1`,
+              avatar = 'yas-01', email = NULL WHERE id = $1`,
       [userId, `del-${tag}`, `ancien_${tag.slice(0, 8)}`, await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 4)]);
     await db.query('UPDATE profiles SET bio = NULL WHERE user_id = $1', [userId]);
     if (u.legacy_player_id) await db.query('UPDATE players SET phone = $2, name = NULL WHERE id = $1', [u.legacy_player_id, `del-${tag}`]);
@@ -85,15 +85,17 @@ async function anonymize(admin, userId, reason, ip) {
   leaderboards.invalidate();
 }
 
-// Code de réinitialisation remis par le service client (quand le SMS n'est pas disponible).
-async function resetCode(admin, userId, reason, ip) {
+// Réinitialisation du mot de passe à la demande du service client : le lien est
+// envoyé par e-mail si le joueur a une adresse, sinon il est renvoyé à
+// l'administrateur pour être transmis au joueur.
+async function resetLink(admin, userId, reason, ip) {
   const why = requireReason(reason);
   const u = await getUser(pool, userId);
   if (u.status === 'deleted') throw bad('DELETED', 'Compte supprimé');
-  const code = await otp.createCode(u.phone, 'reset');
+  const out = await passwordReset.adminLink(userId, admin.id);
   await pool.query(`INSERT INTO moderation_actions (admin_id, user_id, action, reason) VALUES ($1,$2,'reset_password',$3)`, [admin.id, userId, why]);
-  await logAudit(admin.id, 'RESET_CODE', 'user', userId, null, null, { reason: why, ip });
-  return { code, expiresInMinutes: 10 };
+  await logAudit(admin.id, 'RESET_LINK', 'user', userId, null, { emailed: out.emailed }, { reason: why, ip });
+  return out;
 }
 
 // Correction manuelle de score (points de saison ou XP) — toujours journalisée.
@@ -211,4 +213,4 @@ async function resolveReport(admin, reportId, { status, resolution, action, unti
   await logAudit(admin.id, 'RESOLVE_REPORT', 'report', reportId, { status: 'open' }, { status, action: action || 'none' }, { reason: why, ip });
 }
 
-module.exports = { sanction, anonymize, resetCode, adjustScore, reviewMatch, hideMessage, resolveReport };
+module.exports = { sanction, anonymize, resetLink, adjustScore, reviewMatch, hideMessage, resolveReport };

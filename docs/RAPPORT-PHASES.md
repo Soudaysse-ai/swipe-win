@@ -7,9 +7,9 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 | Suite | Commande | Résultat |
 |---|---|---|
-| Unitaires backend | `npm test` | **76 / 76** |
-| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **21 / 21** |
-| E2E navigateur (téléphones simulés Pixel 7) | `npm run test:e2e` | **5 / 5** |
+| Unitaires backend | `npm test` | **79 / 79** |
+| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **27 / 27** |
+| E2E navigateur (téléphones simulés Pixel 7) | `npm run test:e2e` | **6 / 6** |
 | Build frontend | `npm run build` | OK |
 | Charge indicative (`scripts/loadtest.js`, 200 clients, 30 s) | | 2 492 parties, 0 erreur, p50 48 ms, p95 384 ms |
 
@@ -24,10 +24,11 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 ## Phase 2 — Fondations
 - **Fichiers** : `backend/src/config.js`, `lib/*`, `db/migrate.js`, `db/migrations/00{1,2,3}_*.sql`,
-  `services/authService.js`, `otpService.js`, `permissions.js`, `middleware/*`, `routes/auth.js`,
+  `services/authService.js`, `passwordReset.js`, `mailer.js`, `permissions.js`, `middleware/*`, `routes/auth.js`,
   `frontend/src/styles/*`, `player/AuthContext.jsx`, `components/*`, `player/pages/AuthPages.jsx`.
-- **Fonctionnalités** : comptes (pseudonyme, +269, mot de passe bcrypt, OTP optionnel, avatar,
-  CGU), sessions révocables, réinitialisation par SMS ou par code remis par le service client,
+- **Fonctionnalités** : comptes (pseudonyme, +269, mot de passe bcrypt, e-mail facultatif, avatar,
+  CGU), sessions révocables, réinitialisation par lien e-mail (Resend) ou par lien remis par le
+  service client,
   6 rôles admin, design system Yas mobile-first.
 - **Migrations** : `001` (schéma existant, idempotent), `002` (plateforme), `003` (référentiels).
   Testées sur une base « ancienne version » avec données : aucune perte, rôles convertis,
@@ -84,6 +85,14 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 - Correctif trouvé par la charge : requêtes concurrentes sur un client de transaction (badges).
 - CI GitHub Actions.
 
+## Évolution — réinitialisation par e-mail (sans OTP)
+- **Fichiers** : `db/migrations/004_email_reset.sql`, `services/mailer.js`, `services/passwordReset.js`,
+  `routes/auth.js`, `routes/player.js`, `services/moderation.js`, écrans d'inscription, de mot de passe
+  oublié, de profil et fiche joueur du back-office. `services/otpService.js` supprimé.
+- **Tests** : 6 tests d'intégration (inscription sans OTP, lien à usage unique, sessions fermées,
+  adresse inconnue sans divulgation, expiration, changement d'e-mail protégé, lien du service client),
+  3 tests unitaires de l'appel à l'API Resend, 1 test E2E du parcours complet.
+
 ## Phase 12 — Déploiement
 **Non effectué** : en attente de validation explicite et des accès (voir `DEPLOIEMENT.md`).
 
@@ -93,8 +102,9 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 1. **Accès production** (base, Render, Vercel, DNS) pour finaliser l'audit, faire la sauvegarde et
    la migration sur staging.
-2. **Fournisseur SMS** : sans lui, l'OTP reste désactivé (`OTP_REQUIRED=false`) — la vérification
-   du numéro n'est alors pas assurée ; la réinitialisation passe par le service client.
+2. **Resend** : créer la clé API et vérifier le domaine d'expédition. Il n'y a plus de vérification
+   OTP : le numéro saisi à l'inscription n'est pas vérifié. Les joueurs sans e-mail récupèrent leur
+   compte via le service client (lien généré dans le back-office).
 3. **Hébergement temps réel** toujours actif ; V1 limitée à **une instance** (Redis à prévoir pour
    plusieurs instances).
 4. **Charge réelle** : refaire le test sur l'infrastructure cible avant toute annonce de capacité.

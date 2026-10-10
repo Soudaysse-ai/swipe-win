@@ -17,6 +17,8 @@ const { requirePlayer, optionalPlayer } = require('../middleware/playerAuth');
 const { validateUsername } = require('../services/authService');
 const { isValidAvatar } = require('../services/avatars');
 const { sanitize, filterText } = require('../services/contentFilter');
+const bcrypt = require('bcryptjs');
+const passwordReset = require('../services/passwordReset');
 const { ah } = require('../lib/http');
 const { bad, notFound, conflict } = require('../lib/errors');
 
@@ -102,8 +104,22 @@ router.get('/players/me/matches', requirePlayer, ah(async (req, res) => {
 }));
 
 router.patch('/players/me', requirePlayer, ah(async (req, res) => {
-  const { avatar, username, bio, showStats, allowInvites } = req.body || {};
+  const { avatar, username, bio, showStats, allowInvites, email, currentPassword } = req.body || {};
   const userId = req.user.userId;
+  if (email !== undefined) {
+    // Changer l'adresse de récupération exige le mot de passe actuel.
+    const { rows } = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
+    if (!(await bcrypt.compare(String(currentPassword || ''), rows[0].password_hash))) {
+      throw bad('PASSWORD_WRONG', 'Mot de passe actuel incorrect');
+    }
+    const value = String(email || '').trim() ? passwordReset.normalizeEmail(email) : null;
+    if (!value && require('../config').emailRequired) throw bad('EMAIL_REQUIRED', 'Adresse e-mail requise');
+    if (value) {
+      const taken = await pool.query('SELECT 1 FROM users WHERE LOWER(email) = $1 AND id <> $2', [value, userId]);
+      if (taken.rows.length) throw conflict('EMAIL_TAKEN', 'Cette adresse e-mail est déjà utilisée');
+    }
+    await pool.query('UPDATE users SET email = $2 WHERE id = $1', [userId, value]);
+  }
   if (avatar !== undefined) {
     if (!isValidAvatar(avatar)) throw bad('AVATAR_INVALID', 'Avatar invalide');
     await pool.query('UPDATE users SET avatar = $2 WHERE id = $1', [userId, avatar]);

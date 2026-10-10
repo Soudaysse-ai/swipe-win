@@ -12,7 +12,7 @@
 | API + WebSocket | Render **plan payant toujours actif** (ou Railway, Fly.io) | Le plan gratuit met le service en veille : incompatible avec les parties en temps réel. **Une seule instance** en V1 (voir docs/ARCHITECTURE.md §8). |
 | Frontend | Vercel (actuel) | `vercel.json` : réécriture SPA, cache immuable des assets, en-têtes de sécurité |
 | Domaine | `www.defi-yas.com` → frontend ; `api.defi-yas.com` → API (recommandé) | HTTPS / WSS obligatoires |
-| SMS | Fournisseur à choisir par Yas | API HTTP JSON `POST { to, from, message }` + jeton Bearer, sinon adapter `otpService.sendSms` |
+| E-mails | Resend | Créer une clé API, **vérifier le domaine** d'expédition (ex. `defi-yas.com`, enregistrements DNS SPF/DKIM fournis par Resend), renseigner `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL` |
 
 ## Environnements
 - **dev** : local (`npm run dev`).
@@ -24,6 +24,7 @@
 Backend : voir `backend/.env.example` (obligatoires en production : `DATABASE_URL`,
 `JWT_SECRET` ≥ 32 caractères, `CORS_ORIGINS`, `NODE_ENV=production`).
 Frontend : `VITE_API_URL=https://api.defi-yas.com`.
+E-mails : `RESEND_API_KEY`, `MAIL_FROM` (adresse d'un domaine vérifié dans Resend), `APP_URL=https://www.defi-yas.com`.
 
 ## Procédure de mise à jour (base existante Swipe & Win)
 
@@ -39,8 +40,8 @@ Frontend : `VITE_API_URL=https://api.defi-yas.com`.
    `editor → platform_admin`.
 5. Déployer l'API (Build `npm ci`, Start `npm start`), vérifier `GET /health`.
 6. Déployer le frontend avec `VITE_API_URL`.
-7. Vérifications : inscription, partie Connect entre deux téléphones, `/admin` (dashboard,
-   activité en direct), export CSV.
+7. Vérifications : inscription, « mot de passe oublié » (réception de l'e-mail), partie Connect
+   entre deux téléphones, `/admin` (dashboard, activité en direct), export CSV.
 
 ### Comptes existants
 Les joueurs Swipe & Win n'avaient ni mot de passe ni pseudonyme. Lorsqu'ils créent leur compte
@@ -60,6 +61,6 @@ conservé). Aucune donnée existante n'est supprimée par la migration.
 - Supervision : `/health`, page **Activité en direct** du back-office (sockets, latence, erreurs,
   déconnexions, parties, files d'attente, mémoire).
 - Tâches horaires intégrées : instantanés des classements, cohortes de rétention, levée des
-  suspensions expirées, purge des OTP.
+  suspensions expirées, purge des liens de réinitialisation.
 - Arrêt / redémarrage : les parties en cours sont restaurées au redémarrage (délai de grâce pour
   que les joueurs se reconnectent).

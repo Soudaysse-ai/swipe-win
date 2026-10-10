@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import playerApi, { apiError } from '../../lib/playerApi';
 import { useAuth } from '../AuthContext';
 import Plectre from '../../components/Plectre';
@@ -100,35 +100,26 @@ export function Login() {
 export function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [cfg, setCfg] = useState({ otpRequired: false });
-  const [form, setForm] = useState({ phone: '', username: '', password: '', avatar: 'yas-01', acceptTerms: false, otpCode: '' });
-  const [codeSent, setCodeSent] = useState(false);
+  const [cfg, setCfg] = useState({ emailRequired: false });
+  const [form, setForm] = useState({ phone: '', email: '', username: '', password: '', avatar: 'yas-01', acceptTerms: false });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const set = (k) => (v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => { playerApi.get('/auth/config').then(r => setCfg(r.data)).catch(() => {}); }, []);
 
-  async function sendCode() {
-    setError('');
-    if (!/^4\d{6}$/.test(form.phone)) return setError('Numéro invalide (7 chiffres commençant par 4)');
-    try {
-      await playerApi.post('/auth/otp/request', { phone: `+269${form.phone}`, purpose: 'register' });
-      setCodeSent(true);
-    } catch (err) { setError(apiError(err)); }
-  }
-
   async function submit(e) {
     e.preventDefault();
     setError('');
     if (!/^4\d{6}$/.test(form.phone)) return setError('Numéro invalide (7 chiffres commençant par 4)');
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) return setError('Adresse e-mail invalide');
+    if (cfg.emailRequired && !form.email.trim()) return setError('Adresse e-mail requise');
     if (!/^[A-Za-z0-9_\-.]{3,20}$/.test(form.username)) return setError('Pseudonyme : 3 à 20 caractères (lettres, chiffres, _ - .)');
     if (form.password.length < 8) return setError('Mot de passe : 8 caractères minimum');
     if (!form.acceptTerms) return setError('Accepte les conditions pour continuer');
-    if (cfg.otpRequired && !/^\d{6}$/.test(form.otpCode)) return setError('Saisis le code reçu par SMS');
     setBusy(true);
     try {
-      await register({ ...form, phone: `+269${form.phone}` });
+      await register({ ...form, email: form.email.trim() || undefined, phone: `+269${form.phone}` });
       navigate('/');
     } catch (err) { setError(apiError(err)); } finally { setBusy(false); }
   }
@@ -142,15 +133,11 @@ export function Register() {
           <PhoneInput value={form.phone} onChange={set('phone')} />
           <span className="help">Ton numéro reste privé : il n'est jamais affiché aux autres joueurs.</span>
         </div>
-        {cfg.otpRequired && (
-          <div className="field">
-            <label htmlFor="otp">Code de vérification</label>
-            <div className="row">
-              <div className="input-line grow"><input id="otp" inputMode="numeric" maxLength={6} placeholder="000000" value={form.otpCode} onChange={e => set('otpCode')(e.target.value.replace(/\D/g, ''))} /></div>
-              <button type="button" className="btn sm blue" onClick={sendCode}>{codeSent ? 'Renvoyer' : 'Recevoir'}</button>
-            </div>
-          </div>
-        )}
+        <div className="field">
+          <label htmlFor="em">E-mail{cfg.emailRequired ? '' : ' (facultatif)'}</label>
+          <div className="input-line"><input id="em" type="email" inputMode="email" autoComplete="email" placeholder="toi@exemple.km" value={form.email} onChange={e => set('email')(e.target.value)} /></div>
+          <span className="help">Il te servira à récupérer ton mot de passe si tu l'oublies. Il reste privé.</span>
+        </div>
         <div className="field">
           <label htmlFor="un">Pseudonyme</label>
           <div className="input-line"><input id="un" autoComplete="nickname" maxLength={20} value={form.username} onChange={e => set('username')(e.target.value)} /></div>
@@ -184,51 +171,74 @@ export function Register() {
   );
 }
 
+// Mot de passe oublié : demande d'un lien par e-mail, puis choix du nouveau
+// mot de passe depuis le lien reçu (/reset?token=…).
 export function ResetPassword() {
   const navigate = useNavigate();
-  const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
+  const [params] = useSearchParams();
+  const token = params.get('token');
+  const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
-  const [step, setStep] = useState(1);
-  const [error, setError] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [sent, setSent] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   async function request(e) {
     e.preventDefault();
     setError('');
-    if (!/^4\d{6}$/.test(phone)) return setError('Numéro invalide');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return setError('Adresse e-mail invalide');
+    setBusy(true);
     try {
-      await playerApi.post('/auth/otp/request', { phone: `+269${phone}`, purpose: 'reset' });
-      setStep(2);
-    } catch (err) { setError(apiError(err)); }
+      await playerApi.post('/auth/password/forgot', { email: email.trim() });
+      setSent(true);
+    } catch (err) { setError(apiError(err)); } finally { setBusy(false); }
   }
+
   async function reset(e) {
     e.preventDefault();
     setError('');
+    if (pw.length < 8) return setError('8 caractères minimum');
+    if (pw !== pw2) return setError('Les deux mots de passe ne sont pas identiques');
+    setBusy(true);
     try {
-      await playerApi.post('/auth/password/reset', { phone: `+269${phone}`, code, newPassword: pw });
+      await playerApi.post('/auth/password/reset', { token, newPassword: pw });
       setDone(true);
-      setTimeout(() => navigate('/login'), 1500);
-    } catch (err) { setError(apiError(err)); }
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (err) { setError(apiError(err)); } finally { setBusy(false); }
   }
 
   return (
     <BrandLayout compact>
       <h1 className="h1">Nouveau <span className="accent-yellow">mot de passe</span></h1>
       <div className="card stack lg" style={{ marginTop: 20, color: 'var(--yas-blue)' }}>
-        {done ? <div className="alert success">✅ Mot de passe modifié. Connecte-toi !</div> : step === 1 ? (
-          <form className="stack lg" onSubmit={request}>
-            <div className="field"><label>Numéro de téléphone</label><PhoneInput value={phone} onChange={setPhone} /></div>
-            <p className="small muted">Tu vas recevoir un code par SMS. Sans accès à ton numéro, contacte le service client Yas : un conseiller pourra te transmettre un code de réinitialisation.</p>
-            <ErrorText>{error}</ErrorText>
-            <button className="btn block">Recevoir un code <span className="arrow" /></button>
-          </form>
-        ) : (
+        {done ? (
+          <div className="alert success" role="status"><Icon name="check" size={20} /> C'est fait ! Connecte-toi avec ton nouveau mot de passe.</div>
+        ) : token ? (
           <form className="stack lg" onSubmit={reset}>
-            <div className="field"><label htmlFor="c">Code reçu</label><div className="input-line"><input id="c" inputMode="numeric" maxLength={6} value={code} onChange={e => setCode(e.target.value.replace(/\D/g, ''))} /></div></div>
-            <div className="field"><label htmlFor="np">Nouveau mot de passe</label><div className="input-line"><input id="np" type="password" autoComplete="new-password" value={pw} onChange={e => setPw(e.target.value)} /></div></div>
+            <div className="field"><label htmlFor="np">Nouveau mot de passe</label><div className="input-line"><input id="np" type="password" autoComplete="new-password" value={pw} onChange={e => setPw(e.target.value)} /></div><span className="help">8 caractères minimum.</span></div>
+            <div className="field"><label htmlFor="np2">Confirme-le</label><div className="input-line"><input id="np2" type="password" autoComplete="new-password" value={pw2} onChange={e => setPw2(e.target.value)} /></div></div>
             <ErrorText>{error}</ErrorText>
-            <button className="btn block">Valider <span className="arrow" /></button>
+            {error && /lien/i.test(error) && <Link to="/reset" className="link small">Demander un nouveau lien</Link>}
+            <button className="btn block" disabled={busy}>{busy ? 'Enregistrement…' : <>Enregistrer <span className="arrow" /></>}</button>
+          </form>
+        ) : sent ? (
+          <div className="stack">
+            <div className="alert info" role="status"><Icon name="chat" size={20} /> Si un compte Défi Yas est lié à cette adresse, un e-mail avec un lien vient de partir. Le lien est valable 30 minutes.</div>
+            <p className="small muted">Rien reçu ? Regarde dans tes spams, ou recommence dans quelques minutes.</p>
+            <button className="btn block outline" onClick={() => setSent(false)}>Utiliser une autre adresse</button>
+          </div>
+        ) : (
+          <form className="stack lg" onSubmit={request}>
+            <div className="field">
+              <label htmlFor="em">Ton e-mail</label>
+              <div className="input-line"><input id="em" type="email" inputMode="email" autoComplete="email" placeholder="toi@exemple.km" value={email} onChange={e => setEmail(e.target.value)} /></div>
+              <span className="help">On t'envoie un lien pour choisir un nouveau mot de passe.</span>
+            </div>
+            <ErrorText>{error}</ErrorText>
+            <button className="btn block" disabled={busy}>{busy ? 'Envoi…' : <>Recevoir le lien <span className="arrow" /></>}</button>
+            <p className="small muted">Pas d'e-mail sur ton compte ? Contacte le service client Yas : un conseiller pourra te transmettre un lien de réinitialisation.</p>
           </form>
         )}
         <Link to="/login" className="link small">Retour à la connexion</Link>
@@ -246,7 +256,7 @@ export function Terms() {
         <h1 className="h2">Conditions d'utilisation</h1>
         <div className="card stack small" style={{ lineHeight: 1.5 }}>
           <p><b>Défi Yas</b> est une plateforme de jeux en ligne gratuite proposée par Yas Comores.</p>
-          <p>Ton numéro de téléphone sert uniquement à sécuriser ton compte ; il n'est jamais affiché aux autres joueurs. Ton pseudonyme, ton avatar, ton niveau, tes badges et tes statistiques de jeu sont publics.</p>
+          <p>Ton numéro de téléphone et ton e-mail servent uniquement à sécuriser ton compte et à récupérer ton mot de passe ; ils ne sont jamais affichés aux autres joueurs. Ton pseudonyme, ton avatar, ton niveau, tes badges et tes statistiques de jeu sont publics.</p>
           <p>Les comportements abusifs (insultes, triche, matchs arrangés, comptes multiples) peuvent entraîner une suspension ou un bannissement. Les messages du chat sont filtrés et peuvent être signalés et modérés.</p>
           <p>Les classements, points et niveaux n'ont aucune valeur monétaire. D'éventuelles récompenses ne seront proposées qu'après publication d'un règlement de campagne spécifique.</p>
           <p>Tu peux demander la suppression ou l'anonymisation de ton compte auprès du service client Yas.</p>

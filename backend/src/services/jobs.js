@@ -1,5 +1,5 @@
 // Tâches périodiques : instantanés des classements (évolution des rangs),
-// cohortes de rétention, levée des suspensions expirées, purge des OTP.
+// cohortes de rétention, levée des suspensions expirées, purge des liens de réinitialisation expirés.
 const pool = require('../db/pool');
 const leaderboards = require('./leaderboards');
 
@@ -11,8 +11,8 @@ async function liftExpiredSuspensions() {
       WHERE status = 'suspended' AND suspended_until IS NOT NULL AND suspended_until <= NOW()`);
 }
 
-async function purgeOtp() {
-  await pool.query(`DELETE FROM otp_codes WHERE created_at < NOW() - INTERVAL '2 days'`);
+async function purgeResetTokens() {
+  await pool.query(`DELETE FROM password_reset_tokens WHERE created_at < NOW() - INTERVAL '7 days'`);
 }
 
 // Cohortes : pour chaque jour d'inscription, combien d'inscrits ont été actifs
@@ -39,7 +39,7 @@ async function computeRetention() {
 }
 
 async function runAll() {
-  for (const [name, fn] of [['suspensions', liftExpiredSuspensions], ['otp', purgeOtp],
+  for (const [name, fn] of [['suspensions', liftExpiredSuspensions], ['liens de réinitialisation', purgeResetTokens],
     ['classements', leaderboards.snapshot], ['rétention', computeRetention]]) {
     try { await fn(); } catch (err) { console.error(`tâche ${name} échouée`, err.message); }
   }

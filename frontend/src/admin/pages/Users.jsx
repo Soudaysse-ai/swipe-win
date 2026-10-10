@@ -23,7 +23,7 @@ export function Users() {
 
   const columns = [
     { key: 'username', label: 'Pseudonyme', render: r => <span className="row" style={{ gap: 8 }}><Avatar id={r.avatar} size={26} /><b>{r.username}</b></span> },
-    ...(can('players.view_private') ? [{ key: 'phone', label: 'Téléphone', sortKey: false }] : []),
+    ...(can('players.view_private') ? [{ key: 'phone', label: 'Téléphone', sortKey: false }, { key: 'email', label: 'E-mail', sortKey: false }] : []),
     { key: 'status', label: 'Statut', sortKey: false, render: r => <StatusDot status={r.status} /> },
     { key: 'created_at', label: 'Inscription', render: r => fmt.date(r.created_at) },
     { key: 'last_seen_at', label: 'Dernière activité', render: r => fmt.dt(r.last_seen_at) },
@@ -37,7 +37,7 @@ export function Users() {
         <ExportButtons path="/admin/players" params={params} />
       </Head>
       <div className="filters">
-        <input placeholder={can('players.view_private') ? 'Pseudonyme ou téléphone' : 'Pseudonyme'} value={q} onChange={e => { setQ(e.target.value); setPage(1); }} aria-label="Recherche" />
+        <input placeholder={can('players.view_private') ? 'Pseudonyme, téléphone ou e-mail' : 'Pseudonyme'} value={q} onChange={e => { setQ(e.target.value); setPage(1); }} aria-label="Recherche" />
         <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} aria-label="Statut">
           <option value="">Tous les statuts</option><option value="active">Actifs</option><option value="suspended">Suspendus</option>
           <option value="banned">Bannis</option><option value="deleted">Supprimés</option>
@@ -66,7 +66,7 @@ function ActionForm({ action, onDone, playerId }) {
   const [extra, setExtra] = useState({ kind: 'season_points', amount: '', gameId: 'connect' });
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
-  const LABEL = { suspend: 'Suspendre', reactivate: 'Réactiver', ban: 'Bannir', warn: 'Avertir', anonymize: 'Supprimer / anonymiser', 'reset-code': 'Générer un code de réinitialisation', adjust: 'Corriger le score' };
+  const LABEL = { suspend: 'Suspendre', reactivate: 'Réactiver', ban: 'Bannir', warn: 'Avertir', anonymize: 'Supprimer / anonymiser', 'reset-link': 'Envoyer un lien de réinitialisation', adjust: 'Corriger le score' };
   async function submit(e) {
     e.preventDefault();
     if (['ban', 'anonymize'].includes(action) && !window.confirm(`Confirmer : ${LABEL[action]} ? Cette action est journalisée.`)) return;
@@ -74,7 +74,11 @@ function ActionForm({ action, onDone, playerId }) {
     try {
       const body = { reason, ...(action === 'suspend' && until ? { until: new Date(until).toISOString() } : {}), ...(action === 'adjust' ? extra : {}) };
       const { data } = await api.post(`/admin/players/${playerId}/${action}`, body);
-      if (action === 'reset-code') setMsg(`Code à transmettre au joueur (valable ${data.expiresInMinutes} min) : ${data.code}`);
+      if (action === 'reset-link') {
+        setMsg(data.emailed
+          ? `Lien envoyé par e-mail à ${data.email} (valable ${data.expiresInMinutes} min).`
+          : `Le joueur n'a pas d'e-mail : transmets-lui ce lien (valable ${data.expiresInMinutes} min, usage unique) : ${data.link}`);
+      }
       else { setMsg('Action effectuée et journalisée.'); onDone(); }
     } catch (err) { setMsg(adminError(err)); } finally { setBusy(false); }
   }
@@ -111,11 +115,11 @@ export function UserDetail() {
     can('players.moderate') && p.status === 'active' && 'suspend',
     can('players.moderate') && ['suspended', 'banned'].includes(p.status) && 'reactivate',
     can('players.ban') && p.status !== 'banned' && p.status !== 'deleted' && 'ban',
-    can('players.moderate') && p.status !== 'deleted' && 'reset-code',
+    can('players.moderate') && p.status !== 'deleted' && 'reset-link',
     can('leaderboards.correct') && 'adjust',
     can('players.anonymize') && p.status !== 'deleted' && 'anonymize',
   ].filter(Boolean);
-  const LABEL = { warn: 'Avertir', suspend: 'Suspendre', reactivate: 'Réactiver', ban: 'Bannir', 'reset-code': 'Code de réinitialisation', adjust: 'Corriger le score', anonymize: 'Anonymiser' };
+  const LABEL = { warn: 'Avertir', suspend: 'Suspendre', reactivate: 'Réactiver', ban: 'Bannir', 'reset-link': 'Réinitialiser le mot de passe', adjust: 'Corriger le score', anonymize: 'Anonymiser' };
 
   return (
     <div className="stack lg">
@@ -137,7 +141,7 @@ export function UserDetail() {
           <h2>Identité</h2>
           <dl className="kv">
             <dt>Identifiant</dt><dd className="small">{p.id}</dd>
-            {data.canViewPrivate && <><dt>Téléphone</dt><dd>{p.phone} {p.phone_verified ? '✓ vérifié' : '(non vérifié)'}</dd></>}
+            {data.canViewPrivate && <><dt>Téléphone</dt><dd>{p.phone}</dd><dt>E-mail</dt><dd>{p.email || 'aucun'}</dd></>}
             <dt>Inscription</dt><dd>{fmt.dt(p.created_at)}</dd>
             <dt>Dernière activité</dt><dd>{fmt.dt(p.last_seen_at)}</dd>
             <dt>Historique quiz</dt><dd>{data.legacyQuiz ? `${data.legacyQuiz.sessions} sessions, meilleur score ${data.legacyQuiz.best ?? '—'}` : 'aucun'}</dd>
