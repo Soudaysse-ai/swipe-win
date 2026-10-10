@@ -5,16 +5,11 @@ const cors = require('cors');
 const { errorMiddleware } = require('./lib/http');
 const { limiter } = require('./lib/rateLimit');
 
-function corsOptions() {
-  if (!config.corsOrigins.length) return { origin: !config.isProd, credentials: true };
-  return { origin: config.corsOrigins, credentials: true };
-}
-
 function createApp() {
   const app = express();
   app.set('trust proxy', 1);
   app.disable('x-powered-by');
-  app.use(cors(corsOptions()));
+  app.use(cors({ origin: require('./lib/cors').origin, credentials: true }));
   app.use(express.json({ limit: '1mb' }));
   // Limite globale par adresse IP, volontairement large : sur les réseaux mobiles,
   // de nombreux abonnés partagent la même IP publique (CGNAT). Les routes

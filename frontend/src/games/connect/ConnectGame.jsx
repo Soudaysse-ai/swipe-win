@@ -48,7 +48,7 @@ export default function ConnectGame({ snapshot, me, sendAction }) {
       </div>
       {v.status === 'playing' && <TimerBar deadline={v.turnDeadline} total={v.turnMs || 20000} />}
 
-      <div style={{ background: 'var(--yas-blue)', borderRadius: 20, padding: 8, boxShadow: 'var(--yas-shadow-card)', touchAction: 'manipulation' }}
+      <div className="connect-board" style={{ background: 'var(--yas-blue)', borderRadius: 20, padding: 8, boxShadow: 'var(--yas-shadow-card)', touchAction: 'manipulation' }}
         role="grid" aria-label="Grille de Yas Connect">
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, 1fr)`, gap: 0 }}>
           {Array.from({ length: COLS }, (_, c) => {

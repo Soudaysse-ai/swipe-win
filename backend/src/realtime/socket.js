@@ -13,7 +13,6 @@
 //   friend:online, friend:offline, friend:request, friend:accepted, friend:invite,
 //   chat:message, chat:hidden, notification:new, session:restore
 const { Server } = require('socket.io');
-const config = require('../config');
 const hub = require('./hub');
 const rooms = require('./rooms');
 const runtime = require('./matchRuntime');
@@ -51,8 +50,8 @@ function activityOf(userId) {
 function attach(httpServer) {
   const io = new Server(httpServer, {
     cors: {
-      // Production : uniquement les origines déclarées dans CORS_ORIGINS.
-      origin: config.corsOrigins.length ? config.corsOrigins : !config.isProd,
+      // Production : uniquement les origines déclarées dans CORS_ORIGINS (motifs « * » acceptés).
+      origin: require('../lib/cors').origin,
       credentials: true,
     },
     pingInterval: 20_000,

@@ -10,10 +10,13 @@ const { bad, unauthorized, forbidden, conflict, AppError } = require('../lib/err
 
 const USERNAME_RE = /^[A-Za-z0-9_\-.]{3,20}$/;
 
+// Accepte les saisies courantes : « 412 34 56 », « +269 412 34 56 », « 00269 4123456 », « 2694123456 ».
 function normalizePhone(raw) {
-  const digits = String(raw || '').replace(/[^\d+]/g, '');
-  const phone = digits.startsWith('+') ? digits : `+269${digits}`;
-  if (!config.phoneRegex.test(phone)) throw bad('PHONE_INVALID', 'Numéro invalide (format +269 4xx xx xx)');
+  let digits = String(raw || '').replace(/\D/g, '');
+  if (digits.startsWith('00')) digits = digits.slice(2);
+  if (digits.length > 7 && digits.startsWith('269')) digits = digits.slice(3);
+  const phone = `+269${digits}`;
+  if (!config.phoneRegex.test(phone)) throw bad('PHONE_INVALID', 'Numéro invalide : 7 chiffres commençant par 4 (ex. 412 34 56)');
   return phone;
 }
 

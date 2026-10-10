@@ -56,7 +56,7 @@ function Results({ ended, me, onRematch, gameId }) {
   const title = ended.cancelled ? 'Partie annulée' : ended.isDraw ? 'Match nul' : won ? 'Victoire !' : duel && mine ? 'Défaite' : mine ? `${placeLabel(mine.place)} place` : 'Partie terminée';
   const emoji = ended.cancelled ? '🚫' : ended.isDraw ? '🤝' : won ? '🏆' : mine?.place === 2 && ended.placements.length > 2 ? '🥈' : '💪';
   return (
-    <div className="stack lg">
+    <div className="stack lg match-page">
       {won && <Confetti />}
       <div className="result-hero">
         <div className="emoji" aria-hidden>{emoji}</div>
@@ -192,7 +192,7 @@ export default function Match() {
   const others = snap.players.filter(p => p.userId !== user?.id);
 
   return (
-    <div className="stack" style={{ marginTop: -8 }}>
+    <div className="stack match-page" style={{ marginTop: -8 }}>
       <div className="row between">
         <button className="btn sm ghost" onClick={() => setResignOpen(true)} aria-label="Abandonner"><Icon name="flag" size={18} /> Abandonner</button>
         <span className="h3">{gameName(snap.gameId)}</span>

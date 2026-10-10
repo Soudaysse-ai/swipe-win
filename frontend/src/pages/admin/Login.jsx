@@ -28,7 +28,7 @@ export default function AdminLogin() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <YasLogo size={64} />
+        <YasLogo size={56} />
         <h1 style={styles.title}>SWIPE & WIN</h1>
         <p style={styles.subtitle}>Back-Office Admin</p>
 

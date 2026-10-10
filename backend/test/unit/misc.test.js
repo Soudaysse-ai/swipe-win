@@ -62,3 +62,24 @@ test('export CSV : séparateur ; et neutralisation des formules', () => {
   assert.ok(csv.includes("'=HYPERLINK"));
   assert.ok(csv.includes('"x;y"'));
 });
+
+test('CORS : adresses exactes et motifs « * » sur un seul segment', () => {
+  const { _toMatcher } = require('../../src/lib/cors');
+  const exact = _toMatcher('https://www.defi-yas.com');
+  assert.equal(exact('https://www.defi-yas.com'), true);
+  assert.equal(exact('https://www.defi-yas.com.evil.io'), false);
+  const preview = _toMatcher('https://defi-yas-*.vercel.app');
+  assert.equal(preview('https://defi-yas-git-claude-abc-team.vercel.app'), true);
+  assert.equal(preview('https://defi-yas-x.evil.io/.vercel.app'), false);
+  assert.equal(preview('https://defi-yas-a.b.vercel.app'), false);
+});
+
+test('numéro : formats de saisie courants acceptés', () => {
+  const { normalizePhone } = require('../../src/services/authService');
+  for (const raw of ['4123456', '412 34 56', '+269 412 34 56', '00269 412-34-56', '2694123456']) {
+    assert.equal(normalizePhone(raw), '+2694123456', raw);
+  }
+  for (const raw of ['', '123', '3123456', '+33612345678']) {
+    assert.throws(() => normalizePhone(raw), { code: 'PHONE_INVALID' }, raw);
+  }
+});

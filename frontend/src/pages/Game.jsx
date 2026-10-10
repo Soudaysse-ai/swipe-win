@@ -150,14 +150,14 @@ export default function Game() {
 
   if (loading) return (
     <div style={s.loading}>
-      <YasLogo size={70} />
+      <YasLogo size={40} />
       <p style={{ color: '#00377D', marginTop: 16, fontWeight: 800 }}>Chargement...</p>
     </div>
   );
 
   if (paused) return (
     <div style={s.loading}>
-      <YasLogo size={70} />
+      <YasLogo size={40} />
       <p style={{ fontSize: 48, marginTop: 16 }}>⏸</p>
       <p style={{ color: '#00377D', marginTop: 8, fontWeight: 800, fontSize: 18, textAlign: 'center', padding: '0 24px' }}>
         Le jeu est en pause pour le moment.

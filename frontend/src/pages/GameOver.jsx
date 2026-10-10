@@ -74,7 +74,7 @@ export default function GameOver() {
       <Plectre color="blue" size={200} rotate={150} style={s.plectreBottom} />
 
       <div style={s.content}>
-        <YasLogo size={96} style={{ margin: '0 auto' }} />
+        <YasLogo size={56} style={{ margin: '0 auto' }} />
         <h1 style={s.title}>Game over&nbsp;!</h1>
         <p style={s.subtitle}>Tu as récolté :</p>
 

@@ -68,7 +68,7 @@ export default function PenaltyGame({ snapshot, me, sendAction }) {
         {v.suddenDeath && <div className="chip red" style={{ marginLeft: 8, verticalAlign: 'middle' }}>Mort subite</div>}
       </div>
 
-      <div style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--yas-shadow-card)' }}>
+      <div className="penalty-field" style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--yas-shadow-card)' }}>
         <svg viewBox="0 0 300 220" width="100%" style={{ display: 'block', background: '#3CB167', touchAction: 'manipulation' }} role="group" aria-label="But et zones de tir">
           {[0, 1, 2, 3, 4].map(i => <rect key={i} x="0" y={140 + i * 16} width="300" height="8" fill="rgba(255,255,255,.07)" />)}
           <rect x="0" y="140" width="300" height="80" fill="rgba(0,0,0,.05)" />

@@ -63,7 +63,7 @@ Mot de passe oublié : un lien est envoyé par e-mail via [Resend](https://resen
 
 ```bash
 cd backend
-npm test                        # 79 tests unitaires (moteurs, cotes, progression, filtres…)
+npm test                        # 81 tests unitaires (moteurs, cotes, progression, filtres…)
 TEST_DATABASE_URL=postgresql://…/defiyas_test npm run test:integration   # 27 tests (base de test effacée !)
 PAIRS=100 DURATION=30 node scripts/loadtest.js                          # test de charge indicatif
 

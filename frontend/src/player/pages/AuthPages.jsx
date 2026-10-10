@@ -1,99 +1,142 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import playerApi, { apiError } from '../../lib/playerApi';
 import { useAuth } from '../AuthContext';
 import Plectre from '../../components/Plectre';
 import YasLogo from '../../components/YasLogo';
+import GameArt from '../../components/GameArt';
 import Avatar, { AVATAR_IDS } from '../../components/Avatar';
 import Icon from '../../components/Icon';
 
-function BrandLayout({ children, compact = false }) {
+// Écrans de compte : sur mobile, dégradé jaune avec le logo en haut à gauche ;
+// sur ordinateur, panneau Sunshine Yellow à gauche (logo, accroche, visuel) et
+// formulaire à droite.
+function AuthLayout({ title, subtitle, alt, children }) {
   return (
-    <div className="app-frame" style={{ background: 'var(--yas-blue)' }}>
-      <div className="brand-screen" style={{ minHeight: '100dvh' }}>
-        <div className="plectre-bg" style={{ top: compact ? -330 : -260, right: -170 }}>
-          <Plectre color="yellow" size={460} rotate={-35} style={{ filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.2))' }} />
-          <div style={{ position: 'absolute', top: compact ? 330 : 270, right: 150 }}><YasLogo size={compact ? 90 : 150} /></div>
+    <div className="auth-page">
+      <aside className="auth-aside">
+        <Link to="/welcome" className="auth-brand" aria-label="Défi Yas — accueil"><YasLogo size={60} /><span>Défi</span></Link>
+        <div className="auth-aside-copy">
+          <h2>Joue, défie,<br />gagne !</h2>
+          <p>Cartes, Connect, Penalty, Ludo : affronte tes amis et toute la communauté Yas en direct.</p>
         </div>
-        <div style={{ position: 'relative', zIndex: 1, marginTop: compact ? 150 : 250, padding: '0 20px 32px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div className="auth-aside-visual" aria-hidden>
+          <Plectre color="blue" size={420} rotate={-18} style={{ position: 'absolute', left: '50%', top: '50%', translate: '-50% -52%' }} />
+          <div className="hero-tiles">
+            {['cards', 'connect', 'penalty', 'ludo'].map((id, i) => (
+              <div key={id} className={`hero-tile t${i}`}><GameArt gameId={id} height="100%" fit="meet" /></div>
+            ))}
+          </div>
+        </div>
+      </aside>
+      <main className="auth-main">
+        <header className="auth-top">
+          <Link to="/welcome" className="auth-brand mobile" aria-label="Défi Yas — accueil"><YasLogo size={48} /><span>Défi</span></Link>
+          <span className="grow" />
+          {alt}
+        </header>
+        <div className="auth-body">
+          <h1 className="h1">{title}</h1>
+          {subtitle && <p className="auth-sub">{subtitle}</p>}
           {children}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
-function PhoneInput({ value, onChange, invalid }) {
+// Saisie du numéro : accepte « 412 34 56 », « +269 412 34 56 », « 00269… »
+// (collage, saisie automatique) et n'en garde que les 7 chiffres locaux.
+export function cleanPhone(raw) {
+  let d = String(raw || '').replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.length > 7 && d.startsWith('269')) d = d.slice(3);
+  return d.slice(0, 7);
+}
+const formatPhone = (d) => [d.slice(0, 3), d.slice(3, 5), d.slice(5, 7)].filter(Boolean).join(' ');
+
+function PhoneInput({ id = 'phone', value, onChange, invalid, inputRef }) {
   return (
     <div className={`input-line${invalid ? ' invalid' : ''}`}>
       <span className="prefix">+269</span>
-      <input type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="4XX XX XX" maxLength={7}
-        value={value} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} aria-label="Numéro de téléphone" />
+      <input id={id} ref={inputRef} type="tel" inputMode="tel" autoComplete="tel" placeholder="412 34 56"
+        value={formatPhone(value)} onChange={(e) => onChange(cleanPhone(e.target.value))}
+        aria-invalid={invalid || undefined} aria-describedby={invalid ? `${id}-err` : undefined} />
     </div>
   );
+}
+
+function PasswordInput({ id, value, onChange, invalid, autoComplete, inputRef }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className={`input-line${invalid ? ' invalid' : ''}`}>
+      <input id={id} ref={inputRef} type={show ? 'text' : 'password'} autoComplete={autoComplete} value={value}
+        onChange={e => onChange(e.target.value)} aria-invalid={invalid || undefined} aria-describedby={invalid ? `${id}-err` : undefined} />
+      <button type="button" className="reveal" onClick={() => setShow(s => !s)} aria-label={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
+        <Icon name={show ? 'eyeOff' : 'eye'} size={20} />
+      </button>
+    </div>
+  );
+}
+
+function FieldError({ id, children }) {
+  if (!children) return null;
+  return <span className="error" id={id} role="alert"><Icon name="alert" size={16} />{children}</span>;
 }
 
 function ErrorText({ children }) {
   if (!children) return null;
-  return <div className="field"><div className="error" role="alert"><Icon name="alert" size={18} />{children}</div></div>;
+  return <div className="alert error" role="alert"><Icon name="alert" size={20} /><span>{children}</span></div>;
 }
 
-export function Welcome() {
-  return (
-    <BrandLayout>
-      <h1 style={{ font: 'italic 800 48px/1 var(--yas-font)' }}>
-        Défi <span style={{ color: 'var(--yas-yellow)' }}>Yas</span>
-      </h1>
-      <p style={{ fontSize: 20, marginTop: 12, lineHeight: 1.3 }}>
-        Joue à <b>Yas Cards</b>, <b>Connect</b>, <b>Penalty</b> et <b>Ludo</b> contre tes amis et toute la communauté.
-      </p>
-      <div className="stack" style={{ marginTop: 'auto', paddingTop: 32 }}>
-        <Link to="/register" className="btn block">Créer mon compte <span className="arrow" /></Link>
-        <Link to="/login" className="btn block outline-light">J'ai déjà un compte</Link>
-        <p className="tiny center" style={{ opacity: .8, marginTop: 8 }}>Gratuit · aucune installation · joue depuis ton navigateur</p>
-      </div>
-    </BrandLayout>
-  );
-}
+const PHONE_HINT = '7 chiffres commençant par 4 (ex. 412 34 56)';
 
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
 
   async function submit(e) {
     e.preventDefault();
-    setError('');
-    if (!/^4\d{6}$/.test(phone)) return setError('Numéro invalide (7 chiffres commençant par 4)');
+    const errs = {};
+    if (!/^4\d{6}$/.test(phone)) errs.phone = `Numéro invalide : ${PHONE_HINT}`;
+    if (!password) errs.password = 'Saisis ton mot de passe';
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
     setBusy(true);
     try {
       await login(`+269${phone}`, password);
       navigate('/');
     } catch (err) {
-      setError(apiError(err));
+      setErrors({ form: apiError(err) });
     } finally { setBusy(false); }
   }
 
   return (
-    <BrandLayout compact>
-      <h1 className="h1">Content de te <span className="accent-yellow">revoir !</span></h1>
-      <form className="card stack lg" style={{ marginTop: 20, color: 'var(--yas-blue)' }} onSubmit={submit}>
-        <div className="field"><label>Numéro de téléphone</label><PhoneInput value={phone} onChange={setPhone} /></div>
+    <AuthLayout title="Content de te revoir !" subtitle="Connecte-toi pour retrouver tes parties, tes amis et ton classement."
+      alt={<Link to="/register" className="btn sm outline">Créer un compte</Link>}>
+      <form className="card stack lg auth-card" onSubmit={submit} noValidate>
+        <div className="field">
+          <label htmlFor="phone">Numéro de téléphone</label>
+          <PhoneInput value={phone} onChange={setPhone} invalid={!!errors.phone} />
+          <FieldError id="phone-err">{errors.phone}</FieldError>
+        </div>
         <div className="field">
           <label htmlFor="pw">Mot de passe</label>
-          <div className="input-line"><input id="pw" type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} /></div>
+          <PasswordInput id="pw" value={password} onChange={setPassword} invalid={!!errors.password} autoComplete="current-password" />
+          <FieldError id="pw-err">{errors.password}</FieldError>
         </div>
-        <ErrorText>{error}</ErrorText>
+        <ErrorText>{errors.form}</ErrorText>
         <button className="btn block" disabled={busy}>{busy ? 'Connexion…' : <>Se connecter <span className="arrow" /></>}</button>
-        <div className="row between small">
+        <div className="row between small wrap">
           <Link to="/reset" className="link">Mot de passe oublié</Link>
           <Link to="/register" className="link">Créer un compte</Link>
         </div>
       </form>
-    </BrandLayout>
+    </AuthLayout>
   );
 }
 
@@ -102,72 +145,95 @@ export function Register() {
   const navigate = useNavigate();
   const [cfg, setCfg] = useState({ emailRequired: false });
   const [form, setForm] = useState({ phone: '', email: '', username: '', password: '', avatar: 'yas-01', acceptTerms: false });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
-  const set = (k) => (v) => setForm(f => ({ ...f, [k]: v }));
+  const refs = { phone: useRef(null), email: useRef(null), username: useRef(null), password: useRef(null), terms: useRef(null) };
+  const set = (k) => (v) => { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: undefined, form: undefined })); };
 
   useEffect(() => { playerApi.get('/auth/config').then(r => setCfg(r.data)).catch(() => {}); }, []);
 
+  function validate() {
+    const errs = {};
+    const email = form.email.trim();
+    if (!/^4\d{6}$/.test(form.phone)) errs.phone = `Numéro invalide : ${PHONE_HINT}`;
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errs.email = 'Adresse e-mail invalide';
+    if (cfg.emailRequired && !email) errs.email = 'Adresse e-mail requise';
+    if (!/^[A-Za-z0-9_\-.]{3,20}$/.test(form.username)) {
+      errs.username = form.username.length < 3 ? 'Au moins 3 caractères' : 'Lettres sans accent, chiffres, _ - . uniquement (pas d\'espace)';
+    }
+    if (form.password.length < 8) errs.password = '8 caractères minimum';
+    if (!form.acceptTerms) errs.terms = 'Accepte les conditions pour continuer';
+    return errs;
+  }
+
   async function submit(e) {
     e.preventDefault();
-    setError('');
-    if (!/^4\d{6}$/.test(form.phone)) return setError('Numéro invalide (7 chiffres commençant par 4)');
-    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) return setError('Adresse e-mail invalide');
-    if (cfg.emailRequired && !form.email.trim()) return setError('Adresse e-mail requise');
-    if (!/^[A-Za-z0-9_\-.]{3,20}$/.test(form.username)) return setError('Pseudonyme : 3 à 20 caractères (lettres, chiffres, _ - .)');
-    if (form.password.length < 8) return setError('Mot de passe : 8 caractères minimum');
-    if (!form.acceptTerms) return setError('Accepte les conditions pour continuer');
+    const errs = validate();
+    setErrors(errs);
+    const first = ['phone', 'email', 'username', 'password', 'terms'].find(k => errs[k]);
+    if (first) { refs[first].current?.focus(); return; }
     setBusy(true);
     try {
       await register({ ...form, email: form.email.trim() || undefined, phone: `+269${form.phone}` });
       navigate('/');
-    } catch (err) { setError(apiError(err)); } finally { setBusy(false); }
+    } catch (err) {
+      // Erreurs du serveur rattachées au bon champ quand c'est possible.
+      const code = err?.response?.data?.code || '';
+      const msg = apiError(err);
+      const field = /PHONE/.test(code) ? 'phone' : /EMAIL/.test(code) ? 'email' : /USERNAME/.test(code) ? 'username' : /PASSWORD/.test(code) ? 'password' : 'form';
+      setErrors({ [field]: msg });
+      if (field !== 'form') refs[field].current?.focus();
+    } finally { setBusy(false); }
   }
 
   return (
-    <BrandLayout compact>
-      <h1 className="h1">Rejoins le <span className="accent-yellow">Défi !</span></h1>
-      <form className="card stack lg" style={{ marginTop: 20, color: 'var(--yas-blue)' }} onSubmit={submit}>
+    <AuthLayout title="Rejoins le Défi !" subtitle="Ton compte est gratuit et prêt en une minute."
+      alt={<Link to="/login" className="btn sm outline">Se connecter</Link>}>
+      <form className="card stack lg auth-card" onSubmit={submit} noValidate>
         <div className="field">
-          <label>Numéro de téléphone</label>
-          <PhoneInput value={form.phone} onChange={set('phone')} />
-          <span className="help">Ton numéro reste privé : il n'est jamais affiché aux autres joueurs.</span>
+          <label htmlFor="phone">Numéro de téléphone</label>
+          <PhoneInput value={form.phone} onChange={set('phone')} invalid={!!errors.phone} inputRef={refs.phone} />
+          {errors.phone ? <FieldError id="phone-err">{errors.phone}</FieldError> : <span className="help">Ton numéro reste privé : il n'est jamais affiché aux autres joueurs.</span>}
         </div>
         <div className="field">
           <label htmlFor="em">E-mail{cfg.emailRequired ? '' : ' (facultatif)'}</label>
-          <div className="input-line"><input id="em" type="email" inputMode="email" autoComplete="email" placeholder="toi@exemple.km" value={form.email} onChange={e => set('email')(e.target.value)} /></div>
-          <span className="help">Il te servira à récupérer ton mot de passe si tu l'oublies. Il reste privé.</span>
+          <div className={`input-line${errors.email ? ' invalid' : ''}`}><input id="em" ref={refs.email} type="email" inputMode="email" autoComplete="email" placeholder="toi@exemple.km" value={form.email} onChange={e => set('email')(e.target.value)} aria-invalid={!!errors.email || undefined} /></div>
+          {errors.email ? <FieldError id="em-err">{errors.email}</FieldError> : <span className="help">Il te servira à récupérer ton mot de passe si tu l'oublies. Il reste privé.</span>}
         </div>
         <div className="field">
           <label htmlFor="un">Pseudonyme</label>
-          <div className="input-line"><input id="un" autoComplete="nickname" maxLength={20} value={form.username} onChange={e => set('username')(e.target.value)} /></div>
+          <div className={`input-line${errors.username ? ' invalid' : ''}`}><input id="un" ref={refs.username} autoComplete="nickname" autoCapitalize="none" maxLength={20} value={form.username} onChange={e => set('username')(e.target.value)} aria-invalid={!!errors.username || undefined} /></div>
+          {errors.username ? <FieldError id="un-err">{errors.username}</FieldError> : <span className="help">3 à 20 caractères : lettres, chiffres, _ - . (visible par les autres joueurs)</span>}
         </div>
         <div className="field">
           <label htmlFor="pw">Mot de passe</label>
-          <div className="input-line"><input id="pw" type="password" autoComplete="new-password" value={form.password} onChange={e => set('password')(e.target.value)} /></div>
-          <span className="help">8 caractères minimum.</span>
+          <PasswordInput id="pw" value={form.password} onChange={set('password')} invalid={!!errors.password} autoComplete="new-password" inputRef={refs.password} />
+          {errors.password ? <FieldError id="pw-err">{errors.password}</FieldError> : <span className="help">8 caractères minimum.</span>}
         </div>
         <div className="field">
-          <label>Choisis ton avatar</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }} role="radiogroup" aria-label="Avatar">
+          <label id="av-label">Choisis ton avatar</label>
+          <div className="avatar-grid" role="radiogroup" aria-labelledby="av-label">
             {AVATAR_IDS.map(id => (
-              <button type="button" key={id} role="radio" aria-checked={form.avatar === id} onClick={() => set('avatar')(id)}
-                style={{ borderRadius: '50%', padding: 2, boxShadow: form.avatar === id ? '0 0 0 3px var(--yas-blue)' : 'none' }}>
-                <Avatar id={id} size={34} />
+              <button type="button" key={id} role="radio" aria-checked={form.avatar === id} aria-label={`Avatar ${id.replace('yas-', '')}`}
+                className={form.avatar === id ? 'on' : ''} onClick={() => set('avatar')(id)}>
+                <Avatar id={id} size={38} />
               </button>
             ))}
           </div>
         </div>
-        <label className="checkbox">
-          <input type="checkbox" checked={form.acceptTerms} onChange={e => set('acceptTerms')(e.target.checked)} />
-          <span className="box">{form.acceptTerms && <Icon name="check" size={18} />}</span>
-          <span>J'accepte les <Link to="/terms" className="bold">conditions d'utilisation</Link> et la politique de confidentialité de Défi Yas.</span>
-        </label>
-        <ErrorText>{error}</ErrorText>
+        <div className="field">
+          <label className="checkbox">
+            <input ref={refs.terms} type="checkbox" checked={form.acceptTerms} onChange={e => set('acceptTerms')(e.target.checked)} />
+            <span className={`box${errors.terms ? ' invalid' : ''}`}>{form.acceptTerms && <Icon name="check" size={18} />}</span>
+            <span>J'accepte les <Link to="/terms" className="bold">conditions d'utilisation</Link> et la politique de confidentialité de Défi Yas.</span>
+          </label>
+          <FieldError id="terms-err">{errors.terms}</FieldError>
+        </div>
+        <ErrorText>{errors.form}</ErrorText>
         <button className="btn block" disabled={busy}>{busy ? 'Création…' : <>Créer mon compte <span className="arrow" /></>}</button>
         <p className="small center">Déjà inscrit ? <Link to="/login" className="link">Se connecter</Link></p>
       </form>
-    </BrandLayout>
+    </AuthLayout>
   );
 }
 
@@ -210,9 +276,10 @@ export function ResetPassword() {
   }
 
   return (
-    <BrandLayout compact>
-      <h1 className="h1">Nouveau <span className="accent-yellow">mot de passe</span></h1>
-      <div className="card stack lg" style={{ marginTop: 20, color: 'var(--yas-blue)' }}>
+    <AuthLayout title={token ? 'Nouveau mot de passe' : 'Mot de passe oublié ?'}
+      subtitle={token ? 'Choisis un mot de passe que tu n\'utilises pas ailleurs.' : 'Pas de panique : on t\'envoie un lien par e-mail.'}
+      alt={<Link to="/login" className="btn sm outline">Se connecter</Link>}>
+      <div className="card stack lg auth-card">
         {done ? (
           <div className="alert success" role="status"><Icon name="check" size={20} /> C'est fait ! Connecte-toi avec ton nouveau mot de passe.</div>
         ) : token ? (
@@ -243,7 +310,7 @@ export function ResetPassword() {
         )}
         <Link to="/login" className="link small">Retour à la connexion</Link>
       </div>
-    </BrandLayout>
+    </AuthLayout>
   );
 }
 

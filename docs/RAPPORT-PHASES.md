@@ -7,9 +7,9 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 | Suite | Commande | Résultat |
 |---|---|---|
-| Unitaires backend | `npm test` | **79 / 79** |
+| Unitaires backend | `npm test` | **81 / 81** |
 | Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **27 / 27** |
-| E2E navigateur (téléphones simulés Pixel 7) | `npm run test:e2e` | **6 / 6** |
+| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **7 / 7** |
 | Build frontend | `npm run build` | OK |
 | Charge indicative (`scripts/loadtest.js`, 200 clients, 30 s) | | 2 492 parties, 0 erreur, p50 48 ms, p95 384 ms |
 
@@ -94,6 +94,23 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
   3 tests unitaires de l'appel à l'API Resend, 1 test E2E du parcours complet.
 - **Garde-fous** : en production l'API refuse de démarrer sans `APP_URL` en `https://` (sinon les liens
   envoyés pointeraient vers `localhost`) ; en mode test la clé Resend est ignorée (aucun envoi réel).
+
+## Évolution — interface responsive et nouvel accueil
+- **Mise en page** : plus de cadre « téléphone » de 480 px. Mobile : barre de navigation flottante
+  Midnight Blue (onglet actif en jaune). Tablette : contenu élargi. Ordinateur (≥ 1024 px) : barre
+  latérale blanche avec le logo en haut à gauche, contenu centré jusqu'à 1 180 px, accueil et salle
+  d'attente sur deux colonnes, feuilles centrées. Les plateaux de jeu s'ajustent à la hauteur de l'écran.
+- **Accueil connecté** inspiré de l'application Yas (self-care) : dégradé jaune, cartes Niveau / Points
+  de saison, actions rapides rondes (partie rapide, code salon, inviter, tournois), carte « Défi du jour »
+  avec bouton jaune, carrousel des jeux, tuiles de services.
+- **Accueil public** (`/welcome`) : héros « Joue, défie, gagne ! », les 4 jeux, « Comment ça marche ? »,
+  bandeau communauté, appel à l'action, pied de page.
+- **Logo** : rendu depuis le fichier officiel et recadré (l'ancienne image avait ~45 % de marge
+  transparente, d'où un logo petit et décalé).
+- **Inscription** : numéro accepté sous toutes ses formes (`412 34 56`, `+269 412 34 56`, `00269…`,
+  collage, saisie automatique), erreurs affichées sous chaque champ, affichage du mot de passe,
+  messages clairs si le serveur est injoignable ou mal configuré (API absente, origine refusée).
+  `CORS_ORIGINS` accepte des motifs `*` (ex. `https://defi-yas-*.vercel.app` pour les aperçus).
 
 ## Phase 12 — Déploiement
 **Non effectué** : en attente de validation explicite et des accès (voir `DEPLOIEMENT.md`).

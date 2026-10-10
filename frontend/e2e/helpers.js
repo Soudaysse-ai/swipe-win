@@ -13,10 +13,10 @@ export async function registerViaUi(page, username, { email } = {}) {
   await page.getByLabel('Numéro de téléphone').fill(phone);
   if (email) await page.getByLabel(/^E-mail/).fill(email);
   await page.getByLabel('Pseudonyme').fill(username);
-  await page.getByLabel('Mot de passe').fill('motdepasse123');
+  await page.getByLabel('Mot de passe', { exact: true }).fill('motdepasse123');
   await page.locator('label.checkbox').click();
   await page.getByRole('button', { name: /Créer mon compte/ }).click();
-  await expect(page.getByText(`Salut ${username}`)).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('.app-header .greeting')).toContainText(username, { timeout: 15000 });
   return phone;
 }
 

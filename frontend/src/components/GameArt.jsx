@@ -1,6 +1,7 @@
 // Illustrations originales et légères (SVG) des quatre jeux.
-export default function GameArt({ gameId, height = 110 }) {
-  const common = { width: '100%', height, viewBox: '0 0 200 110', preserveAspectRatio: 'xMidYMid slice', 'aria-hidden': true };
+// fit="meet" : illustration entière, centrée sur sa couleur de fond (vignettes verticales).
+export default function GameArt({ gameId, height = 110, fit = 'slice' }) {
+  const common = { width: '100%', height, viewBox: '0 0 200 110', preserveAspectRatio: `xMidYMid ${fit}`, 'aria-hidden': true };
   if (gameId === 'connect') {
     const cols = [0, 1, 2, 3, 4, 5, 6];
     const filled = { '1-0': 'y', '2-0': 'b', '2-1': 'y', '3-0': 'y', '3-1': 'b', '3-2': 'y', '4-0': 'b', '4-1': 'y', '4-2': 'b', '4-3': 'y', '5-0': 'b' };

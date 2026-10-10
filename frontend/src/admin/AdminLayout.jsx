@@ -56,7 +56,7 @@ export default function AdminLayout() {
         <b style={{ fontStyle: 'italic' }}>Centre de contrôle Yas</b>
       </div>
       <aside className={`adm-side${open ? ' open' : ''}`}>
-        <div className="adm-brand"><YasLogo size={40} /><div>Défi Yas<small>Centre de contrôle</small></div></div>
+        <div className="adm-brand"><YasLogo size={36} /><div>Défi Yas<small>Centre de contrôle</small></div></div>
         <nav className="adm-nav" aria-label="Back-office">
           {visible.map((n, i) => n.group
             ? <div key={`g${i}`} className="grp">{n.group}</div>

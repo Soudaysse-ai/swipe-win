@@ -52,7 +52,7 @@ function Board({ v, me, onPick }) {
     });
   }
   return (
-    <svg viewBox="0 0 300 300" width="100%" style={{ display: 'block', background: '#fff', borderRadius: 18, boxShadow: 'var(--yas-shadow-card)', touchAction: 'manipulation' }} role="img" aria-label="Plateau de Yas Ludo">
+    <svg className="ludo-board" viewBox="0 0 300 300" width="100%" style={{ display: 'block', background: '#fff', borderRadius: 18, boxShadow: 'var(--yas-shadow-card)', touchAction: 'manipulation' }} role="img" aria-label="Plateau de Yas Ludo">
       {Object.entries(BASE).map(([color, [r, c]]) => (
         <g key={color}>
           <rect x={c * C} y={r * C} width={6 * C} height={6 * C} fill={COLOR[color]} rx="10" />

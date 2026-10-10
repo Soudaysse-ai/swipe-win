@@ -21,7 +21,7 @@ export default function Home() {
       <div style={s.blobWrap}>
         <Plectre color="yellow" size={520} rotate={-35} style={s.blob} />
         <div style={s.logoOnBlob}>
-          <YasLogo size={190} />
+          <YasLogo size={110} />
         </div>
       </div>
 
