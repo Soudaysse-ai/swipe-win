@@ -9,6 +9,7 @@ import YasLogo from '../../components/YasLogo';
 import Plectre from '../../components/Plectre';
 import GameArt from '../../components/GameArt';
 import Icon from '../../components/Icon';
+import Pulse from '../../components/Pulse';
 import { GAME_META } from '../../lib/format';
 
 const FALLBACK_GAMES = [
@@ -107,6 +108,7 @@ export default function Landing() {
       </section>
 
       <section className="landing-band" aria-labelledby="lg-feat">
+        <Pulse className="band-pulse" size={420} rotate={-20} />
         <h2 id="lg-feat" className="landing-h2 on-blue">Plus qu'un jeu, <span className="accent">une communauté</span></h2>
         <div className="landing-features">
           {FEATURES.map(f => (
@@ -120,9 +122,13 @@ export default function Landing() {
       </section>
 
       <section className="landing-cta">
-        <h2 className="landing-h2">Prêt à relever le défi ? Yas !</h2>
-        <p>Ton premier match t'attend.</p>
-        <Link to="/register" className="btn blue">Créer mon compte <span className="arrow" /></Link>
+        <div className="cta-inner">
+          <div>
+            <h2 className="landing-h2">Prêt à relever le défi ? Yas !</h2>
+            <p>Ton premier match t'attend.</p>
+          </div>
+          <Link to="/register" className="btn blue">Créer mon compte <span className="arrow" /></Link>
+        </div>
       </section>
 
       <footer className="landing-footer">

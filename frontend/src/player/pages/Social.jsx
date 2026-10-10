@@ -83,7 +83,7 @@ export function Friends() {
             <div key={u.id} className="list-item">
               <Link to={`/players/${u.id}`}><Avatar id={u.avatar} size={40} online={u.online} /></Link>
               <div className="grow"><div className="title">{u.username}</div><div className="sub">Niveau {u.level}</div></div>
-              {u.is_friend ? <span className="chip green">Ami</span>
+              {u.is_friend ? <span className="chip sky">Ami</span>
                 : u.pending === 'outgoing' ? <span className="chip">Demande envoyée</span>
                   : <button className="btn sm" onClick={() => act(() => playerApi.post('/friends/requests', { userId: u.id }).then(() => setResults(rs => rs.map(x => x.id === u.id ? { ...x, pending: 'outgoing' } : x))), u.pending === 'incoming' ? 'Vous êtes maintenant amis !' : 'Demande envoyée')}>
                     {u.pending === 'incoming' ? 'Accepter' : 'Ajouter'}</button>}
@@ -227,7 +227,7 @@ export function PublicProfile() {
         <LevelBar progress={p.progress} onBlue />
       </div>
       <div className="row">
-        {relation === 'friend' ? <span className="chip green grow" style={{ justifyContent: 'center', height: 44 }}>✓ Ami</span>
+        {relation === 'friend' ? <span className="chip sky grow" style={{ justifyContent: 'center', height: 44 }}>✓ Ami</span>
           : <button className="btn md grow" onClick={async () => {
             try { await playerApi.post('/friends/requests', { userId: id }); toast('Demande envoyée'); setRelation('pending'); } catch (err) { toast(apiError(err)); }
           }} disabled={relation === 'pending'}>{relation === 'pending' ? 'Demande envoyée' : 'Ajouter en ami'}</button>}

@@ -112,6 +112,21 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
   messages clairs si le serveur est injoignable ou mal configuré (API absente, origine refusée).
   `CORS_ORIGINS` accepte des motifs `*` (ex. `https://defi-yas-*.vercel.app` pour les aperçus).
 
+## Évolution — conformité au guide « Yas App Design Best Practices » (2026, V1.0)
+- Navigation : en-tête toujours Sunshine Yellow, barre basse toujours Midnight Blue, contenus
+  secondaires (tournois, quiz, notifications, règles, conditions, déconnexion) dans un **menu
+  hamburger** sur mobile ; barre latérale sur ordinateur.
+- Logo : utilisé avec parcimonie (accueil public, écrans de compte, navigation), Midnight Blue sur
+  fond Sunshine Yellow, calé dans le coin ; retiré de l'en-tête des écrans de contenu.
+- Pulse : vrai motif (contour du plectre décalé trois fois), jaune, en accent de fond (cartes d'état,
+  bandeau communauté, carte « Prêt pour un défi ? »), au moins deux côtés et un angle visibles.
+- Typographie : échelle SH (36 / 24 / 20 px ExtraBold Italic), textes d'aide et libellés ≥ 14 px.
+- Composants : boutons Medium 44 px partout (Small 32 px avec zone tactile de 44 px), onglets 48 px,
+  cartes à 24 px (16 px pour les cartes produit), étiquettes de catégorie en Sky Blue / Berry (pas de
+  vert hors statut), appel à l'action final aligné à gauche.
+- Le site www.yas.km n'a pas pu être consulté depuis l'environnement de développement (nom de domaine
+  bloqué) ; la maquette s'appuie sur le guide et les captures de l'application Yas fournies.
+
 ## Phase 12 — Déploiement
 **Non effectué** : en attente de validation explicite et des accès (voir `DEPLOIEMENT.md`).
 

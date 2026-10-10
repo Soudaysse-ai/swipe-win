@@ -8,6 +8,7 @@ import { useToast } from '../ToastContext';
 import Avatar from '../../components/Avatar';
 import GameArt from '../../components/GameArt';
 import Icon from '../../components/Icon';
+import Pulse from '../../components/Pulse';
 import { LeagueBadge, Spinner, Empty, Sheet } from '../../components/ui';
 import { GAME_META, gameName, formatDate } from '../../lib/format';
 
@@ -46,7 +47,7 @@ export function GameCard({ game }) {
         </div>
         <div className="actions">
           <button className="btn" onClick={() => navigate(`/games/${game.id}`)} disabled={!game.isActive}>Jouer <span className="arrow" /></button>
-          <button className="btn outline" style={{ flex: '0 0 40px', padding: 0 }} onClick={() => navigate(`/rankings?game=${game.id}`)} aria-label={`Classement ${game.name}`}>
+          <button className="btn outline" style={{ flex: '0 0 44px', padding: 0 }} onClick={() => navigate(`/rankings?game=${game.id}`)} aria-label={`Classement ${game.name}`}>
             <Icon name="trophy" size={20} />
           </button>
         </div>
@@ -138,7 +139,7 @@ export default function Home() {
         {/* Deux cartes d'état, comme les cartes de solde de l'application Yas */}
         <section className="balance-row" aria-label="Ma progression">
           <Link to="/profile" className="balance-card yellow">
-            <span className="deco" aria-hidden />
+            <Pulse className="deco" size={230} rotate={-30} color="#FFEA8F" opacities={[1, 0.9, 0.7]} />
             <span className="kicker">Niveau</span>
             <span className="big">{p.level}</span>
             <span className="sub"><Icon name="zap" size={16} /> {p.xp} XP</span>
@@ -146,7 +147,7 @@ export default function Home() {
             <span className="foot"><span>{p.nextLevelXp - p.xp} XP avant le niveau {p.level + 1}</span><Icon name="chevron" size={18} /></span>
           </Link>
           <Link to="/rankings" className="balance-card blue">
-            <span className="deco" aria-hidden />
+            <Pulse className="deco" size={230} rotate={-30} opacities={[0.45, 0.3, 0.18]} />
             <span className="kicker">Points de saison</span>
             <span className="big">{p.seasonPoints}</span>
             <span className="sub">{p.globalRank ? `#${p.globalRank} au classement` : 'Pas encore classé'}</span>
@@ -243,7 +244,7 @@ export default function Home() {
                     <div className="title">{t.name}</div>
                     <div className="sub">{gameName(t.game_id)} · {t.participants}/{t.max_participants} · {formatDate(t.starts_at)}</div>
                   </div>
-                  <span className={`chip ${t.status === 'in_progress' ? 'green' : 'yellow'}`}>{t.status === 'in_progress' ? 'En cours' : 'Inscriptions'}</span>
+                  <span className={`chip ${t.status === 'in_progress' ? 'sky' : 'yellow'}`}>{t.status === 'in_progress' ? 'En cours' : 'Inscriptions'}</span>
                 </Link>
               ))}
             </div>
