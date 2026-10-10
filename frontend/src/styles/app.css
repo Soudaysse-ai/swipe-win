@@ -6,6 +6,7 @@
    Les graisses Light (300) et Black (900) de Figtree ne sont pas utilisées.
    ========================================================================== */
 @import './yas-tokens.css';
+@import './site.css';
 
 :root {
   --content-max: 1180px;
@@ -42,26 +43,22 @@ img, svg { display: block; }
    Ordinateur (≥ 1024 px) : barre latérale blanche + contenu centré (1180 px max). */
 .app-frame { position: relative; min-height: 100dvh; background: var(--page-bg); }
 .app-content { min-height: 100dvh; display: flex; flex-direction: column; min-width: 0; }
-/* Dégradé Sunshine Yellow en haut des écrans principaux (application Yas). */
-.app-content.has-header {
-  background: linear-gradient(180deg, var(--yas-yellow) 0, #FFE15C calc(var(--header-h) * .7), var(--yas-yellow-30) var(--header-h), var(--page-bg) calc(var(--header-h) + 64px)) no-repeat;
-}
 .app-main {
   flex: 1; width: 100%; max-width: var(--content-max); margin: 0 auto;
   padding: 8px 16px calc(var(--nav-h) + 36px + var(--safe-bottom));
 }
 .app-main.no-nav { padding-top: 16px; padding-bottom: calc(24px + var(--safe-bottom)); }
 
-/* ── En-tête ──────────────────────────────────────────────────────────────── */
+/* ── Barre de navigation (Sunshine Yellow, marque « y! » à gauche) ───────── */
 .app-header {
-  width: 100%; max-width: var(--content-max); margin: 0 auto;
+  position: sticky; top: 0; z-index: 30;
   height: var(--header-h);
-  display: flex; align-items: center; gap: 6px;
-  padding: 0 12px 0 16px;
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 8px 0 20px;
+  background: var(--yas-yellow); box-shadow: 0 4px 4px rgba(0, 0, 0, .1);
 }
-.app-header .menu-btn { margin-left: -8px; }
-.app-header .greeting { flex: 1; min-width: 0; font: italic 800 20px/1.1 var(--yas-font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.app-header .header-avatar { display: flex; border-radius: 50%; padding: 2px; }
+.app-header .header-mark { display: flex; padding: 6px 4px; margin-left: -4px; }
+.app-header .header-avatar { display: none; border-radius: 50%; padding: 2px; margin: 0 6px; }
 .icon-btn {
   position: relative;
   width: 44px; height: 44px; border-radius: 50%;
@@ -121,8 +118,8 @@ img, svg { display: block; }
   .app-main { padding: 8px 40px 48px; }
   .app-main.no-nav { padding-top: 24px; }
   .app-header { padding: 0 32px 0 40px; }
-  .app-header .menu-btn { display: none; }
-  .app-header .greeting { font-size: 26px; }
+  .app-header .menu-btn, .app-header .header-mark { display: none; }
+  .app-header .header-avatar { display: flex; }
   .back-header { margin: 0 -16px; padding: 0 16px; }
 }
 .side-nav .brand {
@@ -146,7 +143,7 @@ img, svg { display: block; }
   padding: 18px; border-radius: var(--yas-radius-card);
   background: var(--yas-blue); color: #fff; text-decoration: none; position: relative; overflow: hidden; isolation: isolate;
 }
-.side-nav .side-cta .cta-pulse { position: absolute; z-index: -1; right: -70px; bottom: -80px; }
+
 .side-nav .side-cta b { font: italic 800 19px/1.15 var(--yas-font); color: var(--yas-yellow); }
 .side-nav .side-cta > span:not(.btn) { font-size: 14px; line-height: 1.35; }
 .side-nav .side-cta .btn { align-self: flex-start; margin-top: 6px; }
@@ -399,7 +396,7 @@ img, svg { display: block; }
   .sheet .grabber { display: none; }
 }
 @media (min-width: 720px) and (max-width: 1023px) {
-  .app-main, .app-header { padding-left: 24px; padding-right: 24px; }
+  .app-main { padding-left: 24px; padding-right: 24px; }
 }
 
 /* ── Écran de partie : plateaux ajustés à la hauteur de l'écran ─────────── */
@@ -409,6 +406,22 @@ img, svg { display: block; }
 .penalty-field { width: 100%; max-width: max(320px, calc((100dvh - 330px) * 1.36)); margin: 0 auto; }
 
 /* ── Accueil connecté (inspiré de l'application Yas) ─────────────────────── */
+/* Bandeau Sunshine Yellow sous la barre, Pulse en accent, cartes qui le chevauchent */
+.home-hero {
+  position: relative; overflow: hidden; isolation: isolate;
+  margin: -8px -16px 0; padding: 18px 16px 72px; background: var(--yas-yellow);
+}
+.home-pulse { position: absolute; z-index: -1; right: -150px; top: -70px; }
+.home-greeting { font-size: 18px; }
+.home-greeting b { font-weight: 700; }
+.home-title { font: italic 800 30px/1.05 var(--yas-font); margin-top: 6px; max-width: 16ch; }
+.home .balance-row { margin-top: -52px; position: relative; }
+@media (min-width: 720px) and (max-width: 1023px) { .home-hero { margin: -8px -24px 0; padding: 22px 24px 76px; } }
+@media (min-width: 1024px) {
+  .home-hero { margin: -8px -40px 0; padding: 28px 40px 84px; }
+  .home-title { font-size: 40px; max-width: none; }
+  .home-pulse { right: 4%; top: -120px; }
+}
 .home-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 32px; }
 .home-main, .home-aside { min-width: 0; }
 @media (min-width: 1100px) {
@@ -423,9 +436,12 @@ img, svg { display: block; }
   box-shadow: var(--yas-shadow-card); min-height: 168px;
 }
 .balance-card.yellow { background: var(--yas-yellow); color: var(--yas-blue); }
+.balance-card.light { background: #fff; color: var(--yas-blue); }
+.balance-card.light .mini-progress { background: var(--yas-blue-15); }
+.balance-card.light .mini-progress i { background: var(--yas-yellow); }
 .balance-card.blue { background: var(--yas-blue); color: #fff; }
 /* Pulse en filigrane (accent de fond, comme les cartes de solde de l'appli Yas) */
-.balance-card .deco { position: absolute; z-index: -1; right: -86px; bottom: -96px; }
+.balance-card .deco { position: absolute; z-index: -1; right: -92px; bottom: -104px; }
 .balance-card .kicker { font-size: 14px; font-weight: 500; }
 .balance-card.blue .kicker { color: var(--yas-blue-15); }
 .balance-card .big { font: italic 800 34px/1 var(--yas-font); margin-top: 2px; }
@@ -521,158 +537,7 @@ img, svg { display: block; }
 .avatar-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
 .avatar-grid button { border-radius: 50%; padding: 2px; display: flex; justify-content: center; }
 .avatar-grid button.on { box-shadow: 0 0 0 3px var(--yas-blue); }
-@media (max-width: 380px) { .avatar-grid { grid-template-columns: repeat(6, 1fr); } }
-
-.auth-page { min-height: 100dvh; display: flex; background: var(--page-bg); }
-.auth-aside { display: none; }
-.auth-main {
-  flex: 1; min-width: 0; display: flex; flex-direction: column;
-  background: linear-gradient(180deg, var(--yas-yellow) 0, #FFE15C 80px, var(--yas-yellow-30) 170px, var(--page-bg) 280px) no-repeat;
-}
-.auth-top { display: flex; align-items: center; gap: 12px; height: 72px; padding: 0 16px; }
-.auth-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: italic 800 24px/1 var(--yas-font); color: var(--yas-blue); }
-.auth-body { width: 100%; max-width: 480px; margin: 0 auto; padding: 8px 16px 40px; }
-.auth-body .h1 { font-size: 36px; }
-.auth-sub { font-size: 17px; margin: 8px 0 18px; line-height: 1.35; }
-.auth-card { color: var(--yas-blue); }
-@media (min-width: 1024px) {
-  .auth-aside {
-    display: flex; flex-direction: column; position: sticky; top: 0; height: 100dvh;
-    flex: 0 0 46%; max-width: 720px; padding: 28px 48px 40px; overflow: hidden;
-    background: var(--yas-yellow); color: var(--yas-blue);
-  }
-  .auth-aside .auth-brand { font-size: 28px; }
-  .auth-aside-copy { margin-top: 56px; }
-  .auth-aside-copy h2 { font: italic 800 64px/0.98 var(--yas-font); }
-  .auth-aside-copy p { font-size: 20px; line-height: 1.35; margin-top: 18px; max-width: 460px; }
-  .auth-aside-visual { position: relative; flex: 1; min-height: 260px; margin-top: 24px; }
-  .auth-main { background: var(--page-bg); justify-content: center; }
-  .auth-top { position: absolute; top: 0; right: 0; left: 46%; justify-content: flex-end; padding: 0 32px; }
-  .auth-top .auth-brand.mobile { display: none; }
-  .auth-body { padding-top: 96px; }
-}
-
-/* Vignettes de jeux (2 × 2) posées sur le plectre (accueil public, compte) */
-.hero-tiles {
-  position: absolute; inset: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 168px));
-  align-content: center; justify-content: center; gap: 18px;
-}
-.hero-tile {
-  position: relative; aspect-ratio: 1; border-radius: 24px; overflow: hidden;
-  box-shadow: 0 14px 30px rgba(0, 35, 80, .30); border: 4px solid #fff;
-}
-.hero-tile svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hero-tile b { position: absolute; left: 12px; bottom: 8px; font: italic 800 20px/1 var(--yas-font); color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,.5); }
-.hero-tile.t0 { transform: rotate(-5deg) translateY(10px); }
-.hero-tile.t1 { transform: rotate(4deg); }
-.hero-tile.t2 { transform: rotate(3deg) translateY(4px); }
-.hero-tile.t3 { transform: rotate(-4deg) translateY(-8px); }
-@media (max-width: 719px) { .hero-tiles { grid-template-columns: repeat(2, minmax(0, 132px)); gap: 14px; } }
-
-/* ── Accueil public ──────────────────────────────────────────────────────── */
-.landing { min-height: 100dvh; background: var(--page-bg); color: var(--yas-blue); overflow-x: hidden; }
-.landing-header {
-  position: sticky; top: 0; z-index: 20;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  height: 72px; padding: 0 16px; background: var(--yas-yellow);
-}
-.landing-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: italic 800 26px/1 var(--yas-font); }
-.landing-links { display: flex; gap: 10px; }
-.landing-links .btn.outline { background: rgba(255,255,255,.35); }
-.hide-mobile { display: none !important; }
-.landing-hero {
-  display: grid; gap: 8px; padding: 8px 16px 40px;
-  background: linear-gradient(180deg, var(--yas-yellow) 0, #FFE15C 45%, var(--yas-yellow-30) 80%, var(--page-bg) 100%);
-}
-.hero-kicker { display: inline-block; font-size: 14px; font-weight: 700; background: #fff; padding: 6px 12px; border-radius: 14px; }
-.landing-hero h1 { font: italic 800 52px/0.98 var(--yas-font); margin: 16px 0 14px; }
-.landing-hero h1 .hl { display: inline-block; background: var(--yas-blue); color: var(--yas-yellow); padding: 2px 16px 6px 10px; border-radius: 4px 22px 22px 22px; margin-top: 6px; }
-.landing-hero p { font-size: 18px; line-height: 1.4; max-width: 560px; }
-.hero-cta { position: relative; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
-.hero-cta .btn { flex: 1 1 220px; }
-.hero-cta .btn { position: relative; z-index: 1; }
-.hero-note { font-size: 14px !important; font-weight: 500; margin-top: 14px; }
-.hero-visual { position: relative; height: 340px; margin-top: 8px; }
-.hero-visual > svg { position: absolute; left: 50%; top: 50%; width: 92%; max-width: 420px; height: auto; }
-
-.landing-section { padding: 36px 16px 8px; max-width: 1180px; margin: 0 auto; }
-.landing-h2 { font: italic 800 32px/1.05 var(--yas-font); margin-bottom: 18px; }
-.landing-h2.on-blue { color: #fff; }
-.landing-h2.on-blue .accent { color: var(--yas-yellow); }
-.landing-games { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.landing-game {
-  display: flex; flex-direction: column; overflow: hidden; border-radius: var(--yas-radius-card-sm); background: #fff;
-  box-shadow: var(--yas-shadow-card); text-decoration: none; transition: transform .15s;
-}
-.landing-game:hover { transform: translateY(-3px); }
-.landing-game .art { display: block; height: 116px; }
-.landing-game .body { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px 14px; flex: 1; }
-.landing-game b { font: italic 800 20px/1.1 var(--yas-font); }
-.landing-game .players { font-size: 14px; font-weight: 700; color: var(--yas-blue-70); }
-.landing-game .desc { font-size: 14px; line-height: 1.35; color: var(--yas-neutral-70); flex: 1; }
-.landing-game .link { margin-top: 6px; }
-
-.landing-steps { list-style: none; display: grid; gap: 12px; }
-.landing-steps li {
-  position: relative; display: grid; grid-template-columns: 60px 1fr; grid-template-rows: auto auto; column-gap: 14px; align-items: center;
-  padding: 16px; border-radius: var(--yas-radius-card); background: #fff; box-shadow: var(--yas-shadow-card);
-}
-.landing-steps .holding, .landing-features .holding {
-  grid-row: span 2; width: 60px; height: 56px; display: flex; align-items: center; justify-content: center;
-  background: var(--yas-yellow); color: var(--yas-blue); border-radius: 40% 60% 46% 54% / 48% 44% 56% 52%;
-}
-.landing-steps .num { position: absolute; top: 10px; right: 14px; font: italic 800 30px/1 var(--yas-font); color: var(--yas-blue-15); }
-.landing-steps b { font: italic 800 20px/1.1 var(--yas-font); }
-.landing-steps li > span:last-child { font-size: 15px; line-height: 1.35; color: var(--yas-neutral-70); }
-
-.landing-band { position: relative; overflow: hidden; isolation: isolate; margin: 40px 0 0; padding: 40px 16px; background: var(--yas-blue); color: #fff; }
-.landing-band .band-pulse { position: absolute; z-index: -1; right: -160px; top: -150px; margin: 0; }
-.landing-band > *:not(.band-pulse) { max-width: 1180px; margin-left: auto; margin-right: auto; }
-.landing-features { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 14px; }
-.landing-features .feature { display: flex; flex-direction: column; gap: 6px; }
-.landing-features .holding { margin-bottom: 6px; }
-.landing-features b { font: italic 800 18px/1.15 var(--yas-font); color: var(--yas-yellow); }
-.landing-features span:last-child { font-size: 15px; line-height: 1.35; color: var(--yas-blue-15); }
-
-.landing-cta { padding: 40px 16px; background: var(--yas-yellow); }
-.landing-cta .cta-inner { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.landing-cta p { font-size: 18px; margin: -8px 0 18px; }
-@media (min-width: 720px) { .landing-cta .cta-inner { flex-direction: row; align-items: center; justify-content: space-between; } .landing-cta p { margin-bottom: 0; } .landing-cta { padding: 48px 32px; } }
-.landing-footer {
-  display: flex; flex-direction: column; gap: 18px; padding: 32px 16px calc(32px + var(--safe-bottom));
-  background: var(--yas-blue); color: #fff;
-}
-.landing-footer small { color: var(--yas-blue-15); }
-.landing-footer .foot-links { display: flex; flex-wrap: wrap; gap: 10px 20px; }
-.landing-footer .foot-links a { color: #fff; text-decoration: none; font-weight: 500; }
-.landing-footer .foot-links a:hover { text-decoration: underline; }
-
-@media (min-width: 720px) {
-  .hide-mobile { display: inline-flex !important; }
-  .landing-header, .landing-hero { padding-left: 32px; padding-right: 32px; }
-  .landing-section { padding-left: 32px; padding-right: 32px; }
-  .landing-games { grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  .landing-steps { grid-template-columns: repeat(3, 1fr); }
-  .landing-steps li { grid-template-columns: 1fr; grid-template-rows: none; row-gap: 8px; align-content: start; padding: 22px; }
-  .landing-steps .holding { grid-row: auto; }
-  .landing-features { grid-template-columns: repeat(4, 1fr); gap: 24px; }
-  .landing-footer { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; padding-left: 32px; padding-right: 32px; }
-}
-@media (min-width: 1024px) {
-  .landing-header { height: 84px; padding: 0 max(40px, calc((100% - 1180px) / 2)); }
-  .landing-hero {
-    grid-template-columns: 1.05fr 1fr; align-items: center; gap: 32px;
-    padding: 24px max(40px, calc((100% - 1180px) / 2)) 64px; min-height: min(640px, calc(100dvh - 84px));
-  }
-  .landing-hero h1 { font-size: 84px; }
-  .landing-hero p { font-size: 20px; }
-  .hero-cta .btn { flex: 0 0 auto; }
-  .hero-visual { height: 480px; margin: 0; }
-  .hero-visual > svg { max-width: 520px; }
-  .landing-h2 { font-size: 42px; margin-bottom: 24px; }
-  .landing-section { padding-top: 56px; }
-  .landing-game .art { height: 150px; }
-}
+@media (max-width: 480px) { .avatar-grid { grid-template-columns: repeat(6, 1fr); } }
 
 /* ── Salle d'attente d'un jeu (lobby) ────────────────────────────────────── */
 .lobby-art { height: 150px; }

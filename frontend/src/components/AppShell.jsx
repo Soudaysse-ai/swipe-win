@@ -3,7 +3,7 @@ import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import Icon from './Icon';
 import Avatar from './Avatar';
 import YasLogo from './YasLogo';
-import Pulse from './Pulse';
+import YasMark from './YasMark';
 import { useAuth } from '../player/AuthContext';
 import { useSession } from '../player/SessionContext';
 import { useConnectionStatus } from '../lib/socket';
@@ -58,7 +58,6 @@ export function SideNav() {
       <div className="side-sep" />
       <nav className="items">{SIDE_EXTRA.map(item)}</nav>
       <Link to="/games" className="side-cta">
-        <Pulse className="cta-pulse" size={190} rotate={-25} opacities={[0.5, 0.32, 0.18]} />
         <b>Prêt pour un défi ?</b>
         <span>Lance une partie en quelques secondes.</span>
         <span className="btn sm">Jouer <span className="arrow" /></span>
@@ -121,24 +120,24 @@ function MenuDrawer({ open, onClose }) {
   );
 }
 
+// Barre de navigation de l'application (guide §3.1) : toujours Sunshine Yellow,
+// marque « y! » Midnight Blue calée à gauche, au plus 3 icônes + menu à droite.
 export function TopHeader() {
   const { user } = useAuth();
   const { unread } = useSession();
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
-  const home = pathname === '/';
   useEffect(() => { setMenu(false); }, [pathname]);
   return (
     <header className="app-header">
-      <button className="icon-btn menu-btn" onClick={() => setMenu(true)} aria-label="Ouvrir le menu" aria-expanded={menu}><Icon name="menu" /></button>
-      <div className="greeting">
-        {home && user && <>Salut, <span>{user.username}</span> <span aria-hidden>👋</span></>}
-      </div>
+      <Link to="/" className="header-mark" aria-label="Défi Yas — accueil"><YasMark height={30} /></Link>
+      <span className="grow" />
       <Link to="/notifications" className="icon-btn" aria-label={`Notifications${unread ? ` (${unread} non lues)` : ''}`}>
         <Icon name="bell" />
         {unread > 0 && <span className="dot">{unread > 9 ? '9+' : unread}</span>}
       </Link>
       {user && <Link to="/profile" className="header-avatar" aria-label="Mon profil"><Avatar id={user.avatar} size={40} /></Link>}
+      <button className="icon-btn menu-btn" onClick={() => setMenu(true)} aria-label="Ouvrir le menu" aria-expanded={menu}><Icon name="menu" /></button>
       <MenuDrawer open={menu} onClose={() => setMenu(false)} />
     </header>
   );

@@ -127,6 +127,23 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 - Le site www.yas.km n'a pas pu être consulté depuis l'environnement de développement (nom de domaine
   bloqué) ; la maquette s'appuie sur le guide et les captures de l'application Yas fournies.
 
+## Évolution — éléments de marque officiels et nouvelle page d'accueil
+- **Fichiers officiels** (fournis par Yas) : `frontend/src/assets/brand/Play_CMYK.svg` (plectre) et
+  `Yas_Pulse_Transparent_Wide.svg` (Pulse épais, 4 couches 20 / 40 / 70 / 100 %). Leurs tracés sont
+  repris tels quels ; l'ombre verte du fichier d'export (artefact CMJN) n'est pas utilisée. Le noyau du
+  Pulse est exactement le plectre à l'échelle 400/650 : le plectre bleu est superposé au noyau.
+- **Logo** (guide §3.1) : variante secondaire (plectre bleu, « yas » jaune) sur fond jaune ou clair,
+  variante principale (plectre jaune, « yas » bleu) sur fond bleu, et marque « y! » seule pour la barre
+  de l'application. Toutes rendues depuis le logo officiel, couleurs ramenées aux valeurs exactes de la
+  charte (le fichier source était légèrement terni), proportions conservées.
+- **Accueil public** selon les modèles web Yas : en-tête deux rangées (barre utilitaire Midnight Blue,
+  barre principale Sunshine Yellow avec logo 64 px calé à gauche), héros jaune (Pulse + plectre + aperçu
+  de l'application), cartes produits, étapes avec icônes dans le plectre, bandeau communauté, bandeau
+  d'appel à l'action jaune, pied de page Midnight Blue.
+- **Application** : barre jaune pleine avec la marque « y! » à gauche, notifications et menu à droite ;
+  bandeau d'accueil jaune avec le Pulse, cartes qui le chevauchent.
+- www.yas.km reste inaccessible depuis l'environnement de développement (DNS bloqué).
+
 ## Phase 12 — Déploiement
 **Non effectué** : en attente de validation explicite et des accès (voir `DEPLOIEMENT.md`).
 

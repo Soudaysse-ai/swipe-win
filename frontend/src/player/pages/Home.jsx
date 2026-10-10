@@ -134,12 +134,17 @@ export default function Home() {
   ];
 
   return (
+    <div className="home">
+    <section className="home-hero" aria-label="Accueil">
+      <Pulse className="home-pulse" size={420} rotate={-14} solid />
+      <p className="home-greeting">Salut, <b>{me.username}</b> 👋</p>
+      <h1 className="home-title">{me.challenge ? 'Ton défi du jour t\'attend !' : 'Prêt pour un défi ?'}</h1>
+    </section>
     <div className="home-grid">
       <div className="home-main">
         {/* Deux cartes d'état, comme les cartes de solde de l'application Yas */}
         <section className="balance-row" aria-label="Ma progression">
-          <Link to="/profile" className="balance-card yellow">
-            <Pulse className="deco" size={230} rotate={-30} color="#FFEA8F" opacities={[1, 0.9, 0.7]} />
+          <Link to="/profile" className="balance-card light">
             <span className="kicker">Niveau</span>
             <span className="big">{p.level}</span>
             <span className="sub"><Icon name="zap" size={16} /> {p.xp} XP</span>
@@ -147,7 +152,6 @@ export default function Home() {
             <span className="foot"><span>{p.nextLevelXp - p.xp} XP avant le niveau {p.level + 1}</span><Icon name="chevron" size={18} /></span>
           </Link>
           <Link to="/rankings" className="balance-card blue">
-            <Pulse className="deco" size={230} rotate={-30} opacities={[0.45, 0.3, 0.18]} />
             <span className="kicker">Points de saison</span>
             <span className="big">{p.seasonPoints}</span>
             <span className="sub">{p.globalRank ? `#${p.globalRank} au classement` : 'Pas encore classé'}</span>
@@ -285,6 +289,7 @@ export default function Home() {
           <button className="btn block" disabled={code.length !== 6}>Rejoindre <span className="arrow" /></button>
         </form>
       </Sheet>
+    </div>
     </div>
   );
 }

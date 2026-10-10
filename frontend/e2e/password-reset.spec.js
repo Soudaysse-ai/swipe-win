@@ -40,5 +40,5 @@ test('mot de passe oublié par e-mail, de la demande à la reconnexion', async (
   await page.getByLabel('Numéro de téléphone').fill(phone);
   await page.getByLabel('Mot de passe', { exact: true }).fill('nouveau-mdp-789');
   await page.getByRole('button', { name: /Se connecter/ }).click();
-  await expect(page.locator('.app-header .greeting')).toContainText(`Mail${tag}`, { timeout: 10000 });
+  await expect(page.locator('.home-greeting')).toContainText(`Mail${tag}`, { timeout: 10000 });
 });

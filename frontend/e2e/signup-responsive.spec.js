@@ -18,7 +18,7 @@ test('inscription : numéro +269 collé accepté, erreurs affichées sous les ch
   await page.getByLabel('Mot de passe', { exact: true }).fill('motdepasse123');
   await page.locator('label.checkbox').click();
   await page.getByRole('button', { name: /Créer mon compte/ }).click();
-  await expect(page.locator('.app-header .greeting')).toContainText(name, { timeout: 15000 });
+  await expect(page.locator('.home-greeting')).toContainText(name, { timeout: 15000 });
   await expect(page.locator('.bottom-nav')).toBeVisible();
   await expect(page.locator('.side-nav')).toBeHidden();
 

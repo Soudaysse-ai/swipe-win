@@ -2,44 +2,40 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import playerApi, { apiError } from '../../lib/playerApi';
 import { useAuth } from '../AuthContext';
-import Plectre from '../../components/Plectre';
+import Pulse from '../../components/Pulse';
 import YasLogo from '../../components/YasLogo';
-import GameArt from '../../components/GameArt';
+import DeviceMock from '../../components/DeviceMock';
 import Avatar, { AVATAR_IDS } from '../../components/Avatar';
 import Icon from '../../components/Icon';
 
-// Écrans de compte : sur mobile, dégradé jaune avec le logo en haut à gauche ;
-// sur ordinateur, panneau Sunshine Yellow à gauche (logo, accroche, visuel) et
-// formulaire à droite.
+// Écrans de compte. Mobile : barre Sunshine Yellow avec le logo calé à gauche,
+// titre sur fond jaune, formulaire dans une carte. Ordinateur : panneau jaune à
+// gauche (logo, accroche, plectre officiel tenant un aperçu de l'application).
 function AuthLayout({ title, subtitle, alt, children }) {
   return (
     <div className="auth-page">
       <aside className="auth-aside">
-        <Link to="/welcome" className="auth-brand" aria-label="Défi Yas — accueil"><YasLogo size={60} /><span>Défi</span></Link>
+        <Link to="/welcome" className="auth-brand-desktop" aria-label="Défi Yas — accueil"><YasLogo size={64} /></Link>
         <div className="auth-aside-copy">
-          <h2>Joue, défie,<br />gagne !</h2>
+          <h2>Joue. Défie.<br />Gagne !</h2>
           <p>Cartes, Connect, Penalty, Ludo : affronte tes amis et toute la communauté Yas en direct.</p>
         </div>
         <div className="auth-aside-visual" aria-hidden>
-          <Plectre color="blue" size={420} rotate={-18} style={{ position: 'absolute', left: '50%', top: '50%', translate: '-50% -52%' }} />
-          <div className="hero-tiles">
-            {['cards', 'connect', 'penalty', 'ludo'].map((id, i) => (
-              <div key={id} className={`hero-tile t${i}`}><GameArt gameId={id} height="100%" fit="meet" /></div>
-            ))}
-          </div>
+          <Pulse className="hero-pulse" size={700} rotate={-8} solid plectre />
+          <DeviceMock />
         </div>
       </aside>
       <main className="auth-main">
         <header className="auth-top">
-          <Link to="/welcome" className="auth-brand mobile" aria-label="Défi Yas — accueil"><YasLogo size={48} /><span>Défi</span></Link>
+          <Link to="/welcome" className="auth-brand" aria-label="Défi Yas — accueil"><YasLogo size={48} /></Link>
           <span className="grow" />
           {alt}
         </header>
-        <div className="auth-body">
+        <div className="auth-hero">
           <h1 className="h1">{title}</h1>
           {subtitle && <p className="auth-sub">{subtitle}</p>}
-          {children}
         </div>
+        <div className="auth-body">{children}</div>
       </main>
     </div>
   );
