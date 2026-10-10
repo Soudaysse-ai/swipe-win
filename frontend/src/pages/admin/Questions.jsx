@@ -147,7 +147,7 @@ export default function AdminQuestions() {
   useEffect(() => { fetch(); }, []);
 
   async function fetch() {
-    const { data } = await api.get('/admin/questions');
+    const { data } = await api.get('/admin/quiz/questions');
     setQuestions(data.questions);
     setLoading(false);
   }
@@ -159,20 +159,20 @@ export default function AdminQuestions() {
   }
 
   async function saveEdit() {
-    await api.put(`/admin/questions/${editingId}`, form);
+    await api.put(`/admin/quiz/questions/${editingId}`, form);
     setEditingId(null);
     fetch();
   }
 
   async function saveNew() {
-    await api.post('/admin/questions', form);
+    await api.post('/admin/quiz/questions', form);
     setShowAdd(false);
     setForm(EMPTY);
     fetch();
   }
 
   async function toggleActive(q) {
-    await api.put(`/admin/questions/${q.id}`, { is_active: !q.is_active });
+    await api.put(`/admin/quiz/questions/${q.id}`, { is_active: !q.is_active });
     fetch();
   }
 
@@ -397,7 +397,7 @@ function BulkForm({ onClose, onDone }) {
     if (!questions.length) return setError('Aucune question détectée.');
     setBusy(true);
     try {
-      const { data } = await api.post('/admin/questions/bulk', { questions });
+      const { data } = await api.post('/admin/quiz/questions/bulk', { questions });
       setResult(data);
       onDone();
     } catch (err) {

@@ -16,6 +16,7 @@ function init({ players, rng, now, config }) {
     turn: order[first],
     moves: [],                                // [{ userId, col, row }]
     turnStartedAt: now,
+    turnMs: config.turnSeconds * 1000,
     turnDeadline: now + config.turnSeconds * 1000,
     winner: null,
     winLine: null,
@@ -29,7 +30,7 @@ function view(state) {
   return {
     board: state.board, colors: state.colors, players: state.players, turn: state.turn,
     lastMove: state.moves[state.moves.length - 1] || null, moveCount: state.moves.length,
-    turnDeadline: state.turnDeadline, winner: state.winner, winLine: state.winLine,
+    turnDeadline: state.turnDeadline, turnMs: state.turnMs, winner: state.winner, winLine: state.winLine,
     status: state.status, endReason: state.endReason,
   };
 }

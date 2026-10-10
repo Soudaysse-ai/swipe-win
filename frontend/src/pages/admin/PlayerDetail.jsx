@@ -10,7 +10,7 @@ export default function PlayerDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get(`/admin/players/${id}`)
+    api.get(`/admin/quiz/players/${id}`)
       .then(r => setData(r.data))
       .finally(() => setLoading(false));
   }, [id]);

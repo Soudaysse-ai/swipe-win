@@ -37,7 +37,7 @@ export default function AdminPlayers() {
 
   const load = () => {
     setLoading(true);
-    api.get('/admin/players')
+    api.get('/admin/quiz/players')
       .then(r => setPlayers(r.data.players))
       .finally(() => setLoading(false));
   };
@@ -53,7 +53,7 @@ export default function AdminPlayers() {
     if (!window.confirm('Réinitialiser la liste des joueurs ? Tous les joueurs, sessions et réponses seront supprimés définitivement.')) return;
     setResetting(true);
     try {
-      await api.delete('/admin/players/reset');
+      await api.delete('/admin/quiz/players/reset');
       setPlayers([]);
     } catch (e) {
       alert('Erreur : ' + (e.response?.data?.error || e.message));

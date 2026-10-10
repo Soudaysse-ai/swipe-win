@@ -18,11 +18,11 @@ export default function Dashboard() {
   const [gamePaused, setGamePaused] = useState(false);
 
   useEffect(() => {
-    api.get('/admin/dashboard/stats')
+    api.get('/admin/quiz/dashboard/stats')
       .then(r => setStats(r.data))
       .catch(() => {})
       .finally(() => setLoading(false));
-    api.get('/admin/settings/game-paused')
+    api.get('/admin/quiz/settings/game-paused')
       .then(r => setGamePaused(r.data.paused))
       .catch(() => {});
   }, []);
@@ -31,7 +31,7 @@ export default function Dashboard() {
     const next = !gamePaused;
     setGamePaused(next);
     try {
-      await api.put('/admin/settings/game-paused', { paused: next });
+      await api.put('/admin/quiz/settings/game-paused', { paused: next });
     } catch {
       setGamePaused(!next); // rollback en cas d'erreur
     }

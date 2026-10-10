@@ -21,14 +21,14 @@ export default function AdminPrizes() {
   useEffect(() => { fetchPrizes(); fetchSetting(); }, []);
 
   async function fetchPrizes() {
-    const { data } = await api.get('/admin/prizes');
+    const { data } = await api.get('/admin/quiz/prizes');
     setPrizes(data.prizes);
     setLoading(false);
   }
 
   async function fetchSetting() {
     try {
-      const { data } = await api.get('/admin/settings/prizes-enabled');
+      const { data } = await api.get('/admin/quiz/settings/prizes-enabled');
       setPrizesEnabled(data.enabled);
     } catch { /* ignore */ }
   }
@@ -37,7 +37,7 @@ export default function AdminPrizes() {
     const next = !prizesEnabled;
     setPrizesEnabled(next);
     try {
-      await api.put('/admin/settings/prizes-enabled', { enabled: next });
+      await api.put('/admin/quiz/settings/prizes-enabled', { enabled: next });
     } catch {
       setPrizesEnabled(!next); // rollback en cas d'erreur
     }
@@ -52,7 +52,7 @@ export default function AdminPrizes() {
   async function saveEdit() {
     setSaving(true);
     try {
-      await api.put(`/admin/prizes/${editingId}`, form);
+      await api.put(`/admin/quiz/prizes/${editingId}`, form);
       setEditingId(null);
       fetchPrizes();
     } finally { setSaving(false); }
@@ -61,7 +61,7 @@ export default function AdminPrizes() {
   async function saveNew() {
     setSaving(true);
     try {
-      await api.post('/admin/prizes', form);
+      await api.post('/admin/quiz/prizes', form);
       setShowAdd(false);
       setForm(EMPTY_FORM);
       fetchPrizes();
@@ -69,7 +69,7 @@ export default function AdminPrizes() {
   }
 
   async function deletePrize(id) {
-    await api.delete(`/admin/prizes/${id}`);
+    await api.delete(`/admin/quiz/prizes/${id}`);
     setConfirmDelete(null);
     fetchPrizes();
   }

@@ -1,52 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
+import api from '../lib/playerApi';
+import { useAuth } from '../player/AuthContext';
 import YasLogo from '../components/YasLogo';
 import Plectre from '../components/Plectre';
 
+// Accueil du quiz « Swipe & gagne » (fonctionnalité historique conservée).
+// La connexion se fait désormais avec le compte Défi Yas.
 export default function Home() {
   const navigate = useNavigate();
-  const [phone, setPhone] = useState('');
-  const [agreed, setAgreed] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [player, setPlayer] = useState(null);
+  const { user } = useAuth();
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('sw_player');
-    if (saved) {
-      try { setPlayer(JSON.parse(saved)); } catch { /* ignore */ }
-    }
+    api.get('/sessions/game-status').then(r => setPaused(!!r.data.paused)).catch(() => {});
   }, []);
-
-  function handleLogout() {
-    localStorage.removeItem('sw_player');
-    setPlayer(null);
-    setPhone('');
-    setAgreed(false);
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!phone.trim()) return setError('Entrez votre numéro');
-    if (!/^4\d{6}$/.test(phone.trim())) return setError('Le numéro doit commencer par 4 et contenir 7 chiffres (ex: 4451200)');
-    if (!agreed) return setError('Veuillez accepter les conditions');
-    setLoading(true);
-    setError('');
-    try {
-      const { data } = await api.post('/auth/subscribe', { phone: `+269${phone.trim()}` });
-      localStorage.setItem('sw_player', JSON.stringify(data.player));
-      navigate('/game');
-    } catch {
-      setError('Erreur, réessayez.');
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <div style={s.page}>
-      {/* Plectrum + logo : fixé en haut à droite de la PAGE (pas du frame) */}
       <div style={s.blobWrap}>
         <Plectre color="yellow" size={520} rotate={-35} style={s.blob} />
         <div style={s.logoOnBlob}>
@@ -55,58 +26,24 @@ export default function Home() {
       </div>
 
       <div style={s.frame}>
-        {/* Title */}
         <h1 style={s.title}>
           <span style={s.tYellow}>Swipe </span>
           <span style={s.tBlue}>&amp; gagne&nbsp;!</span>
         </h1>
 
-        {/* White card */}
-        {player ? (
-          <div style={s.card}>
-            <p style={s.label}>Content de te revoir&nbsp;!</p>
-            <p style={s.checkText}>{player.phone}</p>
-            <button style={s.btn} type="button" onClick={() => navigate('/game')}>
-              Jouer
-            </button>
-            <button style={s.linkBtn} type="button" onClick={handleLogout}>
-              Changer de numéro
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} style={s.card}>
-            <label style={s.label}>Numéro de téléphone</label>
-            <div style={s.phoneRow}>
-              <span style={s.prefix}>+269</span>
-              <input
-                style={s.phoneInput}
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel-national"
-                placeholder="000 0000"
-                value={phone}
-                onChange={e => { setPhone(e.target.value.replace(/\D/g, '')); setError(''); }}
-                maxLength={7}
-              />
-            </div>
-
-            <label style={s.checkRow}>
-              <span
-                style={{ ...s.checkbox, ...(agreed ? s.checkboxOn : {}) }}
-                onClick={() => setAgreed(v => !v)}
-              >{agreed && '✓'}</span>
-              <span style={s.checkText}>
-                J'accepte les Conditions d'utilisation et la Politique de confidentialité. Je suis prêt à jouer.
-              </span>
-            </label>
-
-            {error && <p style={s.error}>{error}</p>}
-
-            <button style={{ ...s.btn, opacity: loading ? 0.6 : 1, cursor: loading ? 'wait' : 'pointer' }} type="submit" disabled={loading}>
-              {loading ? 'Connexion…' : 'Continuer'}
-            </button>
-          </form>
-        )}
+        <div style={s.card}>
+          <p style={s.label}>Content de te revoir{user ? `, ${user.username}` : ''}&nbsp;!</p>
+          <p style={{ ...s.checkText, fontSize: 14, fontWeight: 500 }}>
+            15 questions Vrai / Faux sur le football. Glisse à droite pour VRAI, à gauche pour FAUX. Plus tu réponds vite, plus tu marques.
+          </p>
+          {paused && <p style={s.error}>Le quiz est en pause pour le moment.</p>}
+          <button style={{ ...s.btn, opacity: paused ? 0.5 : 1 }} type="button" disabled={paused} onClick={() => navigate('/quiz/play')}>
+            Jouer
+          </button>
+          <button style={s.linkBtn} type="button" onClick={() => navigate('/')}>
+            Retour à Défi Yas
+          </button>
+        </div>
       </div>
     </div>
   );
