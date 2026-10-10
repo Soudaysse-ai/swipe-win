@@ -3,6 +3,7 @@ const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const { errorMiddleware } = require('./lib/http');
+const { limiter } = require('./lib/rateLimit');
 
 function corsOptions() {
   if (!config.corsOrigins.length) return { origin: !config.isProd, credentials: true };
@@ -15,6 +16,10 @@ function createApp() {
   app.disable('x-powered-by');
   app.use(cors(corsOptions()));
   app.use(express.json({ limit: '1mb' }));
+  // Limite globale par adresse IP, volontairement large : sur les réseaux mobiles,
+  // de nombreux abonnés partagent la même IP publique (CGNAT). Les routes
+  // sensibles ont en plus leurs propres limites.
+  app.use('/api', limiter({ name: 'api', max: 3000, windowMs: 60_000 }));
   app.use((_req, res, next) => {
     res.set('X-Content-Type-Options', 'nosniff');
     res.set('Referrer-Policy', 'strict-origin-when-cross-origin');

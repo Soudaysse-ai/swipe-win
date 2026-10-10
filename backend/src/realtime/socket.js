@@ -51,7 +51,8 @@ function activityOf(userId) {
 function attach(httpServer) {
   const io = new Server(httpServer, {
     cors: {
-      origin: config.corsOrigins.length ? config.corsOrigins : true,
+      // Production : uniquement les origines déclarées dans CORS_ORIGINS.
+      origin: config.corsOrigins.length ? config.corsOrigins : !config.isProd,
       credentials: true,
     },
     pingInterval: 20_000,

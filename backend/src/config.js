@@ -29,5 +29,4 @@ module.exports = {
     ttlMinutes: 10,
     maxAttempts: 5,
   },
-  redisUrl: process.env.REDIS_URL || '',
 };

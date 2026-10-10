@@ -56,7 +56,10 @@ test('deux téléphones jouent une partie de Yas Connect jusqu\'à la victoire',
 
   // Le classement est à jour
   await first.goto('/rankings?game=connect&period=week');
-  await expect(first.locator('.podium')).toContainText(aFirst ? nameA : nameB);
+  // « Ma position » reflète immédiatement la nouvelle cote (le podium dépend des autres joueurs de la base)
+  const mine = first.locator('.card.yellow', { hasText: 'Ma position' });
+  await expect(mine).toBeVisible();
+  await expect(mine).toContainText('1016');
   await ctxA.close();
   await ctxB.close();
 });

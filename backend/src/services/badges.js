@@ -1,10 +1,9 @@
 // Attribution des badges (évaluée dans la transaction de fin de match).
 async function evaluateBadges(db, userId, { matchId, gameId, placement, isDraw }) {
-  const [g, games, defs] = await Promise.all([
-    db.query('SELECT xp, level, matches_played, wins FROM player_global_stats WHERE user_id = $1', [userId]),
-    db.query('SELECT game_id, games_played, best_streak FROM player_game_stats WHERE user_id = $1', [userId]),
-    db.query('SELECT * FROM badges ORDER BY sort_order'),
-  ]);
+  // Requêtes séquentielles : un client de transaction n'exécute qu'une requête à la fois.
+  const g = await db.query('SELECT xp, level, matches_played, wins FROM player_global_stats WHERE user_id = $1', [userId]);
+  const games = await db.query('SELECT game_id, games_played, best_streak FROM player_game_stats WHERE user_id = $1', [userId]);
+  const defs = await db.query('SELECT * FROM badges ORDER BY sort_order');
   const gs = g.rows[0] || { level: 1, matches_played: 0, wins: 0 };
   const played = games.rows.filter(r => r.games_played > 0).length;
   const bestStreak = Math.max(0, ...games.rows.map(r => r.best_streak));

@@ -4,7 +4,8 @@ const { AppError } = require('./errors');
 
 const buckets = new Map();
 
-function hit(key, max, windowMs, now = Date.now()) {
+function hit(key, max, windowMs, now = Date.now(), { force = false } = {}) {
+  if (!force && process.env.DISABLE_RATE_LIMIT === 'true') return true;
   let b = buckets.get(key);
   if (!b || now - b.start >= windowMs) {
     b = { start: now, count: 0 };

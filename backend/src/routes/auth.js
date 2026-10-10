@@ -12,8 +12,12 @@ const { limiter } = require('../lib/rateLimit');
 const { bad } = require('../lib/errors');
 const { AVATARS } = require('../services/avatars');
 
-const authLimiter = limiter({ name: 'auth', max: 10, windowMs: 60_000 });
-const otpLimiter = limiter({ name: 'otp', max: 3, windowMs: 60_000 });
+// Clé = IP + numéro : limite le bourrinage d'un compte sans bloquer tous les
+// abonnés derrière une même IP mobile partagée.
+const byPhone = (req) => `${req.ip}:${String(req.body?.phone || '').replace(/\D/g, '')}`;
+const authLimiter = limiter({ name: 'auth', max: 10, windowMs: 60_000, key: byPhone });
+const otpLimiter = limiter({ name: 'otp', max: 3, windowMs: 60_000, key: byPhone });
+const ipLimiter = limiter({ name: 'auth-ip', max: 200, windowMs: 60_000 });
 
 const meta = (req) => ({ ip: clientIp(req), userAgent: req.headers['user-agent'] });
 
@@ -36,12 +40,12 @@ router.post('/otp/request', otpLimiter, ah(async (req, res) => {
   res.json({ ok: true });
 }));
 
-router.post('/register', authLimiter, ah(async (req, res) => {
+router.post('/register', ipLimiter, authLimiter, ah(async (req, res) => {
   const out = await auth.register(req.body || {}, meta(req));
   res.status(201).json(sessionPayload(out));
 }));
 
-router.post('/login', authLimiter, ah(async (req, res) => {
+router.post('/login', ipLimiter, authLimiter, ah(async (req, res) => {
   const out = await auth.login(req.body || {}, meta(req));
   res.json(sessionPayload(out));
 }));
