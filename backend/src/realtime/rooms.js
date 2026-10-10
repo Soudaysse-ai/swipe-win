@@ -118,6 +118,9 @@ async function join(userId, { roomId, code } = {}) {
   await assertFree(userId, room.id);
   await addPlayer(room, userId);
   analytics.track('room_joined', { userId, gameId: room.gameId, properties: { visibility: room.visibility, source: room.source } });
+  const invited = await pool.query(
+    `SELECT 1 FROM notifications WHERE user_id = $1 AND type = 'invite' AND data->>'roomId' = $2 LIMIT 1`, [userId, room.id]);
+  if (invited.rows.length) analytics.track('invite_accepted', { userId, gameId: room.gameId, properties: { roomId: room.id } });
   broadcast(room);
   return room;
 }

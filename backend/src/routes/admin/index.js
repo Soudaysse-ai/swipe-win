@@ -19,8 +19,8 @@ router.post('/login', limiter({ name: 'admin-login', max: 10, windowMs: 60_000 }
   const token = jwt.sign({ id: admin.id, email: admin.email, role: admin.role, typ: 'admin' }, config.jwtSecret, { expiresIn: config.adminTokenTtl });
   await pool.query('UPDATE admins SET last_login_at = NOW() WHERE id = $1', [admin.id]);
   await pool.query(
-    `INSERT INTO audit_logs (admin_id, action, entity, entity_id, ip) VALUES ($1, 'LOGIN', 'admin', $1, $2)`,
-    [admin.id, clientIp(req)]);
+    `INSERT INTO audit_logs (admin_id, action, entity, entity_id, ip) VALUES ($1, 'LOGIN', 'admin', $2, $3)`,
+    [admin.id, String(admin.id), clientIp(req)]);
   const { permissionsForRole } = require('../../services/permissions');
   res.json({ token, admin: { id: admin.id, email: admin.email, role: admin.role, name: admin.name, permissions: [...await permissionsForRole(admin.role)] } });
 }));
@@ -31,5 +31,16 @@ router.get('/me', auth(), (req, res) => {
 });
 
 router.use('/quiz', require('./quiz'));
+router.use('/', require('./platform'));
+router.use('/', require('./manage'));
+
+// Export générique demandé par le cahier des charges : /api/admin/reports/export?type=players|leaderboard|audit
+router.get('/reports/export', auth('exports'), (req, res) => {
+  const type = req.query.type;
+  const qs = new URLSearchParams({ ...req.query, format: req.query.format === 'xlsx' ? 'xlsx' : 'csv' });
+  qs.delete('type');
+  const target = type === 'leaderboard' ? 'leaderboards' : type === 'audit' ? 'audit' : type === 'top' ? 'players/top' : 'players';
+  res.redirect(307, `${req.baseUrl}/${target}?${qs}`);
+});
 
 module.exports = router;

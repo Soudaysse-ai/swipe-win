@@ -10,7 +10,7 @@ const { ah } = require('../lib/http');
 const { bad } = require('../lib/errors');
 const { sanitize } = require('../services/contentFilter');
 
-router.use(requirePlayer);
+router.use(['/friends', '/blocks', '/reports'], requirePlayer);
 
 router.get('/friends', ah(async (req, res) => {
   res.json({ friends: await friends.list(req.user.userId, activityOf) });
