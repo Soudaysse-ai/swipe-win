@@ -1,0 +1,40 @@
+# Blueprint Render — API Défi Yas 2.0 (Express + Socket.IO).
+# Render → New → Blueprint → dépôt Soudaysse-ai/swipe-win.
+# Les valeurs « sync: false » sont demandées à la création (jamais stockées dans le dépôt).
+services:
+  - type: web
+    name: defi-yas-api
+    runtime: node
+    branch: claude/awesome-wright-hvrm9z
+    rootDir: backend
+    # Toujours actif : le plan gratuit se met en veille et coupe les parties en cours.
+    plan: starter
+    # Une seule instance en V1 (état temps réel en mémoire, voir docs/ARCHITECTURE.md §8).
+    numInstances: 1
+    buildCommand: npm ci && npm run seed
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: APP_TIMEZONE
+        value: Indian/Comoro
+      - key: CORS_ORIGINS
+        value: https://www.defi-yas.com,https://defi-yas.com
+      - key: APP_URL
+        value: https://www.defi-yas.com
+      - key: MAIL_FROM
+        value: Défi Yas <no-reply@defi-yas.com>
+      - key: JWT_SECRET
+        generateValue: true
+      # Base PostgreSQL (Neon) : branche staging pour tester, production après sauvegarde.
+      - key: DATABASE_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
