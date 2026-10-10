@@ -23,8 +23,9 @@
 ## Variables d'environnement
 Backend : voir `backend/.env.example` (obligatoires en production : `DATABASE_URL`,
 `JWT_SECRET` ≥ 32 caractères, `CORS_ORIGINS`, `NODE_ENV=production`, `APP_URL` en https — l'API refuse de démarrer sans).
-Frontend : `VITE_API_URL=https://api.defi-yas.com` (sans cette variable, le site ne joint pas l'API :
-inscription et connexion échouent avec « API introuvable »).
+Frontend : `VITE_API_URL` (par défaut `https://defi-yas-api.onrender.com`, fixé dans
+`frontend/.env.production` ; une variable définie sur Vercel est prioritaire, ex.
+`https://api.defi-yas.com`). Projet Vercel : Root Directory `frontend`, preset Vite.
 `CORS_ORIGINS` doit contenir l'adresse exacte du site ; un motif `*` est accepté pour les aperçus
 Vercel, ex. `https://defi-yas-*.vercel.app`.
 E-mails : `RESEND_API_KEY`, `MAIL_FROM` (adresse d'un domaine vérifié dans Resend), `APP_URL=https://www.defi-yas.com`.
