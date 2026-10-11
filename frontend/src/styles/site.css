@@ -131,7 +131,7 @@
 
 /* Les jeux : plectres tournés qui « tiennent » l'illustration, avec halo */
 .game-showcase { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 16px; }
-@media (min-width: 1024px) { .game-showcase { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; } }
+@media (min-width: 1024px) { .game-showcase { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 28px; } }
 .showcase-item { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; text-decoration: none; }
 .showcase-item .pframe { margin-bottom: 10px; transition: transform .2s ease; }
 .showcase-item:hover .pframe { transform: translateY(-4px) scale(1.03); }

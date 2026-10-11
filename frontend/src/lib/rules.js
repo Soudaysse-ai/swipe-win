@@ -24,6 +24,14 @@ export const RULES = {
     'À une carte, appuie sur « Dernière carte » avant qu\'un adversaire ne te signale (+2 cartes).',
     'Le premier sans carte gagne. Pas de cumul des +2 / +4 en V1.',
   ],
+  foot: [
+    'Deux joueurs, 5 palets chacun, un ballon : du football de table.',
+    'À ton tour, pose le doigt sur un de tes palets et tire vers l\'arrière, comme une fronde : la flèche montre la direction, le cercle la puissance. Relâche pour tirer.',
+    'Le palet file, rebondit sur les bords et les autres palets, et pousse le ballon. Une fois tout arrêté, c\'est à l\'adversaire.',
+    'But : le ballon franchit entièrement la ligne entre les poteaux. Contre son camp, le but compte pour l\'adversaire. L\'équipe qui encaisse engage.',
+    'Le premier à 3 buts gagne. Sinon, à la fin des 5 minutes, le score décide (match nul possible).',
+    '20 secondes pour tirer : sinon la main passe ; 3 fois de suite, c\'est forfait.',
+  ],
   penalty: [
     'Deux joueurs, 5 tirs chacun, rôles alternés : tireur puis gardien.',
     'Le tireur choisit une zone parmi 5, le gardien choisit où plonger : les choix sont secrets jusqu\'à la révélation.',

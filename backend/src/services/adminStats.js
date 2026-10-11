@@ -22,7 +22,7 @@ const { leagues } = require('./leaderboards');
 
 const ACTIVE_EVENTS = ['match_started', 'match_completed', 'match_abandoned', 'room_joined', 'room_created',
   'matchmaking_started', 'friend_invited', 'invite_accepted', 'tournament_joined', 'leaderboard_viewed', 'game_opened'];
-const GAMES = ['cards', 'connect', 'penalty', 'ludo'];
+const GAMES = ['cards', 'connect', 'penalty', 'ludo', 'foot'];
 
 // Période [from, to] en dates locales (Comores), bornes incluses. Défaut : 30 derniers jours.
 function range(query = {}) {

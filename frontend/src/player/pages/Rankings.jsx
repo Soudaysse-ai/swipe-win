@@ -58,7 +58,7 @@ export default function Rankings() {
           ))}
         </div>
       )}
-      <p className="tiny muted">{game === 'all' ? 'Classement global : somme des points de saison des 4 jeux.' : board === 'rating' ? 'Classement par cote compétitive du jeu.' : 'Minimum 10 tirs pour apparaître.'}</p>
+      <p className="tiny muted">{game === 'all' ? 'Classement global : somme des points de saison de tous les jeux.' : board === 'rating' ? 'Classement par cote compétitive du jeu.' : 'Minimum 10 tirs pour apparaître.'}</p>
 
       {!data ? <Spinner center /> : !entries.length ? <Empty icon="🏆">Aucun joueur classé sur cette période.</Empty> : (
         <>

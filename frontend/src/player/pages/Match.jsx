@@ -20,6 +20,7 @@ const GAMES = {
   ludo: lazy(() => import('../../games/ludo/LudoGame')),
   cards: lazy(() => import('../../games/cards/CardsGame')),
   penalty: lazy(() => import('../../games/penalty/PenaltyGame')),
+  foot: lazy(() => import('../../games/foot/FootGame')),
 };
 
 // Abonnement aux événements de jeu (animations) pour un match donné.

@@ -11,6 +11,7 @@ const CONFIG = {
   ludo: { turnSeconds: 20 },
   cards: { turnSeconds: 20 },
   penalty: { decisionSeconds: 10, revealMs: 2600 },
+  foot: { turnSeconds: 20, matchSeconds: 300, goalsToWin: 3 },
 };
 
 // Fait jouer une partie complète entre bots, avec le vrai moteur (qui lève une
@@ -34,7 +35,14 @@ function simulate(gameId, levels, seed) {
       acted = true;
       break;
     }
-    assert.ok(acted, `${gameId} : aucun bot ne joue à l'étape ${step} (partie bloquée)`);
+    if (!acted) {
+      // Personne n'a d'action à jouer : seule une échéance du moteur peut faire avancer la partie
+      // (fin de match après la dernière animation, par exemple).
+      const dl = engine.deadline(state);
+      assert.ok(dl && dl.userIds.length === 0, `${gameId} : aucun bot ne joue à l'étape ${step} (partie bloquée)`);
+      now = Math.max(now, dl.at);
+      state = engine.timeout(state, { rng, now, config }).state;
+    }
     now += 400;
   }
   return assert.fail(`${gameId} : partie non terminée`);
@@ -42,7 +50,7 @@ function simulate(gameId, levels, seed) {
 
 const LEVEL_SETS = [['easy', 'hard'], ['normal', 'normal'], ['hard', 'easy']];
 
-for (const gameId of ['connect', 'penalty']) {
+for (const gameId of ['connect', 'penalty', 'foot']) {
   test(`${gameId} : parties complètes entre bots, à tous les niveaux`, () => {
     for (const [k, levels] of LEVEL_SETS.entries()) {
       for (let seed = 1; seed <= 6; seed++) {
@@ -111,6 +119,23 @@ test('penalty : le bot attend l\'ouverture du tir et ne rejoue pas un choix verr
   assert.equal(d.notBefore, 5000);
   assert.ok([1, 2, 3, 4, 5].includes(d.action.zone));
   assert.equal(bots.decide('penalty', { ...base, kick: { myRole: 'keeper', myChoice: 2, opensAt: 0 } }, 'bot:1', { level: 'hard', rng }), null);
+});
+
+test('foot : le bot pousse le ballon vers le but adverse quand la voie est libre', () => {
+  const foot = getEngine('foot');
+  const { scriptedRng } = require('../../src/lib/rng');
+  const players = [{ userId: 'bot:1', seat: 0 }, { userId: 'u', seat: 1 }];
+  let goals = 0;
+  for (let seed = 1; seed <= 8; seed++) {
+    const s = foot.init({ players, rng: scriptedRng([0]), now: 0, config: CONFIG.foot });
+    s.ball = [820, 300];
+    s.discs['bot:1'][4] = [700, 300];
+    s.discs.u = s.discs.u.map(([x], i) => [480 + i * 12, 40 + i * 50]); // défense absente
+    const d = bots.decide('foot', foot.view(s), 'bot:1', { level: 'hard', rng: seededRng(seed) });
+    const out = foot.apply(s, 'bot:1', d.action, { now: s.turnOpensAt, config: CONFIG.foot });
+    if (out.state.score['bot:1'] === 1) goals++;
+  }
+  assert.ok(goals >= 6, `le bot difficile marque presque à coup sûr (${goals}/8)`);
 });
 
 test('bots : identités clairement distinctes des joueurs', () => {

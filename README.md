@@ -11,6 +11,7 @@ un back-office complet pour Yas Comores.
 | **Yas Connect** | 2 | Aligner 4 jetons sur une grille 7 × 6 |
 | **Yas Penalty** | 2 | Tirs au but : choix simultanés tireur / gardien |
 | **Yas Ludo** | 2–4 | Plateau classique, 4 pions, dés serveur |
+| **Yas Foot** | 2 | Football de table : 5 palets chacun, tir à la fronde, premier à 3 buts |
 
 Quand personne n'est disponible, chaque jeu peut se jouer **seul contre un bot** (niveaux Facile,
 Normal, Difficile ; 1 à 3 bots pour Cards et Ludo) : proposé sur la page d'un jeu quand personne n'y

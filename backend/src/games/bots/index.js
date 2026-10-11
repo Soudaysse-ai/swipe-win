@@ -15,6 +15,7 @@ const BOTS = {
   ludo: require('./ludo'),
   cards: require('./cards'),
   penalty: require('./penalty'),
+  foot: require('./foot'),
 };
 
 const LEVELS = ['easy', 'normal', 'hard'];

@@ -7,8 +7,8 @@ import { downloadExport, adminError } from '../utils/api';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 
 // Palette catégorielle validée (contrôle CVD) — la couleur suit le jeu, jamais son rang.
-export const GAME_COLORS = { cards: '#B88E00', connect: '#2a78d6', penalty: '#e87ba4', ludo: '#1baf7a' };
-export const GAME_NAMES = { cards: 'Yas Cards', connect: 'Yas Connect', penalty: 'Yas Penalty', ludo: 'Yas Ludo' };
+export const GAME_COLORS = { cards: '#B88E00', connect: '#2a78d6', penalty: '#e87ba4', ludo: '#1baf7a', foot: '#3CB167' };
+export const GAME_NAMES = { cards: 'Yas Cards', connect: 'Yas Connect', penalty: 'Yas Penalty', ludo: 'Yas Ludo', foot: 'Yas Foot' };
 export const SERIES = '#00377D';
 
 export const fmt = {

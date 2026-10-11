@@ -4,6 +4,7 @@ const engines = {
   ludo: require('./ludo/engine'),
   cards: require('./cards/engine'),
   penalty: require('./penalty/engine'),
+  foot: require('./foot/engine'),
 };
 
 function getEngine(gameId) {

@@ -140,3 +140,37 @@ test('bot:start : refusé pendant une partie, nombre de bots borné par le jeu',
   assert.equal(unknown.ok, false);
   assert.equal(unknown.code, 'GAME_UNAVAILABLE');
 });
+
+test('Yas Foot contre un bot : tir à la fronde, trajectoire reçue, le bot répond', async () => {
+  const started = ca.waitFor('match:state', s => s.status === 'IN_PROGRESS' && s.view);
+  const res = await ca.emit('bot:start', { gameId: 'foot', level: 'normal' });
+  assert.equal(res.ok, true, JSON.stringify(res));
+  let snap = await started;
+  assert.equal(snap.view.discs[alice.userId].length, 5);
+
+  // Attendre son tour (le bot peut commencer), puis l'ouverture du tir.
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline) {
+    snap = (await ca.emit('match:sync', { matchId: res.matchId })).snapshot;
+    if (snap.view.turn === alice.userId && Date.now() >= snap.view.turnOpensAt) break;
+    await new Promise(r => setTimeout(r, 100));
+  }
+  assert.equal(snap.view.turn, alice.userId);
+  const myShot = ca.waitFor('game:event', e => e.matchId === res.matchId && e.type === 'shot' && e.payload.userId === alice.userId);
+  const r = await ca.emit('match:action', {
+    matchId: res.matchId, commandId: crypto.randomUUID(), version: snap.version, action: { type: 'shoot', disc: 4, dx: 0.7, dy: 0.1 },
+  });
+  assert.equal(r.ok, true, JSON.stringify(r));
+  const shot = await myShot;
+  assert.ok(shot.payload.frames.length > 3);
+  assert.equal(shot.payload.frames[0].length, 11);
+
+  // Le bot joue à son tour, une fois l'animation terminée côté serveur.
+  const botShot = await ca.waitFor('game:event', e => e.matchId === res.matchId && e.type === 'shot' && e.payload.userId !== alice.userId, { timeout: 20_000 });
+  assert.ok(botShot.payload.frames.length > 1);
+
+  const ended = ca.waitFor('match:ended', e => e.matchId === res.matchId);
+  await ca.emit('match:resign', { matchId: res.matchId });
+  const end = await ended;
+  assert.equal(end.training, true);
+});

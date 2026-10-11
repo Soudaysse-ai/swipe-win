@@ -19,6 +19,7 @@ const FALLBACK_GAMES = [
   { id: 'connect', name: 'Yas Connect', description: 'Aligne 4 jetons avant ton adversaire.' },
   { id: 'penalty', name: 'Yas Penalty', description: 'Tire, plonge, marque : la séance de tirs au but.' },
   { id: 'ludo', name: 'Yas Ludo', description: 'Fais le tour du plateau avec tes 4 pions.' },
+  { id: 'foot', name: 'Yas Foot', description: 'Tire tes palets, pousse le ballon et marque avant ton adversaire.' },
 ];
 
 const STEPS = [
@@ -79,7 +80,7 @@ export default function Landing() {
           <div className="hero-copy">
             <p className="hero-eyebrow">Les jeux multijoueurs de Yas Comores</p>
             <h1>Joue. Défie.<br />Gagne !</h1>
-            <p className="hero-lead">Cartes, Connect, Penalty, Ludo : affronte tes amis et toute la communauté Yas en direct, depuis ton téléphone ou ton ordinateur.</p>
+            <p className="hero-lead">Cartes, Connect, Foot, Penalty, Ludo : affronte tes amis et toute la communauté Yas en direct, depuis ton téléphone ou ton ordinateur.</p>
             <div className="hero-cta">
               <Link to="/register" className="btn blue lg">Créer mon compte <span className="arrow" /></Link>
               <Link to="/login" className="btn outline lg">Se connecter</Link>
@@ -101,7 +102,7 @@ export default function Landing() {
       <section id="jeux" className="section tint">
         <div className="wrap">
           <div className="section-head center">
-            <h2><span className="hl">Quatre jeux</span> pour te défier</h2>
+            <h2><span className="hl">Cinq jeux</span> pour te défier</h2>
             <p>Des parties de quelques minutes, contre de vrais joueurs, à tout moment de la journée.</p>
           </div>
           <div className="game-showcase">

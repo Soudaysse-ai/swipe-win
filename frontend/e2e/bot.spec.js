@@ -40,3 +40,27 @@ test('recherche sans adversaire : proposition de jouer contre un bot', async ({ 
   await page.getByRole('button', { name: /Oui, abandonner/ }).click();
   await expect(page.getByRole('button', { name: /Rejouer contre le bot/ })).toBeVisible({ timeout: 15000 });
 });
+
+test('Yas Foot contre un bot : viser à la fronde, tirer, le bot répond', async ({ page }) => {
+  await registerViaUi(page, `Foot${Date.now() % 10000}`);
+  await page.goto('/games/foot');
+  await page.getByRole('button', { name: 'Jouer seul' }).click();
+  await page.getByRole('button', { name: /Lancer la partie/ }).click();
+  await expect(page).toHaveURL(/\/match\//, { timeout: 10000 });
+  await expect(page.getByRole('img', { name: 'Terrain de Yas Foot' })).toBeVisible({ timeout: 15000 });
+
+  // Attendre son tour (le bot peut engager), puis tirer l'attaquant vers l'arrière.
+  const disc = page.getByRole('button', { name: 'Tirer le palet 5' });
+  await disc.waitFor({ timeout: 30000 });
+  const b = await disc.boundingBox();
+  const x = b.x + b.width / 2; const y = b.y + b.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 50, { steps: 5 });
+  await page.mouse.move(x + 5, y + 100, { steps: 5 });
+  await expect(page.getByText(/Puissance \d+ %/)).toBeVisible();
+  await page.mouse.up();
+  await expect(page.getByText(/Tir en cours|prépare son tir/)).toBeVisible({ timeout: 5000 });
+  // Après l'animation, c'est au bot ; puis la main revient au joueur.
+  await expect(page.getByRole('button', { name: /Tirer le palet/ }).first()).toBeVisible({ timeout: 40000 });
+});

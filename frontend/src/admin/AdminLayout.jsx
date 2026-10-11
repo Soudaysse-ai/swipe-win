@@ -15,6 +15,7 @@ const NAV = [
   { to: '/admin/games/connect', label: 'Yas Connect', perm: 'analytics.view' },
   { to: '/admin/games/penalty', label: 'Yas Penalty', perm: 'analytics.view' },
   { to: '/admin/games/ludo', label: 'Yas Ludo', perm: 'analytics.view' },
+  { to: '/admin/games/foot', label: 'Yas Foot', perm: 'analytics.view' },
   { group: 'Joueurs' },
   { to: '/admin/top', label: 'Meilleurs joueurs', perm: 'players.view' },
   { to: '/admin/users', label: 'Utilisateurs', perm: 'players.view' },

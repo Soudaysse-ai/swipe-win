@@ -5,6 +5,7 @@ export const GAME_META = {
   connect: { name: 'Yas Connect', players: '2 joueurs',   color: '#5F99D2', tint: '#DFEBF6', art: 'connect' },
   penalty: { name: 'Yas Penalty', players: '2 joueurs',   color: '#58508C', tint: '#CDCBDD', art: 'penalty' },
   ludo:    { name: 'Yas Ludo',    players: '2–4 joueurs', color: '#BC4F90', tint: '#EBCADE', art: 'ludo' },
+  foot:    { name: 'Yas Foot',    players: '2 joueurs',   color: '#3CB167', tint: '#CDEFD9', art: 'foot' },
 };
 
 export const PERIOD_LABELS = { week: 'Cette semaine', month: 'Ce mois', season: 'Saison', all: 'Historique' };

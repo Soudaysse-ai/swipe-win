@@ -7,9 +7,9 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 | Suite | Commande | Résultat |
 |---|---|---|
-| Unitaires backend | `npm test` | **90 / 90** |
-| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **31 / 31** |
-| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **9 / 9** |
+| Unitaires backend | `npm test` | **101 / 101** |
+| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **32 / 32** |
+| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **10 / 10** |
 | Build frontend | `npm run build` | OK |
 | Charge indicative (`scripts/loadtest.js`, 200 clients, 30 s) | | 2 492 parties, 0 erreur, p50 48 ms, p95 384 ms |
 
@@ -210,6 +210,26 @@ Retours après les premières parties (comparaison avec Plato) :
   table Midnight Blue : adversaires en haut avec leurs cartes en éventail, pioche et défausse au centre
   (couleur active en halo), « Tu as joué Rouge 3 » puis « À toi : choisis une carte », main en éventail
   en bas avec les cartes jouables levées.
+
+## Évolution — Yas Foot (football de table)
+Cinquième jeu, ajouté à côté de Yas Penalty (conservé) — migration 007, classement Elo.
+- **Règles** : 2 joueurs, 5 palets chacun et un ballon. À son tour, on tire un de ses palets comme une
+  fronde ; tout rebondit (palets, ballon, bords, poteaux) jusqu'à l'arrêt, puis la main passe. But quand le
+  ballon franchit entièrement la ligne ; contre son camp, le but va à l'adversaire ; l'équipe qui encaisse
+  engage. Premier à 3 buts, sinon le score à la fin des 5 minutes (nul possible). 20 s pour tirer, 3 tours
+  manqués d'affilée = forfait.
+- **Moteur** (`backend/src/games/foot`) : physique déterministe calculée par le serveur (60 pas/s, 2
+  sous-pas, chocs élastiques avec masses, frottement, filets et poteaux). Chaque tir renvoie la trajectoire
+  (30 images/s, ~18 Ko pour un tir à pleine puissance) ; le tir suivant n'est ouvert qu'après l'animation.
+- **Écran** : terrain vertical sur téléphone (ma cage en bas), horizontal sur ordinateur (ma cage à
+  gauche) ; palets aux couleurs des équipes avec l'avatar du joueur ; visée comme sur la capture de
+  référence (cercle de puissance, flèche, pointillés) ; tableau de score avec chronomètre de match et
+  anneau de tour ; « BUT ! » à chaque but.
+- **Bot** : vise le ballon pour l'envoyer vers la cage adverse (point d'impact calculé), essaie jusqu'à
+  45 tirs avec la vraie physique (Difficile) et garde le meilleur ; imprécision selon le niveau.
+- **Tests** : 9 unitaires du moteur (collisions, buts, contre son camp, fin au score ou au temps,
+  forfait, déterminisme, rien ne sort du terrain), bot contre bot jusqu'au bout, 1 d'intégration et 1 E2E
+  (visée et tir à la souris, réponse du bot).
 
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render

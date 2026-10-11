@@ -7,7 +7,7 @@ const STATUS = { draft: 'Brouillon', registration: 'Inscriptions', in_progress: 
 const FORMAT = { single_elimination: 'Élimination directe', round_robin: 'Championnat (round robin)' };
 const PRESETS = [
   ['Yas Cards Championship', 'cards', 4], ['Yas Connect League', 'connect', 2], ['Yas Penalty Cup', 'penalty', 2],
-  ['Yas Ludo Masters', 'ludo', 4], ['Défi Yas Weekly Challenge', 'connect', 2],
+  ['Yas Ludo Masters', 'ludo', 4], ['Yas Foot Cup', 'foot', 2], ['Défi Yas Weekly Challenge', 'connect', 2],
 ];
 
 export function TournamentsAdmin() {
