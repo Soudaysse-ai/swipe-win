@@ -8,9 +8,10 @@ import { useToast } from '../ToastContext';
 import Avatar from '../../components/Avatar';
 import GameArt from '../../components/GameArt';
 import Icon from '../../components/Icon';
-import Plectre from '../../components/Plectre';
+import { HomeScene } from '../../components/Covers';
 import { LeagueBadge, Spinner, Empty, Sheet } from '../../components/ui';
 import { GAME_META, gameName, formatDate } from '../../lib/format';
+import { useFeatures } from '../../lib/features';
 
 export function Podium({ entries, unit = 'pts' }) {
   const [p1, p2, p3] = entries;
@@ -61,7 +62,7 @@ const MORE = [
   { to: '/profile', icon: 'star', label: 'Badges' },
   { to: '/profile', icon: 'history', label: 'Historique', state: { tab: 'history' } },
   { to: '/games', icon: 'help', label: 'Règles' },
-  { to: '/quiz', icon: 'ball', label: 'Swipe & gagne' },
+  { to: '/quiz', icon: 'ball', label: 'Swipe & gagne', feature: 'quiz' },
   { to: '/notifications', icon: 'bell', label: 'Notifications' },
 ];
 
@@ -70,6 +71,7 @@ export default function Home() {
   const { setUser } = useAuth();
   const { joinRoom, setUnread, quickPlay } = useSession();
   const { toast } = useToast();
+  const features = useFeatures();
   const [data, setData] = useState(null);
   const [sheet, setSheet] = useState(null); // 'quick' | 'code'
   const [code, setCode] = useState('');
@@ -109,10 +111,12 @@ export default function Home() {
 
   return (
     <div className="home">
-    <section className="home-hero" aria-label="Accueil">
-      <Plectre className="band-shape" color="#FFE369" size={300} rotate={-24} />
-      <p className="home-greeting">Salut, <b>{me.username}</b> 👋</p>
-      <h1 className="home-title">{me.challenge ? 'Ton défi du jour t\'attend !' : 'Prêt pour un défi ?'}</h1>
+    <section className="home-hero cover" aria-label="Accueil">
+      <HomeScene className="cover-scene" />
+      <div className="cover-copy">
+        <p className="home-greeting">Salut, <b>{me.username}</b> 👋</p>
+        <h1 className="home-title">{me.challenge ? <>Ton <span className="hl">défi du jour</span> t'attend !</> : <>Prêt pour un <span className="hl">défi</span> ?</>}</h1>
+      </div>
     </section>
     <div className="home-grid">
       <div className="home-main">
@@ -179,7 +183,7 @@ export default function Home() {
         <section aria-label="Plus de Défi Yas">
           <SectionTitle>Plus de Défi Yas</SectionTitle>
           <div className="service-panel">
-            {MORE.map(m => (
+            {MORE.filter(m => !m.feature || features?.[m.feature]).map(m => (
               <Link key={m.label} to={m.to} state={m.state} className="service-tile">
                 <span className="ic"><Icon name={m.icon} size={26} /></span>
                 <span>{m.label}</span>

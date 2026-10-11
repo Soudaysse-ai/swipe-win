@@ -1,0 +1,130 @@
+/* ── Couvertures illustrées : accueil, liste des jeux, page d'un jeu ───────
+   Fond dans la couleur du jeu (Midnight Blue pour l'accueil), illustration
+   vectorielle à droite, texte blanc avec mot-clé Sunshine Yellow. */
+.cover { position: relative; overflow: hidden; isolation: isolate; color: #fff; }
+.cover-scene { position: absolute; z-index: -1; pointer-events: none; display: block; }
+.cover .hl { color: var(--yas-yellow); }
+.cover-copy { position: relative; min-width: 0; }
+
+/* Accueil : le stade de nuit, la coupe et les quatre jeux */
+.home-hero.cover {
+  background:
+    radial-gradient(90% 120% at 88% 30%, rgba(95, 153, 210, .45) 0%, rgba(95, 153, 210, 0) 60%),
+    linear-gradient(160deg, #00377D 0%, #003C88 55%, #0B4FA0 100%);
+  min-height: 248px;
+}
+.home-hero .cover-scene { right: 0; top: 0; height: 200px; width: auto; aspect-ratio: 480 / 300; }
+.home-hero .cover-copy { max-width: 57%; text-shadow: 0 2px 10px rgba(0, 25, 70, .45); }
+.home-hero .home-greeting { color: rgba(255, 255, 255, .9); }
+.home-hero .home-title { color: #fff; }
+@media (min-width: 720px) {
+  .home-hero .cover-scene { height: 236px; right: 0; }
+  .home-hero .cover-copy { max-width: 56%; }
+}
+@media (min-width: 1024px) {
+  .home-hero.cover { min-height: 260px; }
+  .home-hero .cover-scene { height: 300px; top: -22px; right: 3%; }
+  .home-hero .cover-copy { max-width: 50%; padding-top: 10px; }
+}
+@media (min-width: 1100px) { .home-aside { padding-top: 18px; } }
+
+/* Liste des jeux */
+.games-band.cover {
+  background:
+    radial-gradient(90% 120% at 88% 30%, rgba(95, 153, 210, .45) 0%, rgba(95, 153, 210, 0) 60%),
+    linear-gradient(160deg, #00377D 0%, #003C88 55%, #0B4FA0 100%);
+  min-height: 190px; align-items: flex-start;
+}
+.games-band .cover-scene { right: 0; top: 0; height: 184px; width: auto; aspect-ratio: 480 / 300; }
+.games-band .band-copy { max-width: 53%; text-shadow: 0 2px 10px rgba(0, 25, 70, .45); }
+.games-band .band-copy p { color: rgba(255, 255, 255, .92); }
+.games-band .band-coin { position: absolute; left: 16px; bottom: 16px; }
+.games-band .band-copy { padding-bottom: 92px; }
+@media (min-width: 720px) {
+  .games-band .cover-scene { height: 220px; right: 0; }
+  .games-band .band-copy { padding-bottom: 0; }
+  .games-band .band-coin { position: relative; left: auto; bottom: auto; margin-left: auto; margin-right: 40%; }
+}
+@media (min-width: 1024px) {
+  .games-band.cover { min-height: 230px; align-items: center; }
+  .games-band .cover-scene { height: 250px; right: 4%; top: -10px; }
+}
+
+/* Page d'un jeu : l'illustration en haut, le titre dessus, fondu vers la couleur sombre du jeu */
+.game-cover {
+  --cover-bg: linear-gradient(160deg, #0B4FA0, #00377D); --cover-ink: #002456;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  margin: -4px -16px 0; padding: 0 16px 20px; min-height: 330px; background: var(--cover-bg);
+}
+.game-cover::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, transparent 46%, var(--cover-ink) 96%);
+}
+.game-cover .cover-scene { left: 0; top: 0; width: 100%; height: 240px; }
+.game-cover .band-title { color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, .35); }
+.game-cover .cover-copy p { font-size: 16px; line-height: 1.35; margin-top: 4px; color: rgba(255, 255, 255, .94); }
+.game-cover .band-chips .label-chip { background: rgba(255, 255, 255, .2); color: #fff; backdrop-filter: blur(6px); }
+.game-cover .online-dot { background: #7CF0A6; }
+.cover-foot { --cover-bg: linear-gradient(170deg, #1E7F45 0%, #2FA35F 100%); --cover-ink: #0A3F20; }
+.cover-cards { --cover-bg: linear-gradient(160deg, #FFB534 0%, #F08A00 100%); --cover-ink: #6A2E00; }
+.cover-ludo { --cover-bg: linear-gradient(160deg, #CB5E9F 0%, #96316F 100%); --cover-ink: #4A0D33; }
+.cover-connect { --cover-bg: linear-gradient(160deg, #73ACE2 0%, #3C7DC0 100%); --cover-ink: #0A3263; }
+@media (min-width: 720px) and (max-width: 1023px) {
+  .game-cover { margin-left: -24px; margin-right: -24px; padding-left: 24px; padding-right: 24px; min-height: 300px; }
+  .game-cover .cover-scene { left: auto; right: 0; height: 100%; width: auto; aspect-ratio: 480 / 300; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24%); mask-image: linear-gradient(90deg, transparent 0, #000 24%); }
+  .game-cover .cover-copy { max-width: 55%; }
+  .game-cover::after { background: linear-gradient(90deg, var(--cover-ink) 0%, transparent 70%); }
+}
+@media (min-width: 1024px) {
+  .game-cover { margin-left: -40px; margin-right: -40px; padding: 32px 40px; min-height: 300px; justify-content: center; }
+  .game-cover .cover-scene { left: auto; right: 0; height: 100%; width: auto; aspect-ratio: 480 / 300; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24%); mask-image: linear-gradient(90deg, transparent 0, #000 24%); }
+  .game-cover .cover-copy { max-width: 520px; }
+  .game-cover .cover-copy p { font-size: 18px; }
+  .game-cover::after { background: linear-gradient(90deg, var(--cover-ink) 0%, rgba(0, 0, 0, 0) 62%); opacity: .85; }
+}
+
+/* ── Animations douces des scènes ─────────────────────────────────────── */
+.cover-scene .cv-f1, .cover-scene .cv-f2, .cover-scene .cv-f3, .cover-scene .cv-tumble,
+.cover-scene .cv-hop, .cover-scene .cv-shot, .cover-scene .cv-drop, .cover-scene .cv-spin-slow {
+  transform-box: fill-box; transform-origin: center;
+}
+.cv-f1 { animation: cv-float 5.2s ease-in-out infinite; }
+.cv-f2 { animation: cv-float-rot 6.4s ease-in-out infinite; }
+.cv-f3 { animation: cv-float 4.6s ease-in-out infinite reverse; }
+.cv-tumble { animation: cv-tumble 3.8s ease-in-out infinite; }
+.cv-hop { animation: cv-hop 2.8s ease-in-out infinite; transform-origin: center bottom; }
+.cv-spin { animation: cv-spin 70s linear infinite; }
+.cv-spin-slow { animation: cv-spin 18s linear infinite; }
+.cv-sway { animation: cv-sway 7s ease-in-out infinite; }
+.cv-twinkle { animation: cv-twinkle 2.6s ease-in-out infinite; }
+.cv-dash { animation: cv-dash 1.2s linear infinite; }
+.cv-shot { animation: cv-shot 3.6s cubic-bezier(.3, .6, .4, 1) infinite; }
+.cv-drop { animation: cv-drop 4.2s cubic-bezier(.5, 0, .7, .4) infinite; }
+.cv-win { animation: cv-win 4.2s linear infinite; }
+@keyframes cv-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes cv-float-rot { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-7px) rotate(4deg); } }
+@keyframes cv-tumble { 0%, 100% { transform: translateY(0) rotate(0); } 40% { transform: translateY(-14px) rotate(-8deg); } 60% { transform: translateY(-10px) rotate(6deg); } }
+@keyframes cv-hop { 0%, 60%, 100% { transform: translateY(0); } 72% { transform: translateY(-16px); } 84% { transform: translateY(0); } 90% { transform: translateY(-4px); } }
+@keyframes cv-spin { to { transform: rotate(360deg); } }
+@keyframes cv-sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+@keyframes cv-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes cv-dash { to { stroke-dashoffset: -22; } }
+@keyframes cv-shot {
+  0% { transform: translate(10px, 58px) scale(1.25); opacity: 0; }
+  10% { opacity: 1; }
+  70% { transform: translate(-8px, -62px) scale(.72); opacity: 1; }
+  82%, 100% { transform: translate(-9px, -66px) scale(.7); opacity: 0; }
+}
+@keyframes cv-drop {
+  0% { transform: translateY(-150px); opacity: 0; }
+  8% { opacity: 1; }
+  30% { transform: translateY(0); }
+  36% { transform: translateY(-12px); }
+  42%, 92% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+@keyframes cv-win { 0%, 40% { opacity: 0; } 48%, 88% { opacity: 1; } 96%, 100% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cover-scene * { animation: none !important; }
+}

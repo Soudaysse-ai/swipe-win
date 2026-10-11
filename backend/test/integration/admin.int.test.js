@@ -226,3 +226,30 @@ test('gestion des administrateurs : création, garde-fou du dernier super admin'
   assert.ok(login.data.admin.permissions.includes('tournaments.manage'));
   assert.ok(!login.data.admin.permissions.includes('players.ban'));
 });
+
+test('Swipe & gagne : masqué par défaut, rendu visible par un admin habilité (journalisé)', async () => {
+  const p = players[0];
+  assert.deepEqual((await api(srv.base, 'GET', '/api/features')).data.features, { quiz: false });
+  const blocked = await api(srv.base, 'POST', '/api/sessions/start', { token: p.token });
+  assert.equal(blocked.status, 403);
+  assert.equal(blocked.data.code, 'QUIZ_HIDDEN');
+  assert.equal((await api(srv.base, 'GET', '/api/sessions/game-status')).data.visible, false);
+
+  // Un analyste ne gère pas le quiz ; un game manager oui.
+  const denied = await api(srv.base, 'PUT', '/api/admin/quiz/settings/visible', { token: tokens.data_analyst, body: { visible: true } });
+  assert.equal(denied.status, 403);
+  assert.equal((await api(srv.base, 'PUT', '/api/admin/quiz/settings/visible', { token: tokens.game_manager, body: { visible: 'oui' } })).status, 400);
+  const on = await api(srv.base, 'PUT', '/api/admin/quiz/settings/visible', { token: tokens.game_manager, body: { visible: true } });
+  assert.equal(on.status, 200);
+  assert.equal((await api(srv.base, 'GET', '/api/admin/quiz/settings/visible', { token: tokens.game_manager })).data.visible, true);
+  assert.deepEqual((await api(srv.base, 'GET', '/api/features')).data.features, { quiz: true });
+  const started = await api(srv.base, 'POST', '/api/sessions/start', { token: p.token });
+  assert.equal(started.status, 200);
+  assert.ok(started.data.session.id);
+  const audit = await pool.query("SELECT old_data, new_data FROM audit_logs WHERE entity = 'setting' AND entity_id = 'quiz_visible' ORDER BY created_at DESC LIMIT 1");
+  assert.deepEqual(audit.rows[0], { old_data: { visible: false }, new_data: { visible: true } });
+
+  // Masqué à nouveau : plus de nouvelle partie.
+  await api(srv.base, 'PUT', '/api/admin/quiz/settings/visible', { token: tokens.game_manager, body: { visible: false } });
+  assert.equal((await api(srv.base, 'POST', '/api/sessions/start', { token: p.token })).status, 403);
+});

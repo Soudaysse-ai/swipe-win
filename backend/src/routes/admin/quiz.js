@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const pool = require('../../db/pool');
 const auth = require('../../middleware/auth');
 const { logAudit } = require('../../services/audit');
+const features = require('../../services/features');
 
 // ── Dashboard stats ─────────────────────────────────────────────────────────
 
@@ -209,6 +210,28 @@ router.put('/settings/active-theme', auth('quiz.manage'), async (req, res) => {
     );
     await logAudit(req.admin.id, 'UPDATE', 'setting', 'active_theme', null, { theme });
     res.json({ active_theme: theme });
+  } catch (err) {
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
+  }
+});
+
+// Visibilité de « Swipe & gagne » côté joueurs (menus, accueil, accès aux pages du quiz).
+router.get('/settings/visible', auth('quiz.manage'), async (req, res) => {
+  try {
+    res.json({ visible: await features.quizVisible() });
+  } catch (err) {
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
+  }
+});
+
+router.put('/settings/visible', auth('quiz.manage'), async (req, res) => {
+  const { visible } = req.body;
+  if (typeof visible !== 'boolean') return res.status(400).json({ error: 'visible (booléen) requis' });
+  try {
+    const before = await features.quizVisible();
+    await features.setQuizVisible(visible);
+    await logAudit(req.admin.id, 'UPDATE', 'setting', 'quiz_visible', { visible: before }, { visible });
+    res.json({ visible });
   } catch (err) {
     console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }

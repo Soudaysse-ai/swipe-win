@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [gamePaused, setGamePaused] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     api.get('/admin/quiz/dashboard/stats')
@@ -25,7 +26,20 @@ export default function Dashboard() {
     api.get('/admin/quiz/settings/game-paused')
       .then(r => setGamePaused(r.data.paused))
       .catch(() => {});
+    api.get('/admin/quiz/settings/visible')
+      .then(r => setVisible(r.data.visible))
+      .catch(() => {});
   }, []);
+
+  async function toggleVisible() {
+    const next = !visible;
+    setVisible(next);
+    try {
+      await api.put('/admin/quiz/settings/visible', { visible: next });
+    } catch {
+      setVisible(!next); // rollback en cas d'erreur
+    }
+  }
 
   async function toggleGamePaused() {
     const next = !gamePaused;
@@ -47,6 +61,27 @@ export default function Dashboard() {
   return (
     <div>
       <h2 style={styles.pageTitle}>Dashboard</h2>
+
+      <div style={styles.toggleBar}>
+        <div>
+          <div style={styles.toggleTitle}>👁 Visible pour les joueurs</div>
+          <div style={styles.toggleHint}>
+            {visible
+              ? 'Swipe & gagne apparaît dans l\'application (menus, accueil, page Jeux).'
+              : 'Swipe & gagne est masqué : aucune entrée côté joueurs, aucune nouvelle partie.'}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={toggleVisible}
+          style={{ ...styles.switch, background: visible ? '#22C55E' : '#9CA3AF' }}
+          role="switch"
+          aria-checked={visible}
+          aria-label="Swipe & gagne visible pour les joueurs"
+        >
+          <span style={{ ...styles.switchKnob, transform: visible ? 'translateX(24px)' : 'translateX(0)' }} />
+        </button>
+      </div>
 
       <div style={styles.toggleBar}>
         <div>

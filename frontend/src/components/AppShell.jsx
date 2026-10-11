@@ -7,6 +7,7 @@ import YasMark from './YasMark';
 import { useAuth } from '../player/AuthContext';
 import { useSession } from '../player/SessionContext';
 import { useConnectionStatus } from '../lib/socket';
+import { useFeatures } from '../lib/features';
 
 // Navigation principale : barre basse flottante (mobile / tablette) et barre
 // latérale (ordinateur, ≥ 1024 px). Mêmes destinations, même ordre.
@@ -19,7 +20,7 @@ const NAV = [
 ];
 const SIDE_EXTRA = [
   { to: '/tournaments', label: 'Tournois', icon: 'medal' },
-  { to: '/quiz', label: 'Swipe & gagne', icon: 'ball' },
+  { to: '/quiz', label: 'Swipe & gagne', icon: 'ball', feature: 'quiz' },
 ];
 
 export function ConnectionBanner() {
@@ -41,8 +42,15 @@ export function BottomNav() {
   );
 }
 
+// Entrées liées à une fonctionnalité activable : affichées seulement si elle est activée.
+function useEnabled(items) {
+  const features = useFeatures();
+  return items.filter(i => !i.feature || features?.[i.feature]);
+}
+
 export function SideNav() {
   const { user } = useAuth();
+  const extra = useEnabled(SIDE_EXTRA);
   const item = (n) => (
     <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `item${isActive ? ' active' : ''}`}>
       <Icon name={n.icon} size={22} /><span>{n.label}</span>
@@ -56,7 +64,7 @@ export function SideNav() {
       </Link>
       <nav className="items">{NAV.map(item)}</nav>
       <div className="side-sep" />
-      <nav className="items">{SIDE_EXTRA.map(item)}</nav>
+      <nav className="items">{extra.map(item)}</nav>
       <Link to="/games" className="side-cta">
         <b>Prêt pour un défi ?</b>
         <span>Lance une partie en quelques secondes.</span>
@@ -85,6 +93,7 @@ const MENU = [
 
 function MenuDrawer({ open, onClose }) {
   const { user, logout } = useAuth();
+  const menu = useEnabled(MENU);
   const navigate = useNavigate();
   useEffect(() => {
     if (!open) return undefined;
@@ -108,7 +117,7 @@ function MenuDrawer({ open, onClose }) {
           </Link>
         )}
         <div className="drawer-items">
-          {MENU.map(m => (
+          {menu.map(m => (
             <Link key={m.to + m.label} to={m.to} onClick={onClose}><Icon name={m.icon} size={22} /><span>{m.label}</span></Link>
           ))}
         </div>

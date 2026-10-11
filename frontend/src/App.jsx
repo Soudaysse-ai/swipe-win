@@ -6,6 +6,7 @@ import { ToastProvider } from './player/ToastContext';
 import AppShell from './components/AppShell';
 import MatchmakingOverlay from './components/MatchmakingOverlay';
 import { Spinner } from './components/ui';
+import { useFeatures } from './lib/features';
 import { Login, Register, ResetPassword, Terms } from './player/pages/AuthPages';
 import Landing from './player/pages/Landing';
 import Home from './player/pages/Home';
@@ -29,6 +30,13 @@ function RequirePlayer() {
   if (!token) return <Navigate to="/welcome" replace state={{ from: location.pathname }} />;
   if (loading) return <Spinner center />;
   return <Outlet />;
+}
+
+// Pages d'une fonctionnalité activable depuis le back-office : accueil si elle est masquée.
+function RequireFeature({ name }) {
+  const features = useFeatures();
+  if (!features) return <Spinner center />;
+  return features[name] ? <Outlet /> : <Navigate to="/" replace />;
 }
 
 function GuestOnly({ children }) {
@@ -73,9 +81,11 @@ function PlayerRoutes() {
           <Route element={<Shell header={false} nav={false} />}>
             <Route path="match/:matchId" element={<Match />} />
           </Route>
-          <Route path="quiz" element={<Suspense fallback={<Spinner center />}><QuizHome /></Suspense>} />
-          <Route path="quiz/play" element={<Suspense fallback={<Spinner center />}><QuizGame /></Suspense>} />
-          <Route path="quiz/results" element={<Suspense fallback={<Spinner center />}><QuizOver /></Suspense>} />
+          <Route element={<RequireFeature name="quiz" />}>
+            <Route path="quiz" element={<Suspense fallback={<Spinner center />}><QuizHome /></Suspense>} />
+            <Route path="quiz/play" element={<Suspense fallback={<Spinner center />}><QuizGame /></Suspense>} />
+            <Route path="quiz/results" element={<Suspense fallback={<Spinner center />}><QuizOver /></Suspense>} />
+          </Route>
         </Route>
         {/* Anciennes URL de Swipe & Win */}
         <Route path="/game" element={<Navigate to="/quiz/play" replace />} />

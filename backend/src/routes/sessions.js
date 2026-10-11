@@ -7,6 +7,7 @@ const pool = require('../db/pool');
 const { v4: uuidv4 } = require('uuid');
 const { calcSessionScore } = require('../utils/score');
 const { requirePlayer } = require('../middleware/playerAuth');
+const { quizVisible } = require('../services/features');
 
 const MAX_RESPONSE_MS = 30_000;
 
@@ -32,12 +33,12 @@ async function ownedSession(sessionId, userId) {
   return rows[0] || null;
 }
 
-// GET /api/sessions/game-status — le jeu est-il en pause ?
+// GET /api/sessions/game-status — le jeu est-il en pause ? visible des joueurs ?
 router.get('/game-status', async (req, res) => {
   try {
     const r = await pool.query("SELECT value FROM settings WHERE key = 'game_paused'");
     const paused = r.rows.length && r.rows[0].value === 'true';
-    res.json({ paused });
+    res.json({ paused, visible: await quizVisible() });
   } catch (err) {
     console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
@@ -46,6 +47,9 @@ router.get('/game-status', async (req, res) => {
 // POST /api/sessions/start
 router.post('/start', requirePlayer, async (req, res) => {
   try {
+    if (!(await quizVisible())) {
+      return res.status(403).json({ error: "Swipe & gagne n'est pas disponible pour le moment.", code: 'QUIZ_HIDDEN' });
+    }
     const paused = await pool.query("SELECT value FROM settings WHERE key = 'game_paused'");
     if (paused.rows.length && paused.rows[0].value === 'true') {
       return res.status(403).json({ error: 'Le jeu est actuellement en pause', paused: true });
