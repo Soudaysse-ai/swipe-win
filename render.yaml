@@ -5,7 +5,7 @@ services:
   - type: web
     name: defi-yas-api
     runtime: node
-    branch: claude/awesome-wright-hvrm9z
+    branch: main
     rootDir: backend
     # Toujours actif : le plan gratuit se met en veille et coupe les parties en cours.
     plan: starter
