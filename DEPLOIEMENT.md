@@ -18,7 +18,8 @@
 - **dev** : local (`npm run dev`).
 - **staging** : copie (branche Neon) de la base de production + services séparés ; tests
   d'intégration et E2E avant chaque mise en production.
-- **production**.
+- **production** : branche `main`. Vercel (branche de production) et Render (Blueprint
+  `render.yaml`, déploiement automatique) redéploient à chaque commit sur `main`.
 
 ## Variables d'environnement
 Backend : voir `backend/.env.example` (obligatoires en production : `DATABASE_URL`,
