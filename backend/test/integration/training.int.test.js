@@ -129,15 +129,23 @@ test('Yas Foot contre un bot : tir à la fronde, trajectoire reçue, le bot rép
   assert.equal(res.ok, true, JSON.stringify(res));
   let snap = await started;
   assert.equal(snap.view.discs[alice.userId].length, 5);
+  // Avant-match : le bot choisit seul ; Alice prend son équipe et sa formation.
+  assert.equal(snap.view.phase, 'setup');
+  const ready = await ca.emit('match:action', {
+    matchId: res.matchId, commandId: crypto.randomUUID(), version: snap.version, action: { type: 'setup', team: 'km', formation: '1-2-2', ready: true },
+  });
+  assert.equal(ready.ok, true, JSON.stringify(ready));
 
   // Attendre son tour (le bot peut commencer), puis l'ouverture du tir.
   const deadline = Date.now() + 20_000;
   while (Date.now() < deadline) {
     snap = (await ca.emit('match:sync', { matchId: res.matchId })).snapshot;
-    if (snap.view.turn === alice.userId && Date.now() >= snap.view.turnOpensAt) break;
+    if (snap.view.phase === 'play' && snap.view.turn === alice.userId && Date.now() >= snap.view.turnOpensAt) break;
     await new Promise(r => setTimeout(r, 100));
   }
   assert.equal(snap.view.turn, alice.userId);
+  assert.equal(snap.view.teams[alice.userId], 'km');
+  assert.ok(snap.view.teams[snap.players.find(p => p.isBot).userId] !== 'km');
   const myShot = ca.waitFor('game:event', e => e.matchId === res.matchId && e.type === 'shot' && e.payload.userId === alice.userId);
   const r = await ca.emit('match:action', {
     matchId: res.matchId, commandId: crypto.randomUUID(), version: snap.version, action: { type: 'shoot', disc: 4, dx: 0.7, dy: 0.1 },

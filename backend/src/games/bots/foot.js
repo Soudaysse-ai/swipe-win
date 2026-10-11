@@ -3,7 +3,7 @@
 // Normal et Difficile essaient plusieurs tirs avec la vraie physique du jeu et
 // gardent le meilleur résultat (but, ballon avancé, cage protégée) ; le tir
 // réellement joué garde une petite imprécision, plus forte au niveau Facile.
-const { simulate, FIELD, MIN_POWER, MAX_SPEED } = require('../foot/engine')._internals;
+const { simulate, FIELD, MIN_POWER, MAX_SPEED, FORMATIONS, TEAMS, MAX_PASSES } = require('../foot/engine')._internals;
 
 const { W, H, GOAL_TOP, GOAL_BOTTOM, DISC_R, BALL_R } = FIELD;
 const NOISE_DEG = { easy: 14, normal: 6, hard: 1.5 };
@@ -47,6 +47,8 @@ function candidates(view, me, level) {
 function evaluate(view, me, sim) {
   const home = view.players[0] === me;
   if (sim.goal) return (sim.goal === 'right') === home ? 10_000 : -10_000;
+  // Une passe réussie redonne la main : bonus, tant que la limite n'est pas atteinte.
+  const passBonus = sim.pass && (view.passes || 0) < MAX_PASSES ? 25 : 0;
   const [bx, by] = sim.ball;
   const ownX = home ? 0 : W;
   let s = (home ? bx / W : 1 - bx / W) * 100;
@@ -55,7 +57,17 @@ function evaluate(view, me, sim) {
   const mine = sim.discs[me];
   if (mine.some(([x, y]) => (home ? x < bx : x > bx) && Math.abs(y - by) < 120)) s += 15;
   if (mine.some(([x, y]) => Math.hypot(x - ownX, y - H / 2) < 150)) s += 12;
-  return s;
+  return s + passBonus;
+}
+
+// Avant-match : une équipe libre au hasard et une formation selon le niveau.
+function chooseSetup(view, botId, { level, rng }) {
+  const taken = new Set(view.players.filter(u => u !== botId).map(u => view.teams?.[u]).filter(Boolean));
+  const free = TEAMS.filter(t => !taken.has(t));
+  const team = free[rng.int(free.length)];
+  const ids = Object.keys(FORMATIONS);
+  const formation = level === 'easy' ? ids[rng.int(ids.length)] : (level === 'hard' ? '1-2-1-1' : ids[rng.int(2)]);
+  return { type: 'setup', team, formation, ready: true };
 }
 
 function chooseShot(view, me, level, rng) {
@@ -88,7 +100,12 @@ function chooseShot(view, me, level, rng) {
 }
 
 function decide(view, botId, { level = 'normal', rng }) {
-  if (view.status !== 'playing' || view.phase !== 'play' || view.turn !== botId) return null;
+  if (view.status !== 'playing') return null;
+  if (view.phase === 'setup') {
+    if (view.ready?.[botId]) return null;
+    return { action: chooseSetup(view, botId, { level, rng }), think: [1200, 2400] };
+  }
+  if (view.phase !== 'play' || view.turn !== botId) return null;
   // La décision est calculée une fois par tour (programmation puis exécution).
   const key = `${botId}:${view.seq}:${view.turnOpensAt}:${level}`;
   let shot = cache.get(key);
@@ -100,4 +117,4 @@ function decide(view, botId, { level = 'normal', rng }) {
   return { action: { type: 'shoot', ...shot }, notBefore: view.turnOpensAt, think: [1400, 2600] };
 }
 
-module.exports = { decide, _internals: { chooseShot, candidates, evaluate } };
+module.exports = { decide, _internals: { chooseShot, chooseSetup, candidates, evaluate } };

@@ -3,9 +3,10 @@ const assert = require('node:assert/strict');
 const engine = require('../../src/games/foot/engine');
 const { scriptedRng, seededRng } = require('../helpers/engine');
 
-const CONFIG = { turnSeconds: 20, matchSeconds: 300, goalsToWin: 3, maxTimeouts: 3 };
+// setupSeconds 0 : coup d'envoi immédiat (l'avant-match a ses propres tests plus bas).
+const CONFIG = { turnSeconds: 20, matchSeconds: 300, goalsToWin: 3, maxTimeouts: 3, setupSeconds: 0 };
 const [A, B] = ['home', 'away'];
-const { FIELD, simulate } = engine._internals;
+const { FIELD, simulate, TEAMS, FORMATIONS, MAX_PASSES, VS_MS } = engine._internals;
 const players = [{ userId: A, seat: 0 }, { userId: B, seat: 1 }];
 
 // Partie où A commence (rng → 0), tir possible tout de suite.
@@ -138,4 +139,81 @@ test('simulation déterministe et jamais hors du terrain', () => {
     assert.ok(bx >= -FIELD.GOAL_DEPTH && bx <= FIELD.W + FIELD.GOAL_DEPTH && by >= 0 && by <= FIELD.H, `ballon hors terrain ${bx},${by}`);
     if (st.phase !== 'play') break;
   }
+});
+
+test('avant-match : équipe et formation au choix, coup d\'envoi quand les deux sont prêts', () => {
+  const config = { ...CONFIG, setupSeconds: 15 };
+  let s = engine.init({ players, rng: scriptedRng([0]), now: 0, config });
+  assert.equal(s.phase, 'setup');
+  assert.deepEqual(engine.deadline(s), { at: 15_000, userIds: [] });
+  assert.throws(() => engine.apply(s, A, { type: 'shoot', disc: 0, dx: 1, dy: 0 }, { now: 100, config }), { code: 'NOT_OPEN' });
+  assert.throws(() => engine.apply(s, A, { type: 'setup', team: 'xx' }, { now: 100, config }), { code: 'BAD_TEAM' });
+  assert.throws(() => engine.apply(s, A, { type: 'setup', formation: '9-9' }, { now: 100, config }), { code: 'BAD_FORMATION' });
+  s = engine.apply(s, A, { type: 'setup', team: 'km', formation: '1-3-1' }, { now: 100, config }).state;
+  assert.deepEqual(s.discs[A], FORMATIONS['1-3-1'].pos);
+  assert.throws(() => engine.apply(s, B, { type: 'setup', team: 'km' }, { now: 200, config }), { code: 'TEAM_TAKEN' });
+  s = engine.apply(s, A, { type: 'setup', ready: true }, { now: 300, config }).state;
+  assert.equal(s.phase, 'setup');
+  const out = engine.apply(s, B, { type: 'setup', team: 'sn', formation: '1-2-2', ready: true }, { now: 1000, config });
+  s = out.state;
+  assert.ok(out.events.some(e => e.type === 'kickoff'));
+  assert.equal(s.phase, 'play');
+  assert.deepEqual(s.teams, { [A]: 'km', [B]: 'sn' });
+  assert.equal(s.turnOpensAt, 1000 + VS_MS);
+  assert.equal(s.matchEndsAt, s.turnOpensAt + 300_000);
+  s.discs[B].forEach(([x, y], i) => assert.deepEqual([x, y], [FIELD.W - FORMATIONS['1-2-2'].pos[i][0], FIELD.H - FORMATIONS['1-2-2'].pos[i][1]]));
+  assert.throws(() => engine.apply(s, A, { type: 'setup', team: 'fr' }, { now: 1100, config }), { code: 'NOT_SETUP' });
+});
+
+test('avant-match : sans choix à la fin du compte à rebours, équipes différentes attribuées', () => {
+  const config = { ...CONFIG, setupSeconds: 15 };
+  let s = engine.init({ players, rng: scriptedRng([1]), now: 0, config });
+  s = engine.apply(s, B, { type: 'setup', team: TEAMS[0] }, { now: 50, config }).state;
+  const out = engine.timeout(s, { now: 15_000, config });
+  s = out.state;
+  assert.equal(s.phase, 'play');
+  assert.equal(s.teams[B], TEAMS[0]);
+  assert.ok(TEAMS.includes(s.teams[A]) && s.teams[A] !== s.teams[B]);
+  assert.equal(s.turn, B);
+  assert.equal(s.timeouts[A] + s.timeouts[B], 0, 'l\'avant-match ne compte pas comme temps dépassé');
+});
+
+// Ballon entre le tireur et un coéquipier, adversaires écartés.
+function passSetup() {
+  const { s, now } = start();
+  s.discs[A] = [[60, 300], [200, 120], [200, 480], [640, 300], [400, 300]];
+  s.discs[B] = s.discs[B].map(([x, y], i) => [520 + i * 90, i % 2 ? 40 : 560]);
+  s.ball = [470, 300];
+  return { s, now };
+}
+
+test('passe : le ballon envoyé sur un coéquipier redonne la main, au plus deux fois de suite', () => {
+  let { s, now } = passSetup();
+  for (let k = 1; k <= MAX_PASSES; k++) {
+    const out = engine.apply(s, A, { type: 'shoot', disc: 4, dx: 0.5, dy: 0 }, { now, config: CONFIG });
+    const pass = out.events.find(e => e.type === 'pass');
+    assert.ok(pass, `passe n° ${k}`);
+    assert.deepEqual([pass.payload.to, pass.payload.count], [3, k]);
+    assert.equal(out.events.find(e => e.type === 'shot').payload.pass, 3);
+    assert.equal(out.state.turn, A, 'le tireur rejoue');
+    assert.equal(out.state.passes, k);
+    // Même situation au tir suivant.
+    s = { ...out.state, discs: passSetup().s.discs, ball: [470, 300] };
+    now = out.state.turnOpensAt;
+  }
+  const out = engine.apply(s, A, { type: 'shoot', disc: 4, dx: 0.5, dy: 0 }, { now, config: CONFIG });
+  assert.ok(!out.events.some(e => e.type === 'pass'), 'pas de troisième passe');
+  assert.equal(out.state.turn, B);
+  assert.equal(out.state.passes, 0);
+  assert.equal(out.state.passCount[A], MAX_PASSES);
+  const hits = out.events.find(e => e.type === 'shot').payload.hits;
+  assert.ok(hits.some(h => h[1] === 'ball') && hits.every(h => h[2] > 0 && h[2] <= 1));
+});
+
+test('pas de passe si un adversaire touche le ballon en premier', () => {
+  const { s, now } = passSetup();
+  s.discs[B][2] = [560, 300]; // un adversaire s'intercale
+  const out = engine.apply(s, A, { type: 'shoot', disc: 4, dx: 0.5, dy: 0 }, { now, config: CONFIG });
+  assert.ok(!out.events.some(e => e.type === 'pass'));
+  assert.equal(out.state.turn, B);
 });
