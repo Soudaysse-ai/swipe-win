@@ -9,6 +9,8 @@ import { useToast } from '../ToastContext';
 import Avatar from '../../components/Avatar';
 import Icon from '../../components/Icon';
 import ChatPanel from '../../components/ChatPanel';
+import Pulse from '../../components/Pulse';
+import CoinBadge from '../../components/CoinBadge';
 import { Sheet, Spinner, Countdown, Confetti } from '../../components/ui';
 import { gameName, placeLabel, formatDuration } from '../../lib/format';
 
@@ -48,65 +50,86 @@ function FloatingReactions({ matchId, players }) {
   );
 }
 
+// Fin de partie, dans l'esprit des fenêtres « Gamification » de l'appli Yas :
+// carte blanche sur fond Sunshine Yellow, illustration (Pulse + plectre),
+// titre deux tons, pastille « pièce » pour les points, bouton jaune.
+function ResultArt({ icon }) {
+  return (
+    <span className="result-art" aria-hidden>
+      <Pulse size={190} solid plectre />
+      <span className="result-icon"><Icon name={icon} size={46} /></span>
+    </span>
+  );
+}
+
 function Results({ ended, me, onRematch, gameId }) {
   const you = ended.you;
   const mine = ended.placements.find(p => p.userId === me);
   const won = !ended.isDraw && mine?.place === 1;
   const duel = ended.placements.length === 2;
-  const title = ended.cancelled ? 'Partie annulée' : ended.isDraw ? 'Match nul' : won ? 'Victoire !' : duel && mine ? 'Défaite' : mine ? `${placeLabel(mine.place)} place` : 'Partie terminée';
-  const emoji = ended.cancelled ? '🚫' : ended.isDraw ? '🤝' : won ? '🏆' : mine?.place === 2 && ended.placements.length > 2 ? '🥈' : '💪';
+  const [lead, rest] = ended.cancelled ? ['Partie', 'annulée'] : ended.isDraw ? ['Match', 'nul\u00a0!'] : won ? ['Bravo,', 'victoire\u00a0!']
+    : duel && mine ? ['Oups,', 'pas cette fois\u00a0!'] : mine ? [placeLabel(mine.place), 'place'] : ['Partie', 'terminée'];
+  const icon = ended.cancelled ? 'block' : ended.isDraw ? 'friends' : won ? 'trophy' : 'refresh';
+  const delta = you ? you.ratingAfter - you.ratingBefore : 0;
   return (
-    <div className="stack lg match-page">
+    <div className="result-screen match-page">
       {won && <Confetti />}
-      <div className="result-hero">
-        <div className="emoji" aria-hidden>{emoji}</div>
-        <h1 className="h1" style={{ marginTop: 8 }}>{title}</h1>
-        <p className="small muted" style={{ marginTop: 4 }}>
+      <div className="result-card">
+        {you && ended.isValid && you.seasonPoints > 0 && (
+          <CoinBadge value={`+${you.seasonPoints}`} label="pts saison" size={88} className="result-coin" />
+        )}
+        <ResultArt icon={icon} />
+        <h1 className="result-title" aria-label={`${lead} ${rest}`}>
+          <span className="hl">{lead}</span> {rest}
+        </h1>
+        <p className="result-sub">
           {gameName(gameId)}{ended.durationMs ? ` · ${formatDuration(ended.durationMs)}` : ''}
           {ended.reason === 'timeout' && ' · temps écoulé'}{ended.reason === 'forfeit' && ' · forfait'}{ended.reason === 'resign' && ' · abandon'}
         </p>
-      </div>
-      {!ended.cancelled && ended.isValid === false && (
-        <div className="alert warning"><Icon name="alert" size={20} /> Partie trop courte : elle n'est pas comptabilisée (ni XP, ni points, ni cote).</div>
-      )}
-      {you && ended.isValid && (
-        <div className="card blue on-blue stack">
-          <div className="stat-grid">
-            <div className="stat" style={{ background: 'rgba(255,255,255,.1)' }}><b style={{ color: '#FFD100' }}>+{you.xpGained}</b><span style={{ color: '#fff' }}>XP</span></div>
-            <div className="stat" style={{ background: 'rgba(255,255,255,.1)' }}>
-              <b style={{ color: '#FFD100' }}>{you.ratingAfter - you.ratingBefore >= 0 ? '+' : ''}{you.ratingAfter - you.ratingBefore}</b>
-              <span style={{ color: '#fff' }}>Cote ({you.ratingAfter})</span>
-            </div>
-            <div className="stat" style={{ background: 'rgba(255,255,255,.1)' }}><b style={{ color: '#FFD100' }}>+{you.seasonPoints}</b><span style={{ color: '#fff' }}>Pts saison</span></div>
+
+        {!ended.cancelled && ended.isValid === false && (
+          <div className="alert warning"><Icon name="alert" size={20} /> Partie trop courte : elle n'est pas comptabilisée (ni XP, ni points, ni cote).</div>
+        )}
+        {you && ended.isValid && (
+          <div className="result-stats">
+            <span><b>+{you.xpGained}</b>XP</span>
+            <span><b>{delta >= 0 ? '+' : ''}{delta}</b>Cote ({you.ratingAfter})</span>
+            <span><b>+{you.seasonPoints}</b>Pts saison</span>
           </div>
-          {you.levelAfter > you.levelBefore && <div className="center bold">⭐ Niveau {you.levelAfter} atteint !</div>}
-          {you.challengeDone && <div className="center bold">🎯 Défi du jour réussi : +15 XP</div>}
-          {!you.counted && you.seasonPoints === 0 && ended.placements.length > 0 && mine?.place === 1 && (
-            <div className="tiny center">Plafond de 10 matchs comptés par jour atteint pour ce jeu : tes XP restent acquis.</div>
-          )}
-          {you.badges?.map(b => <div key={b.id} className="center bold">{b.icon} Badge débloqué : {b.name}</div>)}
-        </div>
-      )}
-      {ended.placements.length > 0 && (
-        <div className="list">
-          {[...ended.placements].sort((a, b) => a.place - b.place).map(p => (
-            <div key={p.userId} className={`list-item${p.userId === me ? ' me' : ''}`}>
-              <span className="rank-num">{p.place}</span>
-              <Avatar id={p.avatar} size={40} />
-              <div className="grow">
-                <div className="title">{p.username}</div>
-                <div className="sub">{p.outcome === 'win' ? 'Vainqueur' : p.outcome === 'draw' ? 'Nul' : p.outcome === 'loss' ? 'Défaite' : ''}
-                  {p.stats?.goals != null ? ` · ${p.stats.goals} but(s)` : ''}{p.stats?.cardsLeft != null ? ` · ${p.stats.cardsLeft} carte(s)` : ''}</div>
+        )}
+        {you && ended.isValid && (
+          <div className="result-notes">
+            {you.levelAfter > you.levelBefore && <p><Icon name="star" size={18} /> Niveau {you.levelAfter} atteint !</p>}
+            {you.challengeDone && <p><Icon name="zap" size={18} /> Défi du jour réussi : +15 XP</p>}
+            {!you.counted && you.seasonPoints === 0 && mine?.place === 1 && (
+              <p className="muted">Plafond de 10 matchs comptés par jour atteint pour ce jeu : tes XP restent acquis.</p>
+            )}
+            {you.badges?.map(b => <p key={b.id}>{b.icon} Badge débloqué : {b.name}</p>)}
+          </div>
+        )}
+
+        {ended.placements.length > 0 && (
+          <div className="tx-list result-list">
+            {[...ended.placements].sort((a, b) => a.place - b.place).map(p => (
+              <div key={p.userId} className={`tx-row${p.userId === me ? ' me' : ''}`}>
+                <span className="rank-num">{p.place}</span>
+                <Avatar id={p.avatar} size={40} />
+                <span className="tx-text grow">
+                  <b>{p.userId === me ? 'Toi' : p.username}</b>
+                  <span>{p.outcome === 'win' ? 'Vainqueur' : p.outcome === 'draw' ? 'Nul' : p.outcome === 'loss' ? 'Défaite' : ''}
+                    {p.stats?.goals != null ? ` · ${p.stats.goals} but(s)` : ''}{p.stats?.cardsLeft != null ? ` · ${p.stats.cardsLeft} carte(s)` : ''}</span>
+                </span>
+                {p.ratingAfter != null && <span className="rating-delta">{p.ratingAfter >= p.ratingBefore ? '+' : ''}{p.ratingAfter - p.ratingBefore}</span>}
               </div>
-              {p.ratingAfter != null && <span className={`chip ${p.ratingAfter >= p.ratingBefore ? 'green' : 'red'}`}>{p.ratingAfter >= p.ratingBefore ? '+' : ''}{p.ratingAfter - p.ratingBefore}</span>}
-            </div>
-          ))}
+            ))}
+          </div>
+        )}
+
+        <div className="result-actions">
+          {onRematch && <button className="btn block" onClick={onRematch}>Revanche <span className="arrow" /></button>}
+          <Link to={`/games/${gameId}`} className={`btn block ${onRematch ? 'outline' : ''}`}>Rejouer</Link>
+          <Link to="/" className="link-plain">Retour à l'accueil</Link>
         </div>
-      )}
-      <div className="stack">
-        {onRematch && <button className="btn block" onClick={onRematch}>Revanche <span className="arrow" /></button>}
-        <Link to={`/games/${gameId}`} className="btn block outline">Rejouer</Link>
-        <Link to="/" className="btn block ghost">Accueil</Link>
       </div>
     </div>
   );

@@ -213,7 +213,7 @@ export function PublicProfile() {
   if (p.error) return <Empty icon="🤷">Joueur introuvable.</Empty>;
 
   return (
-    <div className="stack" style={{ marginTop: -16 }}>
+    <div className="stack">
       <BackHeader title={p.username} />
       <div className="card blue on-blue stack center">
         <div style={{ display: 'flex', justifyContent: 'center' }}><Avatar id={p.avatar} size={80} /></div>
@@ -263,7 +263,7 @@ export function Notifications() {
   }, [setUnread]);
   const ICON = { invite: '🎮', friend_request: '👋', friend_accepted: '🤝', level_up: '⭐', badge: '🏅', tournament_match: '🏆', tournament_results: '🏆', moderation: '🛡️' };
   return (
-    <div className="stack" style={{ marginTop: -16 }}>
+    <div className="stack">
       <BackHeader title="Notifications" />
       {!list ? <Spinner center /> : !list.length ? <Empty icon="🔔">Aucune notification.</Empty> : (
         <div className="list">

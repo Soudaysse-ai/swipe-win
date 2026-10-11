@@ -1,10 +1,8 @@
-// Page d'accueil publique de Défi Yas (visiteurs non connectés).
-// Construite selon la charte Yas et le guide « App Design Best Practices » :
-// en-tête web sur deux rangées (barre Midnight Blue + barre Sunshine Yellow, logo
-// calé à gauche), héros Sunshine Yellow avec le plectre officiel qui « tient » un
-// aperçu de l'application, cartes produits, icônes dans des formes de maintien,
-// bandeau Midnight Blue texturé par le Pulse officiel, bandeau d'appel à l'action
-// jaune et pied de page Midnight Blue (variante principale du logo).
+// Page d'accueil publique de Défi Yas (visiteurs non connectés), dans l'esprit des
+// pages web Yas (« Curves ») : barre Sunshine Yellow sur une rangée (logo calé à
+// gauche, liens séparés par des filets), héros jaune, sections blanches et jaune
+// très clair, titres deux tons (Sky Blue puis Midnight Blue), plectres tournés
+// avec halo, blocs texte / visuel alternés, bandeau jaune et pied de page bleu.
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import playerApi from '../../lib/playerApi';
@@ -12,7 +10,7 @@ import YasLogo from '../../components/YasLogo';
 import Pulse from '../../components/Pulse';
 import GameArt from '../../components/GameArt';
 import DeviceMock from '../../components/DeviceMock';
-import HoldingIcon from '../../components/HoldingIcon';
+import PlectreFrame from '../../components/PlectreFrame';
 import Icon from '../../components/Icon';
 import { GAME_META } from '../../lib/format';
 
@@ -30,10 +28,10 @@ const STEPS = [
 ];
 
 const FEATURES = [
-  { icon: 'trophy', title: 'Classements en direct', text: 'Par jeu, par semaine et par saison.' },
-  { icon: 'medal', title: 'Tournois', text: 'Inscris-toi et affronte les meilleurs joueurs.' },
-  { icon: 'friends', title: 'Amis & chat', text: 'Invite tes amis, discute, prends ta revanche.' },
-  { icon: 'star', title: 'Badges & niveaux', text: 'Chaque partie te fait progresser.' },
+  { icon: 'trophy', title: 'Classements en direct' },
+  { icon: 'medal', title: 'Tournois' },
+  { icon: 'friends', title: 'Amis & chat' },
+  { icon: 'star', title: 'Badges & niveaux' },
 ];
 
 const NAV = [
@@ -53,27 +51,16 @@ export default function Landing() {
   return (
     <div className="landing">
       <header className="site-header">
-        <div className="utility-bar">
-          <div className="wrap">
-            <nav aria-label="Univers Yas">
-              <span className="active">Défi Yas</span>
-              <a href="https://www.yas.km" target="_blank" rel="noopener noreferrer">Yas Comores <Icon name="share" size={14} /></a>
-            </nav>
-            <nav aria-label="Compte">
-              <a href="#comment-jouer">Aide</a>
-              <Link to="/login"><Icon name="user" size={16} /> Se connecter</Link>
-            </nav>
-          </div>
-        </div>
         <div className="main-bar">
           <div className="wrap">
             <Link to="/welcome" className="site-logo" aria-label="Défi Yas — accueil"><YasLogo size={64} /></Link>
             <nav className="main-menu" aria-label="Sections">
               {NAV.map(n => <a key={n.href} href={n.href}>{n.label}</a>)}
+              <a href="https://www.yas.km" target="_blank" rel="noopener noreferrer">Yas Comores</a>
             </nav>
             <div className="main-actions">
-              <Link to="/login" className="btn sm outline only-mobile">Se connecter</Link>
-              <Link to="/register" className="btn blue only-desktop">Créer mon compte <span className="arrow" /></Link>
+              <Link to="/login" className="bar-link only-desktop"><Icon name="user" size={18} /> Se connecter</Link>
+              <Link to="/register" className="btn sm blue">Créer un compte <span className="arrow" /></Link>
               <button className="icon-btn only-mobile" onClick={() => setMenu(m => !m)} aria-expanded={menu} aria-label="Menu"><Icon name={menu ? 'close' : 'menu'} /></button>
             </div>
           </div>
@@ -81,7 +68,7 @@ export default function Landing() {
             <nav className="mobile-menu" aria-label="Menu">
               {NAV.map(n => <a key={n.href} href={n.href} onClick={() => setMenu(false)}>{n.label}<Icon name="chevron" size={18} /></a>)}
               <a href="https://www.yas.km" target="_blank" rel="noopener noreferrer">Yas Comores<Icon name="share" size={18} /></a>
-              <Link to="/register" className="btn blue block">Créer mon compte <span className="arrow" /></Link>
+              <Link to="/login">Se connecter<Icon name="chevron" size={18} /></Link>
             </nav>
           )}
         </div>
@@ -107,27 +94,23 @@ export default function Landing() {
           <div className="hero-visual" aria-hidden>
             <Pulse className="hero-pulse" size={760} rotate={-8} solid plectre />
             <DeviceMock className="hero-device" />
-            <div className="hero-badge"><b>+30</b><span>points de saison<br />par victoire</span></div>
           </div>
         </div>
       </section>
 
-      <section id="jeux" className="section">
+      <section id="jeux" className="section tint">
         <div className="wrap">
-          <div className="section-head">
-            <h2>Choisis ton <span className="hl">jeu</span></h2>
-            <p>Quatre jeux, des parties de quelques minutes, contre de vrais joueurs.</p>
+          <div className="section-head center">
+            <h2><span className="hl">Quatre jeux</span> pour te défier</h2>
+            <p>Des parties de quelques minutes, contre de vrais joueurs, à tout moment de la journée.</p>
           </div>
-          <div className="product-grid">
+          <div className="game-showcase">
             {games.map(g => (
-              <Link key={g.id} to="/register" className="product-card">
-                <span className="product-art"><GameArt gameId={g.id} height="100%" fit="meet" /></span>
-                <span className="product-body">
-                  <span className="label-chip">{GAME_META[g.id]?.players}</span>
-                  <b>{g.name}</b>
-                  <span className="desc">{g.description}</span>
-                  <span className="text-link">Jouer</span>
-                </span>
+              <Link key={g.id} to="/register" className="showcase-item">
+                <PlectreFrame size={180}><GameArt gameId={g.id} height="100%" fit="meet" /></PlectreFrame>
+                <b>{g.name}</b>
+                <span className="players">{GAME_META[g.id]?.players}</span>
+                <span className="desc">{g.description}</span>
               </Link>
             ))}
           </div>
@@ -135,56 +118,62 @@ export default function Landing() {
       </section>
 
       <section id="comment-jouer" className="section">
-        <div className="wrap">
-          <div className="section-head">
-            <h2>Comment <span className="hl">jouer ?</span></h2>
-            <p>Trois étapes, et ton premier match commence.</p>
+        <div className="wrap split">
+          <div className="split-copy">
+            <h2 className="split-title"><span className="hl">Trois étapes,</span> et ton premier match commence</h2>
+            <p className="split-lead">Pas d'application à installer : Défi Yas fonctionne directement dans ton navigateur, sur mobile comme sur ordinateur.</p>
+            <Link to="/register" className="btn sm blue">Créer mon compte <span className="arrow" /></Link>
           </div>
-          <ol className="steps">
+          <ol className="step-list">
             {STEPS.map((s, i) => (
               <li key={s.title}>
-                <HoldingIcon icon={s.icon} size={72} />
-                <span className="step-num">Étape {i + 1}</span>
-                <b>{s.title}</b>
-                <span>{s.text}</span>
+                <PlectreFrame size={76} fill="#FFD100"><Icon name={s.icon} size={26} /></PlectreFrame>
+                <div>
+                  <span className="step-num">Étape {i + 1}</span>
+                  <b>{s.title}</b>
+                  <span>{s.text}</span>
+                </div>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section id="communaute" className="band">
-        <div className="wrap">
-          <div className="section-head on-dark">
-            <h2>Plus qu'un jeu,<br /><span className="hl">une communauté</span></h2>
-            <p>Retrouve tes amis, suis tes progrès et mesure-toi aux meilleurs joueurs des Comores.</p>
-          </div>
-          <div className="features">
+      <section id="communaute" className="section">
+        <div className="wrap split reverse">
+          <div className="feature-panel">
             {FEATURES.map(f => (
-              <div key={f.title} className="feature">
-                <HoldingIcon icon={f.icon} size={60} />
+              <div key={f.title} className="feature-cell">
+                <PlectreFrame size={92} fill="#00377D" halo="#FFE369"><Icon name={f.icon} size={30} /></PlectreFrame>
                 <b>{f.title}</b>
-                <span>{f.text}</span>
               </div>
             ))}
+          </div>
+          <div className="split-copy">
+            <h2 className="split-title"><span className="hl">Plus qu'un jeu,</span> une communauté</h2>
+            <p className="split-lead">Chaque semaine, mesure-toi aux meilleurs joueurs des Comores et grimpe dans le classement de ton jeu préféré.</p>
+            <ul className="check-list">
+              <li><Icon name="check" size={18} /> Classements par jeu, par semaine et par saison</li>
+              <li><Icon name="check" size={18} /> Tournois ouverts à tous les joueurs</li>
+              <li><Icon name="check" size={18} /> Invite tes amis, discute et prends ta revanche</li>
+              <li><Icon name="check" size={18} /> Des badges et des niveaux à débloquer</li>
+            </ul>
           </div>
         </div>
       </section>
 
       <section className="cta-band">
         <div className="wrap cta-inner">
-          <div>
-            <h2>Prêt à relever le défi ? Yas !</h2>
-            <p>Crée ton compte gratuitement : ton premier match t'attend.</p>
-          </div>
-          <Link to="/register" className="btn blue lg">Créer mon compte <span className="arrow" /></Link>
+          <h2>Prêt à relever le défi ? Yas !</h2>
+          <p>Crée ton compte gratuitement : ton premier match t'attend.</p>
+          <Link to="/register" className="btn blue">Créer mon compte <span className="arrow" /></Link>
         </div>
       </section>
 
       <footer className="site-footer">
         <div className="wrap footer-grid">
           <div className="footer-brand">
-            <YasLogo size={72} variant="primary" />
+            <YasLogo size={64} variant="primary" />
             <p>Défi Yas, la plateforme de jeux multijoueurs de Yas Comores.</p>
           </div>
           <nav aria-label="Défi Yas">
@@ -197,15 +186,15 @@ export default function Landing() {
             <Link to="/login">Se connecter</Link>
             <Link to="/reset">Mot de passe oublié</Link>
           </nav>
-          <nav aria-label="Informations">
-            <b>Informations</b>
+          <nav aria-label="Informations utiles">
+            <b>Informations utiles</b>
             <Link to="/terms">Conditions d'utilisation</Link>
             <a href="https://www.yas.km" target="_blank" rel="noopener noreferrer">Yas Comores</a>
           </nav>
         </div>
         <div className="wrap footer-bottom">
           <span>© {new Date().getFullYear()} Yas. Tous droits réservés.</span>
-          <span>Yas est une marque Axian Telecom.</span>
+          <Link to="/terms">Conditions d'utilisation</Link>
         </div>
       </footer>
     </div>

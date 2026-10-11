@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Icon from './Icon';
 import { serverNow } from '../lib/socket';
 
@@ -8,6 +8,7 @@ export function Spinner({ center = false }) {
   return center ? <div className="page-loading">{s}</div> : s;
 }
 
+// Barre d'écran secondaire (comme l'appli Yas) : Sunshine Yellow, retour + titre.
 export function BackHeader({ title, to, right }) {
   const navigate = useNavigate();
   return (
@@ -18,6 +19,16 @@ export function BackHeader({ title, to, right }) {
       <h1>{title}</h1>
       {right}
     </header>
+  );
+}
+
+// Titre de section façon appli Yas : libellé Midnight Blue 70 + lien « Voir tout › ».
+export function SectionHead({ children, to, link, state }) {
+  return (
+    <div className="section-title">
+      <h2>{children}</h2>
+      {to && <Link to={to} state={state} className="link">{link}</Link>}
+    </div>
   );
 }
 

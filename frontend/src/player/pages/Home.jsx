@@ -30,32 +30,6 @@ export function Podium({ entries, unit = 'pts' }) {
   return <div className="podium">{step(p2, 'p2', 2)}{step(p1, 'p1', 1)}{step(p3, 'p3', 3)}</div>;
 }
 
-// Carte de jeu (page Jeux) : illustration, joueurs en ligne, Jouer + classement.
-export function GameCard({ game }) {
-  const navigate = useNavigate();
-  const meta = GAME_META[game.id] || {};
-  return (
-    <div className="game-card">
-      <button className="art" onClick={() => navigate(`/games/${game.id}`)} aria-label={`Ouvrir ${game.name}`} style={{ padding: 0 }}>
-        <GameArt gameId={game.id} height="100%" fit="meet" />
-      </button>
-      <div className="body">
-        <div className="name">{game.name}</div>
-        <div className="meta">
-          <span>{meta.players}</span>
-          {game.playersOnline > 0 && <span><span className="online-dot" />{game.playersOnline} en jeu</span>}
-        </div>
-        <div className="actions">
-          <button className="btn" onClick={() => navigate(`/games/${game.id}`)} disabled={!game.isActive}>Jouer <span className="arrow" /></button>
-          <button className="btn outline" style={{ flex: '0 0 44px', padding: 0 }} onClick={() => navigate(`/rankings?game=${game.id}`)} aria-label={`Classement ${game.name}`}>
-            <Icon name="trophy" size={20} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // Vignette verticale du carrousel « Nos jeux » (accueil).
 export function GameTile({ game }) {
   const meta = GAME_META[game.id] || {};

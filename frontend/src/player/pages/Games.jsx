@@ -7,28 +7,73 @@ import { useToast } from '../ToastContext';
 import GameArt from '../../components/GameArt';
 import Avatar from '../../components/Avatar';
 import Icon from '../../components/Icon';
-import { BackHeader, Spinner, LeagueBadge, Sheet, Empty } from '../../components/ui';
-import { GameCard, Podium } from './Home';
+import { BackHeader, Spinner, Sheet, Empty, SectionHead } from '../../components/ui';
+import Pulse from '../../components/Pulse';
+import PlectreFrame from '../../components/PlectreFrame';
+import CoinBadge from '../../components/CoinBadge';
+import { Podium } from './Home';
 import { RULES } from '../../lib/rules';
 import { GAME_META } from '../../lib/format';
 
+// Espace « Jeux » dans l'esprit de l'appli Yas : bandeau jaune avec pastille
+// « pièce », listes sur fond jaune très clair (comme « Dernières transactions »),
+// bouton Midnight Blue par ligne.
 export function GamesList() {
   const [games, setGames] = useState(null);
   useEffect(() => { playerApi.get('/games').then(r => setGames(r.data.games)).catch(() => setGames([])); }, []);
   return (
-    <div className="stack">
-      <h1 className="h1">Les <span className="accent">jeux</span></h1>
-      {!games ? <Spinner center /> : <div className="games-grid">{games.map(g => <GameCard key={g.id} game={g} />)}</div>}
-      <Link to="/tournaments" className="card row" style={{ textDecoration: 'none', marginTop: 8 }}>
-        <span style={{ fontSize: 28 }} aria-hidden>🏆</span>
-        <div className="grow"><div className="bold">Tournois & compétitions</div><div className="tiny muted">Inscris-toi aux tournois Défi Yas</div></div>
-        <Icon name="back" style={{ transform: 'rotate(180deg)' }} />
-      </Link>
-      <Link to="/quiz" className="card row" style={{ textDecoration: 'none' }}>
-        <span style={{ fontSize: 28 }} aria-hidden>⚽</span>
-        <div className="grow"><div className="bold">Swipe & gagne</div><div className="tiny muted">Le quiz football Vrai / Faux</div></div>
-        <Icon name="back" style={{ transform: 'rotate(180deg)' }} />
-      </Link>
+    <div className="games-page">
+      <section className="page-band">
+        <Pulse className="band-pulse" size={380} rotate={-14} solid />
+        <div className="band-copy">
+          <h1 className="band-title">Les jeux</h1>
+          <p>Choisis ton jeu et lance un défi en quelques secondes.</p>
+        </div>
+        <CoinBadge value="+30" label="pts / victoire" size={92} className="band-coin" />
+      </section>
+
+      <SectionHead>Tous les jeux</SectionHead>
+      {!games ? <Spinner center /> : (
+        <div className="tx-list">
+          {games.map(g => (
+            <div key={g.id} className="tx-row">
+              <Link to={`/games/${g.id}`} className="tx-main">
+                <PlectreFrame size={64} rotate={100}><GameArt gameId={g.id} height="100%" fit="meet" /></PlectreFrame>
+                <span className="tx-text">
+                  <b>{g.name}</b>
+                  <span>{GAME_META[g.id]?.players}{g.playersOnline > 0 ? <> <i>•</i> {g.playersOnline} en jeu</> : null}</span>
+                </span>
+              </Link>
+              <Link to={`/games/${g.id}`} className={`btn sm blue${g.isActive ? '' : ' disabled'}`} aria-disabled={!g.isActive}>Jouer</Link>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <SectionHead>Et aussi</SectionHead>
+      <div className="tx-list">
+        <div className="tx-row">
+          <Link to="/tournaments" className="tx-main">
+            <span className="tx-icon"><Icon name="medal" size={30} /></span>
+            <span className="tx-text"><b>Tournois</b><span>Inscris-toi et affronte les meilleurs</span></span>
+          </Link>
+          <Link to="/tournaments" className="btn sm blue">Voir</Link>
+        </div>
+        <div className="tx-row">
+          <Link to="/rankings" className="tx-main">
+            <span className="tx-icon"><Icon name="trophy" size={30} /></span>
+            <span className="tx-text"><b>Classements</b><span>Par jeu, par semaine et par saison</span></span>
+          </Link>
+          <Link to="/rankings" className="btn sm blue">Voir</Link>
+        </div>
+        <div className="tx-row">
+          <Link to="/quiz" className="tx-main">
+            <span className="tx-icon"><Icon name="ball" size={30} /></span>
+            <span className="tx-text"><b>Swipe & gagne</b><span>Le quiz football Vrai / Faux</span></span>
+          </Link>
+          <Link to="/quiz" className="btn sm blue">Jouer</Link>
+        </div>
+      </div>
     </div>
   );
 }
@@ -69,23 +114,25 @@ export function GameLobby() {
   }
 
   return (
-    <div className="stack" style={{ marginTop: -16 }}>
+    <div className="stack">
       <BackHeader title={game.name} to="/games" right={
         <button className="icon-btn" onClick={() => setRules(true)} aria-label="Règles du jeu"><Icon name="flag" /></button>
       } />
-      <div className="lobby-grid">
-        <div className="stack lobby-main">
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="lobby-art"><GameArt gameId={gameId} height="100%" fit="meet" /></div>
-          <div style={{ padding: 16 }} className="stack">
-            <p>{game.description}</p>
-            <div className="row between small">
-              <span>{GAME_META[gameId]?.players}</span>
-              <span><span className="online-dot" style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: 'var(--yas-sea-green)', marginRight: 4 }} />{game.playersOnline} joueurs en jeu</span>
-            </div>
-            {me && <div className="row small"><LeagueBadge league={me.league} /><span>Cote <b>{me.rating}</b> · #{me.rank}</span></div>}
+      <section className="page-band lobby-band">
+        <Pulse className="band-pulse" size={380} rotate={-14} solid />
+        <PlectreFrame size={150} rotate={100} halo="#FFF6CC"><GameArt gameId={gameId} height="100%" fit="meet" /></PlectreFrame>
+        <div className="band-copy">
+          <h1 className="band-title">{game.name}</h1>
+          <p>{game.description}</p>
+          <div className="band-chips">
+            <span className="label-chip">{GAME_META[gameId]?.players}</span>
+            {game.playersOnline > 0 && <span className="label-chip"><span className="online-dot" />{game.playersOnline} en jeu</span>}
+            {me && <span className="label-chip">Cote {me.rating}{me.rank ? ` · #${me.rank}` : ''}</span>}
           </div>
         </div>
+      </section>
+      <div className="lobby-grid">
+        <div className="stack lobby-main">
 
         {multi && (
           <div className="stack" style={{ gap: 8 }}>

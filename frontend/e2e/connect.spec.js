@@ -49,10 +49,10 @@ test('deux téléphones jouent une partie de Yas Connect jusqu\'à la victoire',
   }
   await drop(first, 1);
 
-  await expect(first.getByRole('heading', { name: 'Victoire !' })).toBeVisible({ timeout: 10000 });
-  await expect(second.getByRole('heading', { name: 'Défaite' })).toBeVisible({ timeout: 10000 });
-  await expect(first.getByText('+30')).toBeVisible();
-  await expect(first.locator('.stat b', { hasText: '+16' })).toBeVisible();
+  await expect(first.getByRole('heading', { name: /victoire/i })).toBeVisible({ timeout: 10000 });
+  await expect(second.getByRole('heading', { name: /pas cette fois/i })).toBeVisible({ timeout: 10000 });
+  await expect(first.locator('.result-stats b', { hasText: '+30' })).toBeVisible();
+  await expect(first.locator('.result-stats b', { hasText: '+16' })).toBeVisible();
 
   // Le classement est à jour
   await first.goto('/rankings?game=connect&period=week');

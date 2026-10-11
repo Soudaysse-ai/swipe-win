@@ -18,39 +18,36 @@
 
 .landing { min-height: 100dvh; background: #fff; color: var(--yas-blue); overflow-x: clip; }
 
-/* ── En-tête web : barre utilitaire Midnight Blue + barre principale jaune ── */
+/* ── En-tête web (pages Yas) : barre Sunshine Yellow sur une rangée, logo calé à
+   gauche, liens Menu séparés par de fins filets, actions à droite ─────────── */
 .site-header { position: sticky; top: 0; z-index: 30; box-shadow: var(--yas-shadow-nav); }
-.utility-bar { display: none; }
 .main-bar { background: var(--yas-yellow); position: relative; }
-.main-bar .wrap { display: flex; align-items: center; gap: 24px; height: 72px; }
+.main-bar .wrap { display: flex; align-items: center; gap: 24px; height: 68px; }
 .site-logo { display: flex; flex-shrink: 0; }
 .site-logo img { width: 52px !important; }
 .main-menu { display: none; }
-.main-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.main-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.bar-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 16px; font-weight: 500; padding: 0 6px; min-height: 44px; }
+.bar-link:hover { text-decoration: underline; }
 .mobile-menu {
   position: absolute; left: 0; right: 0; top: 100%;
-  display: flex; flex-direction: column; gap: 4px; padding: 12px 20px 20px;
+  display: flex; flex-direction: column; padding: 8px 20px 16px;
   background: #fff; box-shadow: var(--yas-shadow-nav);
 }
-.mobile-menu a:not(.btn) {
+.mobile-menu a {
   display: flex; align-items: center; justify-content: space-between; min-height: 52px;
   text-decoration: none; font-size: 18px; font-weight: 500; border-bottom: 1px solid var(--yas-neutral-10);
 }
-.mobile-menu .btn { margin-top: 12px; }
-
+.mobile-menu a:last-child { border-bottom: none; }
+/* Sur les pages du site, bouton Midnight Blue à libellé jaune (comme yas.km) */
+.landing .btn.blue { color: var(--yas-yellow); }
 @media (min-width: 1024px) {
-  .site-header { top: -40px; }
-  .utility-bar { display: block; background: var(--yas-blue); color: #fff; }
-  .utility-bar .wrap { display: flex; align-items: center; justify-content: space-between; height: 40px; }
-  .utility-bar nav { display: flex; align-items: center; gap: 28px; }
-  .utility-bar a, .utility-bar span { display: inline-flex; align-items: center; gap: 6px; color: #fff; text-decoration: none; font-size: 16px; font-weight: 500; }
-  .utility-bar .active { font-weight: 700; font-style: italic; }
-  .utility-bar a:hover { text-decoration: underline; }
-  .main-bar .wrap { height: 92px; gap: 40px; }
+  .main-bar .wrap { height: 88px; gap: 36px; }
   .site-logo img { width: 64px !important; }
-  .main-menu { display: flex; gap: 32px; }
-  .main-menu a { text-decoration: none; font-size: 18px; font-weight: 500; padding: 8px 0; border-bottom: 2px solid transparent; }
-  .main-menu a:hover { border-bottom-color: var(--yas-blue); }
+  .main-menu { display: flex; align-items: center; }
+  .main-menu a { position: relative; text-decoration: none; font-size: 16px; font-weight: 500; padding: 10px 14px; }
+  .main-menu a + a::before { content: ''; position: absolute; left: 0; top: 50%; width: 1px; height: 12px; translate: 0 -50%; background: rgba(0, 55, 125, .35); }
+  .main-menu a:hover { text-decoration: underline; }
   .mobile-menu { display: none; }
 }
 
@@ -71,13 +68,6 @@
 .hero-visual { position: relative; height: 430px; margin: 8px -20px 0; }
 .hero-pulse { position: absolute; left: 36%; top: 50%; width: 540px; height: auto; translate: -50% -50%; }
 .device.hero-device { position: absolute; left: 73%; top: 52%; translate: -50% -50%; width: 182px; }
-.hero-badge {
-  position: absolute; left: 20px; bottom: 26px;
-  display: flex; align-items: center; gap: 10px; padding: 12px 16px;
-  background: #fff; border-radius: var(--yas-radius-card-sm); box-shadow: var(--yas-shadow-card);
-}
-.hero-badge b { font: italic 800 30px/1 var(--yas-font); }
-.hero-badge span { font-size: 14px; font-weight: 500; line-height: 1.2; }
 
 @media (min-width: 720px) {
   .hero h1 { font-size: 76px; }
@@ -86,8 +76,7 @@
   .hero-pulse { width: 700px; left: 40%; }
   .device.hero-device { left: 70%; }
   .device.hero-device { width: 230px; }
-  .hero-badge { left: 8%; }
-}
+  }
 @media (min-width: 1024px) {
   .hero { padding: 56px 0 0; }
   .hero-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 40px; align-items: center; min-height: 560px; }
@@ -98,8 +87,7 @@
   .hero-visual { height: 640px; }
   .hero-pulse { width: 820px; left: 40%; }
   .device.hero-device { width: 258px; left: 76%; }
-  .hero-badge { left: 4%; bottom: 60px; }
-}
+  }
 
 /* ── Aperçu de l'application dans un cadre de téléphone ──────────────────── */
 .device {
@@ -127,85 +115,69 @@
 .dm-nav span.on { background: var(--yas-yellow); color: var(--yas-blue); }
 @media (min-width: 1024px) { .device { width: 270px; } }
 
-/* ── Sections claires ────────────────────────────────────────────────────── */
+/* ── Sections ────────────────────────────────────────────────────────────── */
 .section { padding: 56px 0; background: #fff; }
-.section + .section { padding-top: 8px; }
-.section-head { max-width: 640px; margin-bottom: 28px; }
-.section-head h2 { font: italic 800 34px/1.05 var(--yas-font); }
-.section-head .hl { color: var(--yas-sky); }
-.section-head p { font-size: 18px; line-height: 1.35; margin-top: 10px; color: var(--yas-neutral-70); }
-.section-head.on-dark h2 { color: #fff; }
-.section-head.on-dark .hl { color: var(--yas-yellow); }
-.section-head.on-dark p { color: var(--yas-blue-15); }
+.section.tint { background: #FFFDF2; }               /* jaune très clair des pages Yas */
+.section-head { max-width: 680px; margin-bottom: 32px; }
+.section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+.section-head h2, .split-title { font: italic 800 34px/1.05 var(--yas-font); }
+.hl { color: var(--yas-sky); }                       /* mise en avant : Sky Blue, sur fond clair */
+.section-head p, .split-lead { font-size: 18px; line-height: 1.4; margin-top: 12px; }
 @media (min-width: 1024px) {
-  .section { padding: 88px 0; }
-  .section + .section { padding-top: 16px; }
-  .section-head { margin-bottom: 36px; }
-  .section-head h2 { font-size: 46px; }
+  .section { padding: 96px 0; }
+  .section-head { margin-bottom: 56px; }
+  .section-head h2, .split-title { font-size: 48px; }
 }
 
-/* Cartes produits (rail sur mobile, 2 colonnes sur tablette, 4 sur ordinateur) */
-.product-grid {
-  display: grid; grid-auto-flow: column; grid-auto-columns: 78%; gap: 16px;
-  overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
-  margin: 0 -20px; padding: 4px 20px 20px;
-}
-.product-grid::-webkit-scrollbar { display: none; }
-@media (min-width: 720px) {
-  .product-grid { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; margin: 0; padding: 0; gap: 20px; }
-}
-@media (min-width: 1024px) { .product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; } }
-.product-card {
-  display: flex; flex-direction: column; overflow: hidden; scroll-snap-align: start;
-  border-radius: var(--yas-radius-card-sm); background: #fff; box-shadow: var(--yas-shadow-card);
-  text-decoration: none; transition: transform .18s ease, box-shadow .18s ease;
-}
-.product-card:hover { transform: translateY(-4px); box-shadow: 0 10px 32px rgba(0, 0, 0, .18); }
-.product-art { display: block; height: 168px; }
-.product-body { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 18px 18px 20px; flex: 1; }
-.label-chip { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; background: var(--yas-sky-10); font-size: 14px; font-weight: 700; }
-.product-body b { font: italic 800 26px/1.05 var(--yas-font); }
-.product-body .desc { font-size: 16px; line-height: 1.35; color: var(--yas-neutral-70); flex: 1; }
-.text-link { color: var(--yas-sky); font-weight: 700; font-size: 16px; }
-.text-link::after { content: ' ›'; }
+/* Les jeux : plectres tournés qui « tiennent » l'illustration, avec halo */
+.game-showcase { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 16px; }
+@media (min-width: 1024px) { .game-showcase { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; } }
+.showcase-item { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; text-decoration: none; }
+.showcase-item .pframe { margin-bottom: 10px; transition: transform .2s ease; }
+.showcase-item:hover .pframe { transform: translateY(-4px) scale(1.03); }
+.showcase-item b { font: italic 800 22px/1.1 var(--yas-font); }
+.showcase-item .players { font-size: 15px; font-weight: 700; color: var(--yas-blue-70); }
+.showcase-item .desc { font-size: 16px; line-height: 1.35; max-width: 24ch; }
+@media (max-width: 719px) { .showcase-item .pframe { width: 140px !important; height: 140px !important; } .showcase-item b { font-size: 19px; } .showcase-item .desc { font-size: 15px; } }
 
-/* Étapes : icônes dans la forme de maintien (plectre) */
-.steps { list-style: none; display: grid; gap: 16px; }
-.steps li { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; border-radius: var(--yas-radius-card); background: var(--yas-blue-10); }
-.steps .holding-icon { margin-bottom: 8px; }
-.step-num { font-size: 14px; font-weight: 700; color: var(--yas-blue-70); }
-.steps b { font: italic 800 24px/1.1 var(--yas-font); }
-.steps li > span:last-child { font-size: 16px; line-height: 1.4; color: var(--yas-neutral-70); }
-@media (min-width: 720px) { .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } .steps li { padding: 28px; } }
+.pframe { position: relative; display: inline-flex; flex-shrink: 0; }
+.pframe .pf-layer { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pframe .pf-clip { position: absolute; inset: 0; display: block; }
+.pframe .pf-clip svg { width: 100%; height: 100%; }
+.pframe .pf-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--yas-blue); }
 
-.holding-icon { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--yas-blue); }
-.holding-icon .hi-shape { position: absolute; inset: 0; fill: var(--yas-yellow); transition: fill .15s; }
-.holding-icon .hi-icon { position: relative; translate: -6% 2%; }
-.holding-icon.blue .hi-shape { fill: var(--yas-blue); }
-.holding-icon.blue { color: var(--yas-yellow); }
-
-/* ── Bandeau Midnight Blue texturé par le Pulse ─────────────────────────── */
-.band { position: relative; overflow: hidden; isolation: isolate; padding: 64px 0; background: var(--yas-blue); color: #fff; }
-.features { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
-.feature { display: flex; flex-direction: column; gap: 8px; }
-.feature .holding-icon { margin-bottom: 6px; }
-.feature b { font: italic 800 20px/1.15 var(--yas-font); }
-.feature span { font-size: 16px; line-height: 1.35; color: var(--yas-blue-15); }
+/* Blocs texte / visuel alternés */
+.split { display: grid; gap: 36px; align-items: center; }
+.split-copy { display: flex; flex-direction: column; align-items: flex-start; }
+.split-copy .btn { margin-top: 24px; }
 @media (min-width: 1024px) {
-  .band { padding: 96px 0; }
-  .features { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; max-width: 960px; }
+  .split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 72px; }
+  .split.reverse > :first-child { order: 0; }
 }
+.step-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.step-list li { display: flex; align-items: center; gap: 16px; padding: 16px 20px 16px 12px; border-radius: var(--yas-radius-card); background: #FFFDF2; }
+.step-list .step-num { display: block; font-size: 14px; font-weight: 700; color: var(--yas-blue-70); }
+.step-list b { display: block; font: italic 800 22px/1.15 var(--yas-font); margin: 2px 0 4px; }
+.step-list li div > span:last-child { font-size: 16px; line-height: 1.35; }
 
-/* ── Bandeau d'appel à l'action (Sunshine Yellow, bouton Midnight Blue) ──── */
-.cta-band { background: var(--yas-yellow); padding: 48px 0; }
-.cta-inner { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; }
+.feature-panel {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px;
+  padding: 32px 20px; border-radius: var(--yas-radius-card); background: var(--yas-yellow);
+}
+.feature-cell { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; }
+.feature-cell .pf-icon { color: var(--yas-yellow); }
+.feature-cell b { font-size: 18px; font-weight: 700; }
+@media (min-width: 1024px) { .feature-panel { padding: 48px 32px; gap: 40px 24px; } }
+.check-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 20px; font-size: 17px; }
+.check-list li { display: flex; align-items: flex-start; gap: 10px; }
+.check-list svg { flex-shrink: 0; margin-top: 3px; color: var(--yas-sky); }
+
+/* ── Bandeau d'appel à l'action (Sunshine Yellow, centré) ────────────────── */
+.cta-band { background: var(--yas-yellow); padding: 56px 0; text-align: center; }
+.cta-inner { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .cta-band h2 { font: italic 800 32px/1.05 var(--yas-font); }
-.cta-band p { font-size: 18px; margin-top: 8px; }
-@media (min-width: 1024px) {
-  .cta-band { padding: 64px 0; }
-  .cta-inner { flex-direction: row; align-items: center; justify-content: space-between; }
-  .cta-band h2 { font-size: 42px; }
-}
+.cta-band p { font-size: 18px; margin-bottom: 14px; }
+@media (min-width: 1024px) { .cta-band { padding: 72px 0; } .cta-band h2 { font-size: 44px; } }
 
 /* ── Pied de page Midnight Blue ──────────────────────────────────────────── */
 .site-footer { background: var(--yas-blue); color: #fff; padding: 48px 0 calc(24px + var(--safe-bottom)); }
@@ -214,18 +186,30 @@
 .footer-brand p { font-size: 16px; line-height: 1.4; color: var(--yas-blue-15); max-width: 300px; }
 .site-footer nav { display: flex; flex-direction: column; gap: 12px; }
 .site-footer nav b { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
-.site-footer nav a { color: #fff; text-decoration: none; font-size: 16px; font-weight: 500; }
-.site-footer nav a:hover { text-decoration: underline; }
+.site-footer a { color: #fff; text-decoration: none; font-size: 16px; font-weight: 500; }
+.site-footer a:hover { text-decoration: underline; }
 .footer-bottom {
   display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
-  margin-top: 40px; padding-top: 20px !important; border-top: 1px solid rgba(255, 255, 255, .18);
-  font-size: 14px; color: var(--yas-blue-15);
+  margin-top: 40px; padding-top: 20px !important; border-top: 1px solid rgba(255, 255, 255, .25);
+  font-size: 14px; font-style: italic; color: #fff;
 }
+.footer-bottom a { font-size: 14px; font-style: normal; }
 @media (min-width: 1024px) {
   .site-footer { padding-top: 64px; }
   .footer-grid { grid-template-columns: 1.6fr 1fr 1fr 1fr; }
   .footer-brand { grid-column: auto; }
 }
+
+/* Pastille « pièce » */
+.coin-badge {
+  position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFE369 0, var(--yas-yellow) 55%, #F2C200 100%);
+  box-shadow: inset 0 0 0 4px rgba(0, 55, 125, .08), 0 8px 20px rgba(0, 0, 0, .18);
+  color: var(--yas-blue); transform: rotate(-10deg); line-height: 1;
+}
+.coin-badge b { font: italic 800 2.1em/1 var(--yas-font); }
+.coin-badge small { font-size: .72em; font-weight: 700; margin-top: 2px; }
+.coin-badge .coin-spark { position: absolute; top: 14%; right: 22%; }
 
 /* ── Écrans de compte ────────────────────────────────────────────────────── */
 .auth-page { min-height: 100dvh; display: flex; background: #fff; }

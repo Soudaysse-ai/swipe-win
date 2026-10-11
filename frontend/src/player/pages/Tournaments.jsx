@@ -15,7 +15,7 @@ export function TournamentsList() {
   const [list, setList] = useState(null);
   useEffect(() => { playerApi.get('/tournaments').then(r => setList(r.data.tournaments)).catch(() => setList([])); }, []);
   return (
-    <div className="stack" style={{ marginTop: -16 }}>
+    <div className="stack">
       <BackHeader title="Tournois" />
       {!list ? <Spinner center /> : !list.length ? <Empty icon="🏆">Aucun tournoi pour le moment. Reviens bientôt !</Empty> : (
         <div className="list">
@@ -61,7 +61,7 @@ export function TournamentDetail() {
   }
 
   return (
-    <div className="stack" style={{ marginTop: -16 }}>
+    <div className="stack">
       <BackHeader title={t.name} to="/tournaments" />
       <div className="card stack">
         <div className="row between"><span className="bold">{gameName(t.game_id)}</span><span className={`chip ${STATUS[t.status]?.[1]}`}>{STATUS[t.status]?.[0]}</span></div>

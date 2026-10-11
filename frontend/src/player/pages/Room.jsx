@@ -74,7 +74,7 @@ export default function Room() {
   const seats = Array.from({ length: room.maxPlayers }, (_, i) => room.players[i] || null);
 
   return (
-    <div className="stack" style={{ marginTop: -16 }}>
+    <div className="stack">
       <BackHeader title={gameName(room.gameId)} to={`/games/${room.gameId}`} />
       <div className="card stack">
         <div className="row between">

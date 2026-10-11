@@ -144,6 +144,20 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
   bandeau d'accueil jaune avec le Pulse, cartes qui le chevauchent.
 - www.yas.km reste inaccessible depuis l'environnement de développement (DNS bloqué).
 
+## Évolution — ambiances « Curves » (site) et « Gamification » (espace Jeux)
+- **Accueil public** dans l'esprit de la page web Yas « Curves » : barre Sunshine Yellow sur une
+  rangée (logo à gauche, liens séparés par des filets), sections blanches et jaune très clair
+  (`#FFFDF2`), titres deux tons (Sky Blue puis Midnight Blue), plectres officiels tournés avec halo
+  qui « tiennent » les illustrations des jeux, blocs texte / visuel alternés, bandeau jaune centré,
+  pied de page Midnight Blue.
+- **Espace Jeux** dans l'esprit des écrans de l'appli Yas (Gamification, « Last transactions ») :
+  barres d'écran jaunes (retour + titre), bandeau jaune avec pastille « pièce » (+30 pts / victoire),
+  listes sur fond `#FFFBEC` à filets pointillés avec bouton Midnight Blue par ligne, titres de section
+  Midnight Blue 70, salle d'attente avec l'illustration dans le plectre, fin de partie en fenêtre
+  blanche sur fond jaune (Pulse + plectre, titre deux tons, pastille des points, bouton jaune).
+- Les images (photos) des maquettes « Curves » ne sont pas incluses dans le fichier fourni : seules
+  la structure et les éléments graphiques visibles ont été repris.
+
 ## Phase 12 — Déploiement
 **Non effectué** : en attente de validation explicite et des accès (voir `DEPLOIEMENT.md`).
 
