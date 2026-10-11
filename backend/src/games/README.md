@@ -25,7 +25,15 @@ est l'horloge du serveur en millisecondes, `config` la configuration du jeu
 (table `games.config`). Les moteurs ne lisent jamais `Date.now()` eux-mêmes :
 c'est ce qui les rend testables et rejouables.
 
+## Bots d'entraînement
+
+`src/games/bots/<id>.js` fournit un bot par jeu pour le mode « Jouer contre un bot » :
+`decide(view, botId, { level, rng, now }) -> null | { action, notBefore?, think? }`. Le bot ne
+reçoit que `view(state, botId)` (jamais l'état complet) et renvoie une action ordinaire, validée par
+le moteur comme celle d'un joueur. Le runtime la joue après le temps de réflexion `think`.
+
 Pour ajouter un 5ᵉ jeu : créer `src/games/<id>/engine.js`, l'enregistrer dans
 `src/games/index.js`, insérer une ligne dans `games` (migration) et ajouter le
-composant d'interface côté frontend dans `src/games/<id>/`. Aucun service commun
+composant d'interface côté frontend dans `src/games/<id>/` (et, pour le jeu contre
+un bot, `src/games/bots/<id>.js` enregistré dans `src/games/bots/index.js`). Aucun service commun
 n'est à modifier.

@@ -8,6 +8,7 @@ process.env.DISABLE_RATE_LIMIT = 'true';
 process.env.MATCHMAKING_TICK_MS = '100';
 process.env.MATCHMAKING_CONFIRM_MS = '3000';
 process.env.ROOM_GRACE_MS = '500';
+process.env.BOT_THINK_SCALE = process.env.BOT_THINK_SCALE || '0';
 
 const { io: ioClient } = require('socket.io-client');
 const pool = require('../../src/db/pool');

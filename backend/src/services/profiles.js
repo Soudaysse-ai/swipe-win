@@ -88,7 +88,7 @@ async function publicProfile(userId, viewerId = null) {
 
 async function matchHistory(userId, { gameId = null, limit = 20, offset = 0 } = {}) {
   const { rows } = await pool.query(
-    `SELECT m.id, m.game_id, m.status, m.started_at, m.ended_at, m.end_reason, m.is_valid,
+    `SELECT m.id, m.game_id, m.status, m.started_at, m.ended_at, m.end_reason, m.is_valid, m.mode, m.bots,
             me.placement, me.outcome, me.rating_before, me.rating_after, me.stats,
             (SELECT json_agg(json_build_object('userId', u.id, 'username', u.username, 'avatar', u.avatar,
                      'placement', o.placement, 'outcome', o.outcome) ORDER BY o.seat)
@@ -102,7 +102,11 @@ async function matchHistory(userId, { gameId = null, limit = 20, offset = 0 } = 
     matchId: r.id, gameId: r.game_id, status: r.status, startedAt: r.started_at, endedAt: r.ended_at,
     endReason: r.end_reason, isValid: r.is_valid, placement: r.placement, outcome: r.outcome,
     ratingDelta: r.rating_after != null ? Math.round(Number(r.rating_after) - Number(r.rating_before)) : null,
-    stats: r.stats, opponents: r.opponents || [],
+    stats: r.stats, training: r.mode === 'bot',
+    opponents: [
+      ...(r.opponents || []),
+      ...(r.bots || []).map(b => ({ userId: b.userId, username: b.username, avatar: b.avatar, isBot: true })),
+    ],
   }));
 }
 

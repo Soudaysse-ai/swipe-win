@@ -191,7 +191,7 @@ export function MatchHistory({ matches }) {
           </span>
           <div className="grow">
             <div className="title">{gameName(m.gameId)}</div>
-            <div className="sub">vs {m.opponents.map(o => o.username).join(', ')} · {m.endedAt ? formatDate(m.endedAt) : ''}{m.isValid === false ? ' · non comptée' : ''}</div>
+            <div className="sub">vs {m.opponents.map(o => o.username).join(', ')} · {m.endedAt ? formatDate(m.endedAt) : ''}{m.training ? ' · entraînement' : m.isValid === false ? ' · non comptée' : ''}</div>
           </div>
           {m.ratingDelta != null && <span className={`small bold`} style={{ color: m.ratingDelta >= 0 ? '#1E7A42' : '#B42A28' }}>{m.ratingDelta >= 0 ? '+' : ''}{m.ratingDelta}</span>}
         </div>

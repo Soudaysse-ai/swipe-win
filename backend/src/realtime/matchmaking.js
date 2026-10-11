@@ -9,7 +9,8 @@
 // 4. Chaque joueur reçoit une demande de confirmation (10 s). Si tous acceptent,
 //    un salon est créé et la partie démarre. Sinon, ceux qui ont accepté
 //    reprennent leur place dans la file.
-// Aucun faux adversaire n'est jamais créé : uniquement de vrais joueurs.
+// Aucun faux adversaire n'est jamais créé : uniquement de vrais joueurs. Jouer contre
+// un bot est un choix explicite du joueur (voir training.js), jamais une substitution.
 const crypto = require('crypto');
 const pool = require('../db/pool');
 const hub = require('./hub');

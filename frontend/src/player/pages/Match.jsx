@@ -13,6 +13,7 @@ import PlectreFrame from '../../components/PlectreFrame';
 import CoinBadge from '../../components/CoinBadge';
 import { Sheet, Spinner, Countdown, Confetti } from '../../components/ui';
 import { gameName, placeLabel, formatDuration } from '../../lib/format';
+import { levelLabel } from '../../components/BotPlay';
 
 const GAMES = {
   connect: lazy(() => import('../../games/connect/ConnectGame')),
@@ -61,14 +62,16 @@ function ResultArt({ icon }) {
   );
 }
 
-function Results({ ended, me, onRematch, gameId }) {
+function Results({ ended, me, onRematch, onBotRematch, gameId }) {
   const you = ended.you;
   const mine = ended.placements.find(p => p.userId === me);
   const won = !ended.isDraw && mine?.place === 1;
   const duel = ended.placements.length === 2;
-  const [lead, rest] = ended.cancelled ? ['Partie', 'annulée'] : ended.isDraw ? ['Match', 'nul\u00a0!'] : won ? ['Bravo,', 'victoire\u00a0!']
+  // Entraînement quitté par le joueur : pas de classement à afficher.
+  const abandoned = ended.training && ['resign', 'forfeit'].includes(ended.reason) && mine?.outcome === 'loss';
+  const [lead, rest] = ended.cancelled ? ['Partie', 'annulée'] : abandoned ? ['Partie', 'abandonnée'] : ended.isDraw ? ['Match', 'nul\u00a0!'] : won ? ['Bravo,', 'victoire\u00a0!']
     : duel && mine ? ['Oups,', 'pas cette fois\u00a0!'] : mine ? [placeLabel(mine.place), 'place'] : ['Partie', 'terminée'];
-  const icon = ended.cancelled ? 'block' : ended.isDraw ? 'friends' : won ? 'trophy' : 'refresh';
+  const icon = ended.cancelled ? 'block' : abandoned ? 'flag' : ended.isDraw ? 'friends' : won ? 'trophy' : 'refresh';
   const delta = you ? you.ratingAfter - you.ratingBefore : 0;
   return (
     <div className="result-screen match-page">
@@ -86,7 +89,10 @@ function Results({ ended, me, onRematch, gameId }) {
           {ended.reason === 'timeout' && ' · temps écoulé'}{ended.reason === 'forfeit' && ' · forfait'}{ended.reason === 'resign' && ' · abandon'}
         </p>
 
-        {!ended.cancelled && ended.isValid === false && (
+        {ended.training && !ended.cancelled && (
+          <div className="alert info"><Icon name="bot" size={20} /> Partie d'entraînement contre {ended.bot?.opponents > 1 ? `${ended.bot.opponents} bots` : 'un bot'} ({levelLabel(ended.bot?.level)}) : elle ne compte ni pour l'XP, ni pour le classement.</div>
+        )}
+        {!ended.training && !ended.cancelled && ended.isValid === false && (
           <div className="alert warning"><Icon name="alert" size={20} /> Partie trop courte : elle n'est pas comptabilisée (ni XP, ni points, ni cote).</div>
         )}
         {you && ended.isValid && (
@@ -107,14 +113,14 @@ function Results({ ended, me, onRematch, gameId }) {
           </div>
         )}
 
-        {ended.placements.length > 0 && (
+        {ended.placements.length > 0 && !abandoned && (
           <div className="tx-list result-list">
             {[...ended.placements].sort((a, b) => a.place - b.place).map(p => (
               <div key={p.userId} className={`tx-row${p.userId === me ? ' me' : ''}`}>
                 <span className="rank-num">{p.place}</span>
                 <Avatar id={p.avatar} size={40} />
                 <span className="tx-text grow">
-                  <b>{p.userId === me ? 'Toi' : p.username}</b>
+                  <b>{p.userId === me ? 'Toi' : p.username}{p.isBot && <span className="chip sky bot-chip">Bot</span>}</b>
                   <span>{p.outcome === 'win' ? 'Vainqueur' : p.outcome === 'draw' ? 'Nul' : p.outcome === 'loss' ? 'Défaite' : ''}
                     {p.stats?.goals != null ? ` · ${p.stats.goals} but(s)` : ''}{p.stats?.cardsLeft != null ? ` · ${p.stats.cardsLeft} carte(s)` : ''}</span>
                 </span>
@@ -125,8 +131,17 @@ function Results({ ended, me, onRematch, gameId }) {
         )}
 
         <div className="result-actions">
-          {onRematch && <button className="btn block" onClick={onRematch}>Revanche <span className="arrow" /></button>}
-          <Link to={`/games/${gameId}`} className={`btn block ${onRematch ? 'outline' : ''}`}>Rejouer</Link>
+          {ended.training ? (
+            <>
+              <button className="btn block" onClick={onBotRematch}>Rejouer contre {ended.bot?.opponents > 1 ? 'les bots' : 'le bot'} <span className="arrow" /></button>
+              <Link to={`/games/${gameId}`} className="btn block outline">Jouer contre de vrais joueurs</Link>
+            </>
+          ) : (
+            <>
+              {onRematch && <button className="btn block" onClick={onRematch}>Revanche <span className="arrow" /></button>}
+              <Link to={`/games/${gameId}`} className={`btn block ${onRematch ? 'outline' : ''}`}>Rejouer</Link>
+            </>
+          )}
           <Link to="/" className="link-plain">Retour à l'accueil</Link>
         </div>
       </div>
@@ -137,7 +152,7 @@ function Results({ ended, me, onRematch, gameId }) {
 export default function Match() {
   const { matchId } = useParams();
   const { user } = useAuth();
-  const { room } = useSession();
+  const { room, playBot } = useSession();
   const { toast } = useToast();
   const navigate = useNavigate();
   const conn = useConnectionStatus();
@@ -195,8 +210,12 @@ export default function Match() {
     } catch (err) { toast(err.message); navigate(`/games/${ended.gameId}`); }
   }
 
+  async function botRematch() {
+    try { await playBot(ended.gameId, ended.bot || {}); } catch (err) { toast(err.message, { icon: '⚠️' }); }
+  }
+
   if (ended) {
-    return <Results ended={ended} me={user?.id} gameId={ended.gameId}
+    return <Results ended={ended} me={user?.id} gameId={ended.gameId} onBotRematch={botRematch}
       onRematch={room && room.id === ended.roomId && room.source !== 'tournament' ? rematch : null} />;
   }
   if (missing) {
@@ -212,13 +231,19 @@ export default function Match() {
 
   const Game = GAMES[snap.gameId];
   const others = snap.players.filter(p => p.userId !== user?.id);
+  const bots = snap.players.filter(p => p.isBot);
 
   return (
     <div className="stack match-page" style={{ marginTop: -8 }}>
       <div className="row between">
         <button className="btn sm ghost" onClick={() => setResignOpen(true)} aria-label="Abandonner"><Icon name="flag" size={18} /> Abandonner</button>
-        <span className="h3">{gameName(snap.gameId)}</span>
-        <button className="icon-btn" onClick={() => setChatOpen(true)} aria-label="Chat et réactions"><Icon name="chat" /></button>
+        <span className="match-title">
+          <span className="h3">{gameName(snap.gameId)}</span>
+          {snap.training && <span className="chip sky"><Icon name="bot" size={14} /> Entraînement</span>}
+        </span>
+        {snap.training
+          ? <span className="icon-btn" aria-hidden />
+          : <button className="icon-btn" onClick={() => setChatOpen(true)} aria-label="Chat et réactions"><Icon name="chat" /></button>}
       </div>
 
       {others.filter(p => !p.connected && !p.forfeited).map(p => (
@@ -250,7 +275,9 @@ export default function Match() {
       <Sheet open={resignOpen} center onClose={() => setResignOpen(false)} label="Abandonner">
         <div className="stack center">
           <h2 className="h2">Abandonner ?</h2>
-          <p className="small">La partie sera comptée comme une défaite.</p>
+          <p className="small">{snap.training
+            ? `La partie d'entraînement contre ${bots.length > 1 ? 'les bots' : 'le bot'} s'arrête ici. Elle ne compte pas dans tes statistiques.`
+            : 'La partie sera comptée comme une défaite.'}</p>
           <button className="btn block danger" onClick={async () => {
             setResignOpen(false);
             try { await emit('match:resign', { matchId }); } catch (err) { toast(err.message); }

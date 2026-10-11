@@ -7,9 +7,9 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 | Suite | Commande | Résultat |
 |---|---|---|
-| Unitaires backend | `npm test` | **81 / 81** |
-| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **27 / 27** |
-| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **7 / 7** |
+| Unitaires backend | `npm test` | **89 / 89** |
+| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **31 / 31** |
+| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **9 / 9** |
 | Build frontend | `npm run build` | OK |
 | Charge indicative (`scripts/loadtest.js`, 200 clients, 30 s) | | 2 492 parties, 0 erreur, p50 48 ms, p95 384 ms |
 
@@ -169,8 +169,35 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
   Berry, Sunset), étiquette « Inscriptions ouvertes » en Sunset, 3ᵉ marche du podium en Sunset 30.
   Jaune, Midnight Blue et Sky Blue restent dominants (50 / 40 / 10).
 
+## Évolution — jouer seul contre un bot
+- **Où** : bouton « Jouer contre un bot » sur la page de chaque jeu (niveau Facile / Normal /
+  Difficile, 1 à 3 bots pour Cards et Ludo), onglet « Contre un bot » de la Partie rapide de l'accueil,
+  et proposition automatique après 10 s de recherche sans adversaire. « Rejouer contre le bot » en fin
+  de partie relance les mêmes réglages.
+- **Bots** (`backend/src/games/bots/`) : un module par jeu, qui décide uniquement à partir de
+  `engine.view(state, botId)` — la même vue qu'un joueur (aucune carte ni choix caché de l'adversaire).
+  Connect : recherche negamax alpha-bêta (1, 3 ou 5 coups d'avance) ; Ludo : capture, sécurité,
+  sorties ; Cards : grosses cartes d'abord, Jokers gardés, attaque du joueur suivant, jamais de +4 illégal ;
+  Penalty : au hasard, puis lecture des habitudes de l'adversaire dans l'historique révélé (Difficile).
+  Temps de réflexion simulé (0,5 à 2,6 s).
+- **Transparence** : les bots ne sont pas des comptes joueurs (pas de ligne `users` ni
+  `match_players`, description dans `matches.bots`, migration 005), s'appellent « Bot Ngazidja »,
+  « Bot Mwali », « Bot Ndzuani », ont un avatar robot et une étiquette « Bot ». Le matchmaking ne
+  crée toujours aucun faux adversaire : un bot n'est joué que sur choix du joueur.
+- **Comptabilisation** : partie d'entraînement (`mode = 'bot'`, `is_valid = false`) : aucune ligne
+  `match_results`, donc ni XP, ni cote, ni points de saison, ni badges, ni statistiques, ni KPI du
+  back-office. Elle apparaît dans l'historique du joueur avec la mention « entraînement ».
+- **Robustesse** : actions des bots sérialisées dans la même file que celles du joueur, reprise après
+  redémarrage du serveur, arrêt immédiat si le joueur abandonne une partie à plusieurs bots.
+- **Tests** : 8 unitaires (parties complètes bot contre bot sur les 4 moteurs, de 2 à 4 joueurs et à
+  tous les niveaux, sans coup illégal ; victoire et blocage à Connect ; pas de bluff au +4 ; attente de
+  l'ouverture du tir), 4 d'intégration (Connect, Penalty, Ludo à 3 bots, garde-fous) et 2 E2E (partie
+  complète contre un bot, proposition après une recherche sans adversaire).
+
 ## Phase 12 — Déploiement
-**Non effectué** : en attente de validation explicite et des accès (voir `DEPLOIEMENT.md`).
+**Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
+(`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche
+`pre-defi-yas-2`). La production suit la branche `main` (voir `DEPLOIEMENT.md`).
 
 ---
 

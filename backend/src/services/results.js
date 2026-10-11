@@ -284,6 +284,19 @@ async function processMatchResult(p) {
   return summary;
 }
 
+// Partie d'entraînement contre des bots : on complète seulement la ligne du joueur
+// (historique de ses parties). Aucune ligne match_results : ni XP, ni cote, ni points
+// de saison, ni badges, ni statistiques de jeu.
+async function recordTraining({ matchId, placements, activeMs }) {
+  for (const pl of placements) {
+    await pool.query(
+      `UPDATE match_players SET placement = $3, outcome = $4, score = $5, stats = $6, active_ms = $7
+        WHERE match_id = $1 AND user_id = $2`,
+      [matchId, pl.userId, pl.place, pl.outcome, pl.stats?.score ?? null, JSON.stringify(pl.stats || {}), activeMs?.[pl.userId] || 0]
+    );
+  }
+}
+
 // Enregistre un match annulé (aucune victoire, aucun point).
 async function recordCancelled(gameId) {
   await pool.query(
@@ -299,7 +312,7 @@ async function reprocessPending() {
   const { rows } = await pool.query(
     `SELECT m.id, m.game_id, m.result, m.is_valid FROM matches m
       LEFT JOIN match_results r ON r.match_id = m.id
-     WHERE m.status = 'COMPLETED' AND m.result IS NOT NULL AND r.match_id IS NULL`);
+     WHERE m.status = 'COMPLETED' AND m.result IS NOT NULL AND r.match_id IS NULL AND m.mode <> 'bot'`);
   for (const m of rows) {
     try {
       await processMatchResult({
@@ -313,4 +326,4 @@ async function reprocessPending() {
   return rows.length;
 }
 
-module.exports = { processMatchResult, recordCancelled, reprocessPending, computeRatings, mergeExtra };
+module.exports = { processMatchResult, recordTraining, recordCancelled, reprocessPending, computeRatings, mergeExtra };

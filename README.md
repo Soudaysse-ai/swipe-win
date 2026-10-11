@@ -12,6 +12,11 @@ un back-office complet pour Yas Comores.
 | **Yas Penalty** | 2 | Tirs au but : choix simultanés tireur / gardien |
 | **Yas Ludo** | 2–4 | Plateau classique, 4 pions, dés serveur |
 
+Chaque jeu se joue aussi **seul contre un bot** (niveaux Facile, Normal, Difficile ; 1 à 3 bots
+pour Cards et Ludo) : la partie démarre aussitôt, les bots sont présentés comme tels et ces parties
+d'entraînement ne comptent pour aucun classement. Si personne n'est trouvé après 10 s de recherche,
+le jeu contre un bot est proposé.
+
 Le quiz historique **Swipe & gagne** est conservé (`/quiz`).
 
 ## Structure
