@@ -1,8 +1,10 @@
+// color : couleur d'illustration du jeu (charte Yas) ; tint : sa teinte 20-30 %
+// pour les halos et fonds légers (Sunset 30, Sky Blue 20, Twilight 30, Berry 30).
 export const GAME_META = {
-  cards:   { name: 'Yas Cards',   players: '2–4 joueurs', color: '#FFD100', art: 'cards' },
-  connect: { name: 'Yas Connect', players: '2 joueurs',   color: '#5F99D2', art: 'connect' },
-  penalty: { name: 'Yas Penalty', players: '2 joueurs',   color: '#3CB167', art: 'penalty' },
-  ludo:    { name: 'Yas Ludo',    players: '2–4 joueurs', color: '#BC4F90', art: 'ludo' },
+  cards:   { name: 'Yas Cards',   players: '2–4 joueurs', color: '#FFA602', tint: '#FFE4B3', art: 'cards' },
+  connect: { name: 'Yas Connect', players: '2 joueurs',   color: '#5F99D2', tint: '#DFEBF6', art: 'connect' },
+  penalty: { name: 'Yas Penalty', players: '2 joueurs',   color: '#58508C', tint: '#CDCBDD', art: 'penalty' },
+  ludo:    { name: 'Yas Ludo',    players: '2–4 joueurs', color: '#BC4F90', tint: '#EBCADE', art: 'ludo' },
 };
 
 export const PERIOD_LABELS = { week: 'Cette semaine', month: 'Ce mois', season: 'Saison', all: 'Historique' };

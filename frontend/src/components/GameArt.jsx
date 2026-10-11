@@ -1,4 +1,6 @@
-// Illustrations originales et légères (SVG) des quatre jeux.
+// Illustrations originales et légères (SVG) des quatre jeux. Fond de chaque jeu dans
+// une couleur de la charte (les secondaires sont réservées aux illustrations) :
+// Cards Sunset, Connect Sky Blue, Penalty Twilight, Ludo Berry.
 // fit="meet" : illustration entière, centrée sur sa couleur de fond (vignettes verticales).
 export default function GameArt({ gameId, height = 110, fit = 'slice' }) {
   const common = { width: '100%', height, viewBox: '0 0 200 110', preserveAspectRatio: `xMidYMid ${fit}`, 'aria-hidden': true };
@@ -24,7 +26,7 @@ export default function GameArt({ gameId, height = 110, fit = 'slice' }) {
       </g>
     );
     return (
-      <svg {...common} style={{ background: '#FFD100' }}>
+      <svg {...common} style={{ background: '#FFA602' }}>
         {card(68, -14, '#E5484D', '7')}
         {card(100, 0, '#2F6FD6', '+2')}
         {card(132, 14, '#2FA35A', '⟲')}
@@ -33,8 +35,8 @@ export default function GameArt({ gameId, height = 110, fit = 'slice' }) {
   }
   if (gameId === 'penalty') {
     return (
-      <svg {...common} style={{ background: '#3CB167' }}>
-        <rect x="0" y="80" width="200" height="30" fill="#2E9655" />
+      <svg {...common} style={{ background: '#58508C' }}>
+        <rect x="0" y="80" width="200" height="30" fill="#3CB167" />
         <rect x="40" y="18" width="120" height="64" fill="none" stroke="#fff" strokeWidth="5" />
         {[...Array(6)].map((_, i) => <line key={i} x1={40 + i * 24} y1="18" x2={40 + i * 24} y2="82" stroke="rgba(255,255,255,.35)" strokeWidth="1.5" />)}
         {[...Array(3)].map((_, i) => <line key={`h${i}`} x1="40" y1={34 + i * 16} x2="160" y2={34 + i * 16} stroke="rgba(255,255,255,.35)" strokeWidth="1.5" />)}

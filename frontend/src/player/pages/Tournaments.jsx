@@ -8,7 +8,7 @@ import Avatar from '../../components/Avatar';
 import { BackHeader, Spinner, Empty } from '../../components/ui';
 import { gameName, formatDate } from '../../lib/format';
 
-const STATUS = { registration: ['Inscriptions ouvertes', 'yellow'], in_progress: ['En cours', 'sky'], completed: ['Terminé', ''], draft: ['Brouillon', ''], cancelled: ['Annulé', 'red'] };
+const STATUS = { registration: ['Inscriptions ouvertes', 'sunset'], in_progress: ['En cours', 'sky'], completed: ['Terminé', ''], draft: ['Brouillon', ''], cancelled: ['Annulé', 'red'] };
 const FORMAT = { single_elimination: 'Élimination directe', round_robin: 'Championnat' };
 
 export function TournamentsList() {

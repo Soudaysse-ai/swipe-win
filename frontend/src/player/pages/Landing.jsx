@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import playerApi from '../../lib/playerApi';
 import YasLogo from '../../components/YasLogo';
-import Pulse from '../../components/Pulse';
+import Plectre from '../../components/Plectre';
 import GameArt from '../../components/GameArt';
 import DeviceMock from '../../components/DeviceMock';
 import PlectreFrame from '../../components/PlectreFrame';
@@ -92,7 +92,7 @@ export default function Landing() {
             {online > 0 && <p className="hero-live"><span className="dot" /> {online} joueur{online > 1 ? 's' : ''} en partie en ce moment</p>}
           </div>
           <div className="hero-visual" aria-hidden>
-            <Pulse className="hero-pulse" size={760} rotate={-8} solid plectre />
+            <Plectre className="hero-plectre" color="blue" size={460} rotate={-10} />
             <DeviceMock className="hero-device" />
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function Landing() {
           <div className="game-showcase">
             {games.map(g => (
               <Link key={g.id} to="/register" className="showcase-item">
-                <PlectreFrame size={180}><GameArt gameId={g.id} height="100%" fit="meet" /></PlectreFrame>
+                <PlectreFrame size={180} halo={GAME_META[g.id]?.tint}><GameArt gameId={g.id} height="100%" fit="meet" /></PlectreFrame>
                 <b>{g.name}</b>
                 <span className="players">{GAME_META[g.id]?.players}</span>
                 <span className="desc">{g.description}</span>

@@ -8,7 +8,7 @@ import { useToast } from '../ToastContext';
 import Avatar from '../../components/Avatar';
 import GameArt from '../../components/GameArt';
 import Icon from '../../components/Icon';
-import Pulse from '../../components/Pulse';
+import Plectre from '../../components/Plectre';
 import { LeagueBadge, Spinner, Empty, Sheet } from '../../components/ui';
 import { GAME_META, gameName, formatDate } from '../../lib/format';
 
@@ -110,7 +110,7 @@ export default function Home() {
   return (
     <div className="home">
     <section className="home-hero" aria-label="Accueil">
-      <Pulse className="home-pulse" size={420} rotate={-14} solid />
+      <Plectre className="band-shape" color="#FFE369" size={300} rotate={-24} />
       <p className="home-greeting">Salut, <b>{me.username}</b> 👋</p>
       <h1 className="home-title">{me.challenge ? 'Ton défi du jour t\'attend !' : 'Prêt pour un défi ?'}</h1>
     </section>
@@ -222,7 +222,7 @@ export default function Home() {
                     <div className="title">{t.name}</div>
                     <div className="sub">{gameName(t.game_id)} · {t.participants}/{t.max_participants} · {formatDate(t.starts_at)}</div>
                   </div>
-                  <span className={`chip ${t.status === 'in_progress' ? 'sky' : 'yellow'}`}>{t.status === 'in_progress' ? 'En cours' : 'Inscriptions'}</span>
+                  <span className={`chip ${t.status === 'in_progress' ? 'sky' : 'sunset'}`}>{t.status === 'in_progress' ? 'En cours' : 'Inscriptions'}</span>
                 </Link>
               ))}
             </div>

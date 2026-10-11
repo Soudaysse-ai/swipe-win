@@ -9,7 +9,7 @@ import { useToast } from '../ToastContext';
 import Avatar from '../../components/Avatar';
 import Icon from '../../components/Icon';
 import ChatPanel from '../../components/ChatPanel';
-import Pulse from '../../components/Pulse';
+import PlectreFrame from '../../components/PlectreFrame';
 import CoinBadge from '../../components/CoinBadge';
 import { Sheet, Spinner, Countdown, Confetti } from '../../components/ui';
 import { gameName, placeLabel, formatDuration } from '../../lib/format';
@@ -51,13 +51,12 @@ function FloatingReactions({ matchId, players }) {
 }
 
 // Fin de partie, dans l'esprit des fenêtres « Gamification » de l'appli Yas :
-// carte blanche sur fond Sunshine Yellow, illustration (Pulse + plectre),
+// carte blanche sur fond Sunshine Yellow, illustration (plectre + halo),
 // titre deux tons, pastille « pièce » pour les points, bouton jaune.
 function ResultArt({ icon }) {
   return (
     <span className="result-art" aria-hidden>
-      <Pulse size={190} solid plectre />
-      <span className="result-icon"><Icon name={icon} size={46} /></span>
+      <PlectreFrame size={170} rotate={-14} fill="#00377D" halo="#FFF1B4"><Icon name={icon} size={52} /></PlectreFrame>
     </span>
   );
 }
@@ -92,9 +91,9 @@ function Results({ ended, me, onRematch, gameId }) {
         )}
         {you && ended.isValid && (
           <div className="result-stats">
-            <span><b>+{you.xpGained}</b>XP</span>
-            <span><b>{delta >= 0 ? '+' : ''}{delta}</b>Cote ({you.ratingAfter})</span>
-            <span><b>+{you.seasonPoints}</b>Pts saison</span>
+            <span className="t-sky"><b>+{you.xpGained}</b>XP</span>
+            <span className="t-berry"><b>{delta >= 0 ? '+' : ''}{delta}</b>Cote ({you.ratingAfter})</span>
+            <span className="t-sunset"><b>+{you.seasonPoints}</b>Pts saison</span>
           </div>
         )}
         {you && ended.isValid && (

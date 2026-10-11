@@ -8,7 +8,7 @@ import GameArt from '../../components/GameArt';
 import Avatar from '../../components/Avatar';
 import Icon from '../../components/Icon';
 import { BackHeader, Spinner, Sheet, Empty, SectionHead } from '../../components/ui';
-import Pulse from '../../components/Pulse';
+import Plectre from '../../components/Plectre';
 import PlectreFrame from '../../components/PlectreFrame';
 import CoinBadge from '../../components/CoinBadge';
 import { Podium } from './Home';
@@ -24,7 +24,7 @@ export function GamesList() {
   return (
     <div className="games-page">
       <section className="page-band">
-        <Pulse className="band-pulse" size={380} rotate={-14} solid />
+        <Plectre className="band-shape" color="#FFE369" size={300} rotate={-24} />
         <div className="band-copy">
           <h1 className="band-title">Les jeux</h1>
           <p>Choisis ton jeu et lance un défi en quelques secondes.</p>
@@ -38,7 +38,7 @@ export function GamesList() {
           {games.map(g => (
             <div key={g.id} className="tx-row">
               <Link to={`/games/${g.id}`} className="tx-main">
-                <PlectreFrame size={64} rotate={100}><GameArt gameId={g.id} height="100%" fit="meet" /></PlectreFrame>
+                <PlectreFrame size={64} rotate={100} halo={GAME_META[g.id]?.tint}><GameArt gameId={g.id} height="100%" fit="meet" /></PlectreFrame>
                 <span className="tx-text">
                   <b>{g.name}</b>
                   <span>{GAME_META[g.id]?.players}{g.playersOnline > 0 ? <> <i>•</i> {g.playersOnline} en jeu</> : null}</span>
@@ -119,7 +119,7 @@ export function GameLobby() {
         <button className="icon-btn" onClick={() => setRules(true)} aria-label="Règles du jeu"><Icon name="flag" /></button>
       } />
       <section className="page-band lobby-band">
-        <Pulse className="band-pulse" size={380} rotate={-14} solid />
+        <Plectre className="band-shape" color="#FFE369" size={300} rotate={-24} />
         <PlectreFrame size={150} rotate={100} halo="#FFF6CC"><GameArt gameId={gameId} height="100%" fit="meet" /></PlectreFrame>
         <div className="band-copy">
           <h1 className="band-title">{game.name}</h1>

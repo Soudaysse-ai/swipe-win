@@ -1,4 +1,4 @@
-// Plectre officiel tourné, avec son halo (couche du Pulse, Sunshine Yellow clair) —
+// Plectre officiel tourné, avec un halo (le même plectre agrandi, Sunshine Yellow clair) —
 // motif des pages web Yas (ex. « Des prix exceptionnels »). Le plectre peut :
 //  - « tenir » une image (children = illustration, recadrée par la forme du plectre) ;
 //  - ou être plein (fill) avec une icône centrée.

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import playerApi, { apiError } from '../../lib/playerApi';
 import { useAuth } from '../AuthContext';
-import Pulse from '../../components/Pulse';
+import Plectre from '../../components/Plectre';
 import YasLogo from '../../components/YasLogo';
 import DeviceMock from '../../components/DeviceMock';
 import Avatar, { AVATAR_IDS } from '../../components/Avatar';
@@ -21,7 +21,7 @@ function AuthLayout({ title, subtitle, alt, children }) {
           <p>Cartes, Connect, Penalty, Ludo : affronte tes amis et toute la communauté Yas en direct.</p>
         </div>
         <div className="auth-aside-visual" aria-hidden>
-          <Pulse className="hero-pulse" size={700} rotate={-8} solid plectre />
+          <Plectre className="hero-plectre" color="blue" size={380} rotate={-10} />
           <DeviceMock />
         </div>
       </aside>

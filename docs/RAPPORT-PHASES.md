@@ -158,6 +158,17 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 - Les images (photos) des maquettes « Curves » ne sont pas incluses dans le fichier fourni : seules
   la structure et les éléments graphiques visibles ont été repris.
 
+## Évolution — Pulse retiré, couleurs secondaires
+- Le Pulse (fichier `Yas_Pulse_Transparent_Wide.svg`) présentait un cran visible sur ses couches
+  extérieures une fois agrandi : il a été retiré partout (héros, bandeaux, écrans de compte, fin de
+  partie). Les accents utilisent désormais le plectre officiel seul (bleu, ou jaune clair sur jaune) et
+  le plectre avec halo.
+- Couleurs secondaires de la charte (Sunset, Fuscia, Berry, Twilight), réservées aux illustrations et
+  à l'information : fond d'illustration de chaque jeu (Cards Sunset, Connect Sky Blue, Penalty Twilight,
+  Ludo Berry), halos et tuiles de statistiques dans la teinte du jeu, tuiles de fin de partie (Sky,
+  Berry, Sunset), étiquette « Inscriptions ouvertes » en Sunset, 3ᵉ marche du podium en Sunset 30.
+  Jaune, Midnight Blue et Sky Blue restent dominants (50 / 40 / 10).
+
 ## Phase 12 — Déploiement
 **Non effectué** : en attente de validation explicite et des accès (voir `DEPLOIEMENT.md`).
 

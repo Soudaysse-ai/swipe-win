@@ -7,6 +7,8 @@ import { useToast } from '../ToastContext';
 import { useSession } from '../SessionContext';
 import Avatar from '../../components/Avatar';
 import Icon from '../../components/Icon';
+import PlectreFrame from '../../components/PlectreFrame';
+import GameArt from '../../components/GameArt';
 import { ReportSheet } from '../../components/ChatPanel';
 import { BackHeader, Spinner, Empty, Sheet, LeagueBadge, LevelBar } from '../../components/ui';
 import { GAME_META, gameName, timeAgo, percent, formatDate, OUTCOME_LABEL } from '../../lib/format';
@@ -149,17 +151,23 @@ export function Friends() {
   );
 }
 
+// Statistiques d'un jeu : illustration dans le plectre et tuiles dans la teinte du jeu.
 export function GameStatsCard({ g }) {
+  const meta = GAME_META[g.gameId] || {};
+  const tile = { background: meta.tint };
   return (
     <div className="card stack" style={{ gap: 10 }}>
       <div className="row between">
-        <span className="h3">{g.name}</span>
+        <span className="row" style={{ gap: 10 }}>
+          <PlectreFrame size={48} halo={meta.tint}><GameArt gameId={g.gameId} height="100%" fit="meet" /></PlectreFrame>
+          <span className="h3">{g.name}</span>
+        </span>
         <LeagueBadge league={g.league} />
       </div>
       <div className="stat-grid">
-        <div className="stat"><b>{g.rating}</b><span>Cote</span></div>
-        <div className="stat"><b>{g.played}</b><span>Parties</span></div>
-        <div className="stat"><b>{percent(g.winRate)}</b><span>Victoires</span></div>
+        <div className="stat" style={tile}><b>{g.rating}</b><span>Cote</span></div>
+        <div className="stat" style={tile}><b>{g.played}</b><span>Parties</span></div>
+        <div className="stat" style={tile}><b>{percent(g.winRate)}</b><span>Victoires</span></div>
       </div>
       <div className="row between tiny muted wrap">
         <span>{g.wins} V · {g.losses} D{g.draws ? ` · ${g.draws} N` : ''}</span>
