@@ -55,6 +55,7 @@ function init({ players, rng, now, config }) {
     actions: Object.fromEntries(order.map(u => [u, 0])),
     stats: Object.fromEntries(order.map(u => [u, { captures: 0, sixes: 0, moves: 0 }])),
     lastMove: null,
+    lastRoll: null,             // { userId, value, seq } : reste affiché après la fin du tour
     turnMs,
     turnDeadline: now + turnMs,
     status: 'playing',
@@ -66,7 +67,7 @@ function view(state) {
   return {
     players: state.players, colors: state.colors, tokens: state.tokens, turn: state.turn,
     phase: state.phase, dice: state.dice, sixes: state.sixes, movable: state.movable,
-    finished: state.finished, forfeited: state.forfeited, lastMove: state.lastMove,
+    finished: state.finished, forfeited: state.forfeited, lastMove: state.lastMove, lastRoll: state.lastRoll || null,
     turnDeadline: state.turnDeadline, turnMs: state.turnMs, status: state.status,
     timeouts: state.timeouts, safe: [...SAFE], start: START,
   };
@@ -155,6 +156,7 @@ function extraRoll(s, now, events, reason) {
 function doRoll(s, userId, rng, now, events) {
   const d = rng.int(6) + 1;
   s.dice = d;
+  s.lastRoll = { userId, value: d, seq: (s.lastRoll?.seq || 0) + 1 };
   s.stats[userId].sixes += d === 6 ? 1 : 0;
   events.push({ type: 'dice_rolled', payload: { userId, value: d } });
   if (d === 6) {

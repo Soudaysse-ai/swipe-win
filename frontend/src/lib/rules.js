@@ -5,7 +5,7 @@ export const RULES = {
     'À ton tour, touche une colonne : ton jeton tombe dans la case libre la plus basse.',
     'Aligne 4 jetons horizontalement, verticalement ou en diagonale pour gagner.',
     'Grille pleine sans alignement : match nul.',
-    '20 secondes par coup : au-delà, tu perds par forfait.',
+    '30 secondes par coup : au-delà, tu perds par forfait.',
   ],
   ludo: [
     '2 à 4 joueurs, 4 pions chacun.',
@@ -13,7 +13,7 @@ export const RULES = {
     'Tombe sur un pion adverse (hors case protégée ⭐) pour le renvoyer à sa base et rejouer.',
     'Il faut le nombre exact pour entrer dans la zone d\'arrivée.',
     'Le premier à ramener ses 4 pions gagne ; les autres continuent pour les places suivantes.',
-    '20 secondes par action : sinon le serveur joue automatiquement le premier coup possible.',
+    '30 secondes par action : sinon le serveur joue automatiquement le premier coup possible.',
   ],
   cards: [
     '2 à 4 joueurs, 7 cartes chacun, paquet de 108 cartes.',
@@ -28,7 +28,7 @@ export const RULES = {
     'Deux joueurs, 5 tirs chacun, rôles alternés : tireur puis gardien.',
     'Le tireur choisit une zone parmi 5, le gardien choisit où plonger : les choix sont secrets jusqu\'à la révélation.',
     'Même zone : arrêt ! Zones différentes : but.',
-    '10 secondes pour décider. Tireur sans choix : tir manqué. Gardien sans choix : but (sauf si le tireur n\'a pas choisi non plus).',
+    '15 secondes pour décider. Tireur sans choix : tir manqué. Gardien sans choix : but (sauf si le tireur n\'a pas choisi non plus).',
     'Fin anticipée si l\'un ne peut plus rattraper l\'autre ; mort subite en cas d\'égalité (20 tirs maximum, puis match nul).',
   ],
 };

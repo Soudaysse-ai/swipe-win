@@ -101,7 +101,7 @@ function chooseColumn(view, botId, { level = 'normal', rng }) {
 function decide(view, botId, opts) {
   if (view.status !== 'playing' || view.turn !== botId) return null;
   const col = chooseColumn(view, botId, opts);
-  return col == null ? null : { action: { type: 'drop', col }, think: [700, 1600] };
+  return col == null ? null : { action: { type: 'drop', col }, think: [1000, 1800] };
 }
 
 module.exports = { decide, _internals: { chooseColumn, evaluate } };

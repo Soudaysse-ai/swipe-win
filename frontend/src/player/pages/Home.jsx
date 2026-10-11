@@ -10,7 +10,6 @@ import GameArt from '../../components/GameArt';
 import Icon from '../../components/Icon';
 import Plectre from '../../components/Plectre';
 import { LeagueBadge, Spinner, Empty, Sheet } from '../../components/ui';
-import { LevelTabs, lastBotSettings, saveBotSettings } from '../../components/BotPlay';
 import { GAME_META, gameName, formatDate } from '../../lib/format';
 
 export function Podium({ entries, unit = 'pts' }) {
@@ -69,13 +68,11 @@ const MORE = [
 export default function Home() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
-  const { joinRoom, setUnread, quickPlay, playBot } = useSession();
+  const { joinRoom, setUnread, quickPlay } = useSession();
   const { toast } = useToast();
   const [data, setData] = useState(null);
   const [sheet, setSheet] = useState(null); // 'quick' | 'code'
   const [code, setCode] = useState('');
-  const [vsBot, setVsBot] = useState(false);
-  const [botLevel, setBotLevel] = useState(() => lastBotSettings().level);
 
   const load = useCallback(() => {
     playerApi.get('/home').then(r => {
@@ -100,15 +97,7 @@ export default function Home() {
 
   async function startQuick(gameId) {
     setSheet(null);
-    try {
-      if (vsBot) {
-        const settings = { ...lastBotSettings(), level: botLevel };
-        saveBotSettings(settings);
-        await playBot(gameId, settings);
-      } else {
-        await quickPlay(gameId, null);
-      }
-    } catch (err) { toast(err.message, { icon: '⚠️' }); }
+    try { await quickPlay(gameId, null); } catch (err) { toast(err.message, { icon: '⚠️' }); }
   }
 
   const ACTIONS = [
@@ -250,15 +239,7 @@ export default function Home() {
 
       <Sheet open={sheet === 'quick'} onClose={() => setSheet(null)} label="Partie rapide">
         <h2 className="h2">Partie <span className="accent">rapide</span></h2>
-        <div className="tabs" role="tablist" aria-label="Adversaire" style={{ marginTop: 12 }}>
-          <button role="tab" aria-selected={!vsBot} className={`tab${!vsBot ? ' active' : ''}`} onClick={() => setVsBot(false)}>Contre des joueurs</button>
-          <button role="tab" aria-selected={vsBot} className={`tab${vsBot ? ' active' : ''}`} onClick={() => setVsBot(true)}>Contre un bot</button>
-        </div>
-        <p className="small muted" style={{ margin: '10px 0 12px' }}>
-          {vsBot ? 'Le bot joue tout de suite. Partie d\'entraînement : elle ne compte pas pour le classement.'
-            : 'Choisis un jeu : on te trouve un adversaire de ton niveau.'}
-        </p>
-        {vsBot && <div style={{ marginBottom: 14 }}><LevelTabs value={botLevel} onChange={setBotLevel} /></div>}
+        <p className="small muted" style={{ margin: '6px 0 14px' }}>Choisis un jeu : on te trouve un adversaire de ton niveau.</p>
         <div className="pick-grid">
           {games.filter(g => g.isActive).map(g => (
             <button key={g.id} className="pick" onClick={() => startQuick(g.id)}>

@@ -52,10 +52,10 @@ function chooseToken(view, botId, { level = 'normal', rng }) {
 
 function decide(view, botId, opts) {
   if (view.status !== 'playing' || view.turn !== botId) return null;
-  if (view.phase === 'roll') return { action: { type: 'roll' }, think: [500, 1100] };
+  if (view.phase === 'roll') return { action: { type: 'roll' }, think: [1300, 1900] };
   if (view.phase === 'move') {
     const token = chooseToken(view, botId, opts);
-    return token == null ? null : { action: { type: 'move', token }, think: [600, 1300] };
+    return token == null ? null : { action: { type: 'move', token }, think: [1300, 1800] };
   }
   return null;
 }

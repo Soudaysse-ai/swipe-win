@@ -7,7 +7,7 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 | Suite | Commande | Résultat |
 |---|---|---|
-| Unitaires backend | `npm test` | **89 / 89** |
+| Unitaires backend | `npm test` | **90 / 90** |
 | Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **31 / 31** |
 | E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **9 / 9** |
 | Build frontend | `npm run build` | OK |
@@ -193,6 +193,23 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
   tous les niveaux, sans coup illégal ; victoire et blocage à Connect ; pas de bluff au +4 ; attente de
   l'ouverture du tir), 4 d'intégration (Connect, Penalty, Ludo à 3 bots, garde-fous) et 2 E2E (partie
   complète contre un bot, proposition après une recherche sans adversaire).
+
+## Évolution — écrans de jeu plus lisibles, temps de jeu allongés
+Retours après les premières parties (comparaison avec Plato) :
+- **Bot** : proposé uniquement quand personne n'est disponible — sur la page d'un jeu quand aucun joueur
+  n'y est en ligne, et pendant une recherche restée sans adversaire 10 s. Plus d'onglet bot sur l'accueil.
+- **Temps de jeu** (migration 006, valeurs d'origine seulement) : 30 s par tour pour Cards, Connect et
+  Ludo (au lieu de 20 s), 15 s par décision pour Penalty (au lieu de 10 s). Bots plus posés (1 à 3 s).
+- **Yas Ludo** : chaque joueur est placé au coin de sa base ; un anneau autour de l'avatar fait office
+  de chronomètre ; le dé (refait, centré, faces qui défilent puis se posent) apparaît à côté de celui qui
+  joue ; quand un lancer termine le tour (aucun pion jouable, trois 6), son résultat reste affiché ;
+  les pions avancent case par case ; une ligne d'état dit qui doit faire quoi (« À toi ! Touche le dé »,
+  « Bot Mwali a fait 4 et choisit un pion… »). Le moteur expose le dernier lancer (`lastRoll`).
+- **Yas Cards** : vraies cartes de jeu de défausse (ovale blanc incliné, grand chiffre cerné, index dans
+  les coins, symboles Passe / Inverse / +2, Jokers noirs à l'ovale quatre couleurs, dos « YAS ») sur une
+  table Midnight Blue : adversaires en haut avec leurs cartes en éventail, pioche et défausse au centre
+  (couleur active en halo), « Tu as joué Rouge 3 » puis « À toi : choisis une carte », main en éventail
+  en bas avec les cartes jouables levées.
 
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render

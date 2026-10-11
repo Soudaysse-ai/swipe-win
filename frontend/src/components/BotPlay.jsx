@@ -63,9 +63,9 @@ export function BotSheet({ open, onClose, game }) {
     <Sheet open={open} onClose={onClose} label="Jouer contre un bot">
       <div className="stack lg">
         <div>
-          <h2 className="h2">Jouer contre un <span className="accent">bot</span></h2>
+          <h2 className="h2">Jouer seul contre un <span className="accent">bot</span></h2>
           <p className="small muted" style={{ marginTop: 6 }}>
-            Pas besoin d'attendre : le bot joue tout de suite. C'est une partie d'entraînement, elle ne compte pas pour le classement.
+            Personne n'est disponible : le bot joue tout de suite avec toi. C'est une partie d'entraînement, elle ne compte pas pour le classement.
           </p>
         </div>
         <div className="stack" style={{ gap: 8 }}>

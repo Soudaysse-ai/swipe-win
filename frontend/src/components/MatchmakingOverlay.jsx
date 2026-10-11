@@ -38,8 +38,8 @@ function Searching({ mm, onCancel }) {
       </div>
       {s >= BOT_OFFER_SECONDS && (
         <div className="row" style={{ borderTop: '1px solid rgba(255,255,255,.2)', paddingTop: 10 }}>
-          <span className="grow small">Personne pour l'instant ? Joue tout de suite contre un bot.</span>
-          <button className="btn sm" onClick={vsBot}><Icon name="bot" size={18} /> Contre un bot</button>
+          <span className="grow small">Personne n'est disponible pour l'instant. Tu veux jouer seul contre un bot ?</span>
+          <button className="btn sm" onClick={vsBot}><Icon name="bot" size={18} /> Jouer seul</button>
         </div>
       )}
     </div>

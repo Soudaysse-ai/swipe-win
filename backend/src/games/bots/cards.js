@@ -75,7 +75,7 @@ function decide(view, botId, { level = 'normal', rng }) {
 
   // Hors de son tour : signaler l'adversaire qui a oublié « Dernière carte », ou se rattraper.
   if (view.vulnerable && view.vulnerable !== botId && roll(rng, CALL_CHANCE[level] ?? 0)) {
-    return { action: { type: 'call_last_card' }, think: [1200, 2600] };
+    return { action: { type: 'call_last_card' }, think: [1500, 3000] };
   }
   if (view.vulnerable === botId && view.hand.length === 1 && roll(rng, RECOVER_CHANCE[level] ?? 0)) {
     return { action: { type: 'last_card' }, think: [1800, 3500] };
@@ -83,19 +83,19 @@ function decide(view, botId, { level = 'normal', rng }) {
 
   if (view.turn !== botId) return null;
   if (view.phase === 'challenge') {
-    return { action: { type: roll(rng, CHALLENGE_CHANCE[level] ?? 0) ? 'challenge' : 'accept' }, think: [1200, 2200] };
+    return { action: { type: roll(rng, CHALLENGE_CHANCE[level] ?? 0) ? 'challenge' : 'accept' }, think: [1600, 2600] };
   }
   if (view.phase === 'drawn') {
     const card = view.hand.find(c => c.id === view.drawnCardId && view.playable.includes(c.id));
     return card
-      ? { action: playAction(view, card, level, rng), think: [700, 1300] }
-      : { action: { type: 'pass' }, think: [600, 1100] };
+      ? { action: playAction(view, card, level, rng), think: [1100, 1600] }
+      : { action: { type: 'pass' }, think: [1000, 1500] };
   }
   if (view.phase === 'play') {
     const card = chooseCard(view, botId, { level, rng });
     return card
-      ? { action: playAction(view, card, level, rng), think: [900, 2000] }
-      : { action: { type: 'draw' }, think: [800, 1500] };
+      ? { action: playAction(view, card, level, rng), think: [1600, 2600] }
+      : { action: { type: 'draw' }, think: [1400, 2100] };
   }
   return null;
 }

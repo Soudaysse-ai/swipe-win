@@ -7,6 +7,7 @@
    ========================================================================== */
 @import './yas-tokens.css';
 @import './site.css';
+@import './games.css';
 
 :root {
   --content-max: 1180px;
@@ -634,6 +635,11 @@ img, svg { display: block; }
 .result-notes .muted { font-weight: 500; font-size: 14px; }
 .result-list { width: 100%; text-align: left; }
 .result-card .alert { width: 100%; text-align: left; align-items: center; }
+/* Proposition de jeu contre un bot (personne en ligne sur le jeu) */
+.bot-offer { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 20px; background: #fff; box-shadow: inset 0 0 0 1.5px var(--yas-sky-35, #C5DBF0); }
+.bot-offer-icon { width: 44px; height: 44px; border-radius: 22px; background: var(--yas-blue); color: var(--yas-yellow); display: grid; place-items: center; flex-shrink: 0; }
+.bot-offer b { display: block; font-size: 15px; }
+.bot-offer span:not(.bot-offer-icon) { display: block; font-size: 14px; color: var(--yas-blue-70); margin-top: 2px; }
 .result-actions { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
 .link-plain { font-size: 16px; font-weight: 500; text-decoration: underline; padding: 10px; }
 @media (min-width: 1024px) { .result-screen { padding-top: 56px; } .result-title { font-size: 38px; } }

@@ -50,7 +50,7 @@ function chooseZone(view, botId, { level = 'normal', rng }) {
 function decide(view, botId, opts) {
   const k = view.kick;
   if (view.status !== 'playing' || !k || !k.myRole || k.myChoice != null) return null;
-  return { action: { type: 'choose', zone: chooseZone(view, botId, opts) }, notBefore: k.opensAt, think: [900, 2600] };
+  return { action: { type: 'choose', zone: chooseZone(view, botId, opts) }, notBefore: k.opensAt, think: [1200, 3000] };
 }
 
 module.exports = { decide, _internals: { chooseZone } };
