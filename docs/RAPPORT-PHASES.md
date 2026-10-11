@@ -8,8 +8,8 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 | Suite | Commande | Résultat |
 |---|---|---|
 | Unitaires backend | `npm test` | **88 / 88** |
-| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **31 / 31** |
-| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **9 / 9** |
+| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **32 / 32** |
+| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **11 / 11** |
 | Build frontend | `npm run build` | OK |
 | Charge indicative (`scripts/loadtest.js`, 200 clients, 30 s) | | 2 492 parties, 0 erreur, p50 48 ms, p95 384 ms |
 
@@ -247,6 +247,22 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   et les statuts en français. Parcours vérifié de bout en bout : création, inscriptions, lancement,
   affichage côté joueur avec « Rejoindre mon match ».
 
+### Couvertures illustrées et Swipe & gagne activable
+- **Bandeaux** : les bandeaux jaunes unis de l'accueil, de la page « Les jeux » et de la page de chaque
+  jeu sont remplacés par des illustrations vectorielles originales (`components/Covers.jsx`,
+  `styles/covers.css`) : la coupe entourée des quatre jeux sur fond Midnight Blue pour l'accueil, un
+  stade et un tir vers le but (Foot), un éventail de cartes (Cards), un plateau en perspective avec
+  pions et dés (Ludo), une grille avec le jeton gagnant qui tombe (Connect). Fond dans la couleur du
+  jeu, titre blanc, mot-clé Sunshine Yellow ; animations douces, coupées si l'appareil demande moins
+  de mouvement. Aucune image externe : rien à télécharger en plus sur mobile.
+- **Swipe & gagne** : masqué par défaut (migration `009_quiz_visibility.sql`, réglage `quiz_visible`).
+  Interrupteur « Visible pour les joueurs » dans Réglages des jeux et sur le tableau de bord du quiz
+  (permission `quiz.manage`, journalisé). Masqué : aucune entrée dans les menus, l'accueil et la page
+  Jeux ; `/quiz` renvoie à l'accueil ; l'API refuse de démarrer une partie (`QUIZ_HIDDEN`). Questions,
+  lots et historiques restent gérables dans le back-office.
+- Tests : 1 d'intégration (masqué par défaut, droits, journal, blocage), 2 E2E (masqué ; activé depuis
+  le back-office puis partie jouée).
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche
@@ -269,7 +285,7 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
 5. **Tests sur appareils physiques** (Android d'entrée de gamme, iPhone) : seuls des téléphones
    simulés (Chromium, viewport Pixel 7) ont été testés.
 6. **Contenus juridiques** : CGU / politique de confidentialité provisoires, à valider.
-7. **Quiz Swipe & Win** : conservé ; décider s'il reste proposé ou devient obsolète.
+7. **Quiz Swipe & Win** : conservé mais masqué par défaut ; activable à tout moment depuis le back-office.
 8. **Seuils des ligues Cards / Ludo** : à recalibrer sur la distribution réelle des cotes
    (réglables dans le back-office).
 9. **Mode sombre** de l'application : non implémenté en V1.

@@ -17,7 +17,7 @@ Normal, Difficile ; 1 à 3 bots pour Cards et Ludo) : proposé sur la page d'un 
 est en ligne, et après 10 s de recherche sans adversaire. Les bots sont présentés comme tels et ces
 parties d'entraînement ne comptent pour aucun classement.
 
-Le quiz historique **Swipe & gagne** est conservé (`/quiz`).
+Le quiz historique **Swipe & gagne** est conservé (`/quiz`) mais masqué par défaut : il s'active depuis le back-office (Réglages des jeux → « Visible pour les joueurs »).
 
 ## Structure
 

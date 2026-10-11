@@ -8,6 +8,7 @@
 @import './yas-tokens.css';
 @import './site.css';
 @import './games.css';
+@import './covers.css';
 
 :root {
   --content-max: 1180px;

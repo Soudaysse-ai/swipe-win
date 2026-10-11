@@ -8,26 +8,28 @@ import GameArt from '../../components/GameArt';
 import Avatar from '../../components/Avatar';
 import Icon from '../../components/Icon';
 import { BackHeader, Spinner, Sheet, Empty, SectionHead } from '../../components/ui';
-import Plectre from '../../components/Plectre';
+import { HomeScene, GameScene } from '../../components/Covers';
 import PlectreFrame from '../../components/PlectreFrame';
 import CoinBadge from '../../components/CoinBadge';
 import { Podium } from './Home';
 import { BotSheet } from '../../components/BotPlay';
 import { RULES } from '../../lib/rules';
 import { GAME_META } from '../../lib/format';
+import { useFeatures } from '../../lib/features';
 
 // Espace « Jeux » dans l'esprit de l'appli Yas : bandeau jaune avec pastille
 // « pièce », listes sur fond jaune très clair (comme « Dernières transactions »),
 // bouton Midnight Blue par ligne.
 export function GamesList() {
+  const features = useFeatures();
   const [games, setGames] = useState(null);
   useEffect(() => { playerApi.get('/games').then(r => setGames(r.data.games)).catch(() => setGames([])); }, []);
   return (
     <div className="games-page">
-      <section className="page-band">
-        <Plectre className="band-shape" color="#FFE369" size={300} rotate={-24} />
+      <section className="page-band games-band cover">
+        <HomeScene className="cover-scene" />
         <div className="band-copy">
-          <h1 className="band-title">Les jeux</h1>
+          <h1 className="band-title">Les <span className="hl">jeux</span></h1>
           <p>Choisis ton jeu et lance un défi en quelques secondes.</p>
         </div>
         <CoinBadge value="+30" label="pts / victoire" size={92} className="band-coin" />
@@ -67,13 +69,15 @@ export function GamesList() {
           </Link>
           <Link to="/rankings" className="btn sm blue">Voir</Link>
         </div>
-        <div className="tx-row">
-          <Link to="/quiz" className="tx-main">
-            <span className="tx-icon"><Icon name="ball" size={30} /></span>
-            <span className="tx-text"><b>Swipe & gagne</b><span>Le quiz football Vrai / Faux</span></span>
-          </Link>
-          <Link to="/quiz" className="btn sm blue">Jouer</Link>
-        </div>
+        {features?.quiz && (
+          <div className="tx-row">
+            <Link to="/quiz" className="tx-main">
+              <span className="tx-icon"><Icon name="ball" size={30} /></span>
+              <span className="tx-text"><b>Swipe & gagne</b><span>Le quiz football Vrai / Faux</span></span>
+            </Link>
+            <Link to="/quiz" className="btn sm blue">Jouer</Link>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -122,10 +126,9 @@ export function GameLobby() {
       <BackHeader title={game.name} to="/games" right={
         <button className="icon-btn" onClick={() => setRules(true)} aria-label="Règles du jeu"><Icon name="flag" /></button>
       } />
-      <section className="page-band lobby-band">
-        <Plectre className="band-shape" color="#FFE369" size={300} rotate={-24} />
-        <PlectreFrame size={150} rotate={100} halo="#FFF6CC"><GameArt gameId={gameId} height="100%" fit="meet" /></PlectreFrame>
-        <div className="band-copy">
+      <section className={`game-cover cover cover-${gameId}`}>
+        <GameScene gameId={gameId} className="cover-scene" />
+        <div className="cover-copy">
           <h1 className="band-title">{game.name}</h1>
           <p>{game.description}</p>
           <div className="band-chips">

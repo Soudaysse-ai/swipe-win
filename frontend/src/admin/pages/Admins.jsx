@@ -109,6 +109,37 @@ const CONFIG_LABELS = {
   maxShotsPerPlayer: 'Tirs max par joueur',
 };
 
+// « Swipe & gagne » : visible ou masqué pour les joueurs (menus, accueil, pages du quiz).
+function QuizVisibility() {
+  const { can } = useAdminAuth();
+  const [visible, setVisible] = useState(null);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    if (can('quiz.manage')) api.get('/admin/quiz/settings/visible').then(r => setVisible(r.data.visible)).catch(e => setError(adminError(e)));
+  }, [can]);
+  if (!can('quiz.manage')) return null;
+  async function toggle(next) {
+    setError(null);
+    try { setVisible((await api.put('/admin/quiz/settings/visible', { visible: next })).data.visible); } catch (e) { setError(adminError(e)); }
+  }
+  return (
+    <div className="panel stack">
+      <div className="row between wrap" style={{ gap: 10 }}>
+        <h2 style={{ margin: 0 }}>Swipe & gagne <span className="tiny muted">quiz football</span></h2>
+        <label className="row small" style={{ gap: 6 }}>
+          <input type="checkbox" checked={!!visible} disabled={visible === null} onChange={e => toggle(e.target.checked)} /> Visible pour les joueurs
+        </label>
+      </div>
+      <p className="small muted" style={{ margin: 0 }}>
+        {visible === null ? 'Chargement…' : visible
+          ? 'Affiché dans les menus, sur l\'accueil et dans la page Jeux. Les joueurs peuvent lancer une partie.'
+          : 'Masqué : aucune entrée côté joueurs et aucune nouvelle partie possible. Les questions, lots et historiques restent gérables ici.'}
+      </p>
+      <ErrorBox error={error} />
+    </div>
+  );
+}
+
 export function Settings() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -127,6 +158,7 @@ export function Settings() {
       <Head title="Réglages des jeux" sub="Chronomètres, tolérance réseau, seuils de ligue. Chaque modification est journalisée et s'applique aux nouvelles parties." />
       <ErrorBox error={error} />
       {msg && <div className="alert success">{msg}</div>}
+      <QuizVisibility />
       {data.games.map(g => {
         const lg = data.leagues.filter(l => l.game_id === g.id);
         return (

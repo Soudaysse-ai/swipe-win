@@ -8,6 +8,7 @@ const friends = require('../services/friends');
 const lb = require('../services/leaderboards');
 const analytics = require('../services/analytics');
 const chat = require('../services/chat');
+const features = require('../services/features');
 const rooms = require('../realtime/rooms');
 const runtime = require('../realtime/matchRuntime');
 const matchmaking = require('../realtime/matchmaking');
@@ -59,6 +60,11 @@ router.get('/games/:id', optionalPlayer, ah(async (req, res) => {
   if (req.user) analytics.track('game_opened', { userId: req.user.userId, gameId: game.id });
   const top = await lb.getBoard({ gameId: game.id, period: 'season', limit: 3, userId: req.user?.userId });
   res.json({ game, top3: top.entries, me: top.me, publicRooms: rooms.listPublic(game.id) });
+}));
+
+// Fonctionnalités activées depuis le back-office (ex. « Swipe & gagne »).
+router.get('/features', ah(async (_req, res) => {
+  res.json({ features: await features.publicFeatures() });
 }));
 
 router.get('/chat/presets', (_req, res) => {
