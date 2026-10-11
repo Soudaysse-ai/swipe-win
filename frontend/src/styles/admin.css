@@ -1,6 +1,6 @@
 /* Back-office « Centre de contrôle Yas » (bureau d'abord, utilisable sur mobile). */
-.adm { min-height: 100dvh; display: flex; background: var(--yas-blue-10); color: var(--yas-blue); font-family: var(--yas-font); }
-.adm-side { width: 248px; flex-shrink: 0; background: var(--yas-blue); color: #fff; display: flex; flex-direction: column; position: sticky; top: 0; height: 100dvh; overflow-y: auto; }
+.adm { min-height: 100vh; min-height: 100dvh; display: flex; background: var(--yas-blue-10); color: var(--yas-blue); font-family: var(--yas-font); }
+.adm-side { width: 248px; flex-shrink: 0; background: var(--yas-blue); color: #fff; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; height: 100dvh; overflow-y: auto; }
 .adm-brand { display: flex; align-items: center; gap: 10px; padding: 18px 18px 14px; font: italic 800 18px/1.1 var(--yas-font); }
 .adm-brand small { display: block; font: 500 12px/1.2 var(--yas-font); color: var(--yas-yellow); font-style: normal; }
 .adm-nav { display: flex; flex-direction: column; gap: 2px; padding: 4px 10px 16px; flex: 1; }

@@ -13,6 +13,12 @@ test('Yas Connect contre un bot : partie complète jusqu\'à l\'écran de fin', 
   await expect(page).toHaveURL(/\/match\//, { timeout: 10000 });
   await expect(page.getByText('Entraînement')).toBeVisible();
   await expect(page.getByLabel('Grille de Yas Connect')).toBeVisible({ timeout: 15000 });
+  // La grille garde ses proportions (7 × 6) : elle ne doit jamais s'écraser en bandeau vide.
+  const grid = await page.getByLabel('Grille de Yas Connect').boundingBox();
+  expect(grid.height).toBeGreaterThan(grid.width * 0.75);
+  const col = await page.getByRole('button', { name: 'Colonne 1' }).boundingBox();
+  expect(col.width).toBeGreaterThan(grid.width / 9);
+  expect(col.height).toBeGreaterThan(grid.height * 0.8);
 
   // Le joueur pose ses jetons dans la première colonne libre ; le bot répond seul.
   const result = page.getByRole('heading', { name: /victoire|pas cette fois|nul/i });

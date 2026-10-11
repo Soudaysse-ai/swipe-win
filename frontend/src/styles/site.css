@@ -16,7 +16,7 @@
 /* Bouton Large (56 px) réservé aux grands écrans ; Medium (44 px) sur mobile */
 @media (max-width: 1023px) { .btn.lg { height: var(--yas-btn-md); border-radius: var(--yas-radius-btn-md); padding: 0 24px; font-size: 18px; } }
 
-.landing { min-height: 100dvh; background: #fff; color: var(--yas-blue); overflow-x: clip; }
+.landing { min-height: 100vh; min-height: 100dvh; background: #fff; color: var(--yas-blue); overflow-x: clip; }
 
 /* ── En-tête web (pages Yas) : barre Sunshine Yellow sur une rangée, logo calé à
    gauche, liens Menu séparés par de fins filets, actions à droite ─────────── */
@@ -111,9 +111,10 @@
   position: absolute; left: 10px; right: 10px; bottom: 12px; height: 44px; border-radius: 22px;
   background: var(--yas-blue); color: #fff; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; justify-items: center; padding: 0 4px;
 }
-.dm-nav span { width: min(34px, 100%); aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.dm-nav span { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .dm-nav span.on { background: var(--yas-yellow); color: var(--yas-blue); }
 @media (min-width: 1024px) { .device { width: 270px; } }
+@supports not (aspect-ratio: 1) { .device { height: 488px; } @media (min-width: 1024px) { .device { height: 558px; } } }
 
 /* ── Sections ────────────────────────────────────────────────────────────── */
 .section { padding: 56px 0; background: #fff; }
@@ -212,7 +213,7 @@
 .coin-badge .coin-spark { position: absolute; top: 14%; right: 22%; }
 
 /* ── Écrans de compte ────────────────────────────────────────────────────── */
-.auth-page { min-height: 100dvh; display: flex; background: #fff; }
+.auth-page { min-height: 100vh; min-height: 100dvh; display: flex; background: #fff; }
 .auth-aside { display: none; }
 .auth-main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--yas-blue-10); }
 .auth-top { display: flex; align-items: center; gap: 12px; height: 72px; padding: 0 20px; background: var(--yas-yellow); box-shadow: 0 4px 4px rgba(0, 0, 0, .1); }
@@ -224,7 +225,7 @@
 .auth-card { color: var(--yas-blue); }
 @media (min-width: 1024px) {
   .auth-aside {
-    display: flex; flex-direction: column; position: sticky; top: 0; height: 100dvh; overflow: hidden;
+    display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden;
     flex: 0 0 46%; max-width: 720px; padding: 28px 48px 0; background: var(--yas-yellow); color: var(--yas-blue);
   }
   .auth-aside-copy { margin-top: 48px; }

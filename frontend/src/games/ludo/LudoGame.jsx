@@ -170,7 +170,8 @@ export default function LudoGame({ snapshot, me, sendAction, matchId }) {
   const name = (u) => (u === me ? 'Toi' : byId[u]?.username);
   const tokens = useSteppedTokens(v.tokens);
   const [rolling, setRolling] = useState(false);
-  const [flash, setFlash] = useState(null);   // lancer qui a mis fin au tour : { userId, value, text }
+  const [rollEnd, setRollEnd] = useState(0);  // instant où l'animation du dé s'arrête
+  const [flash, setFlash] = useState(null);   // lancer qui a mis fin au tour : { userId, value, text, until }
   const [banner, setBanner] = useState(null);
   const note = useRef(null);
   const seqRef = useRef(v.lastRoll?.seq ?? null);
@@ -189,19 +190,28 @@ export default function LudoGame({ snapshot, me, sendAction, matchId }) {
   // (aucun pion jouable, trois 6), le résultat reste affiché un moment.
   useEffect(() => {
     const r = v.lastRoll;
-    if (!r || r.seq === seqRef.current) return undefined;
+    if (!r || r.seq === seqRef.current) return;
     seqRef.current = r.seq;
     setRolling(true);
-    const timers = [setTimeout(() => setRolling(false), ROLL_MS)];
+    setRollEnd(Date.now() + ROLL_MS);
     const ended = v.turn !== r.userId || (v.phase === 'roll' && note.current);
-    if (ended && note.current) {
-      const text = note.current;
-      setFlash({ userId: r.userId, value: r.value, text });
-      timers.push(setTimeout(() => setFlash(null), FLASH_MS));
-    }
+    if (ended && note.current) setFlash({ userId: r.userId, value: r.value, text: note.current, until: Date.now() + FLASH_MS });
     note.current = null;
-    return () => timers.forEach(clearTimeout);
   }, [v.lastRoll?.seq]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Chaque affichage temporaire a son propre minuteur : un lancer suivant (souvent celui
+  // du bot, très rapide) ne doit jamais annuler la fin d'un affichage précédent, sinon
+  // le dé reste verrouillé et le joueur perd son tour.
+  useEffect(() => {
+    if (!rollEnd) return undefined;
+    const t = setTimeout(() => setRolling(false), Math.max(0, rollEnd - Date.now()));
+    return () => clearTimeout(t);
+  }, [rollEnd]);
+  useEffect(() => {
+    if (!flash) return undefined;
+    const t = setTimeout(() => setFlash(null), Math.max(0, flash.until - Date.now()));
+    return () => clearTimeout(t);
+  }, [flash]);
 
   const myTurn = playing && v.turn === me;
   const busy = rolling || !!flash;
@@ -211,6 +221,7 @@ export default function LudoGame({ snapshot, me, sendAction, matchId }) {
   async function roll() {
     if (!canRoll) return;
     setRolling(true);
+    setRollEnd(Date.now() + 5000); // filet de sécurité si la réponse du serveur se fait attendre
     const ok = await sendAction({ type: 'roll' });
     if (!ok) setRolling(false);
   }

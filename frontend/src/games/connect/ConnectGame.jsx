@@ -6,6 +6,13 @@ import { TimerBar } from '../../components/ui';
 const COLS = 7;
 const ROWS = 6;
 const DISC = { yellow: '#FFD100', blue: '#5F99D2' };
+const RING = { yellow: '#E0AE00', blue: '#3B78B8' };
+// Géométrie de la grille dans le repère du SVG.
+const CELL = 100;
+const PAD = 18;
+const DISC_R = 40;
+const VB_W = COLS * CELL + PAD * 2;
+const VB_H = ROWS * CELL + PAD * 2;
 
 export default function ConnectGame({ snapshot, me, sendAction }) {
   const v = snapshot.view;
@@ -48,40 +55,51 @@ export default function ConnectGame({ snapshot, me, sendAction }) {
       </div>
       {v.status === 'playing' && <TimerBar deadline={v.turnDeadline} total={v.turnMs || 20000} />}
 
-      <div className="connect-board" style={{ background: 'var(--yas-blue)', borderRadius: 20, padding: 8, boxShadow: 'var(--yas-shadow-card)', touchAction: 'manipulation' }}
-        role="grid" aria-label="Grille de Yas Connect">
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, 1fr)`, gap: 0 }}>
+      {/* Grille dessinée en SVG (taille fixée par le viewBox) : même rendu sur tous les
+          navigateurs, sans dépendre d'aspect-ratio ni de l'étirement des boutons. */}
+      <div className="connect-board" role="grid" aria-label="Grille de Yas Connect">
+        <div className="connect-frame">
+          <svg className="connect-svg" viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="xMidYMid meet" aria-hidden focusable="false">
+            <defs>
+              <linearGradient id="cx-hole" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#001B40" /><stop offset=".55" stopColor="#002A60" />
+              </linearGradient>
+              <linearGradient id="cx-shade" x1="0" y1="0" x2="0" y2="1">
+                <stop offset=".55" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".2" />
+              </linearGradient>
+            </defs>
+            <rect width={VB_W} height={VB_H} rx="48" fill="#00377D" />
+            {hover !== null && myTurn && v.board[ROWS - 1][hover] === null && (
+              <rect x={PAD + hover * CELL + 4} y={PAD - 6} width={CELL - 8} height={ROWS * CELL + 12} rx="40" fill="#fff" fillOpacity=".12" />
+            )}
+            {Array.from({ length: COLS }, (_, c) => Array.from({ length: ROWS }, (_, r) => {
+              const cell = v.board[r][c];
+              const cx = PAD + c * CELL + CELL / 2;
+              const cy = PAD + (ROWS - 1 - r) * CELL + CELL / 2;
+              const isLast = last && last.row === r && last.col === c;
+              const isWin = win.has(`${r}-${c}`);
+              if (!cell) return <circle key={`${r}-${c}`} cx={cx} cy={cy} r={DISC_R} fill="url(#cx-hole)" />;
+              return (
+                <g key={`${r}-${c}${isLast ? `-${v.moveCount}` : ''}`} className={isLast ? `cx-drop cx-drop-${ROWS - r}` : undefined}>
+                  <circle cx={cx} cy={cy} r={DISC_R} fill={DISC[cell]} />
+                  <circle cx={cx} cy={cy} r={DISC_R * 0.66} fill="none" stroke={RING[cell]} strokeWidth="6" />
+                  <circle cx={cx} cy={cy} r={DISC_R} fill="url(#cx-shade)" />
+                  {isWin && <circle className="cx-win" cx={cx} cy={cy} r={DISC_R + 5} fill="none" stroke="#fff" strokeWidth="7" />}
+                </g>
+              );
+            }))}
+          </svg>
           {Array.from({ length: COLS }, (_, c) => {
             const full = v.board[ROWS - 1][c] !== null;
             return (
-              <button key={c} onClick={() => play(c)} disabled={!myTurn || full}
+              <button key={c} type="button" className="connect-col" onClick={() => play(c)} disabled={!myTurn || full}
                 onMouseEnter={() => setHover(c)} onMouseLeave={() => setHover(null)}
                 aria-label={`Colonne ${c + 1}${full ? ' (pleine)' : ''}`}
-                style={{ display: 'flex', flexDirection: 'column-reverse', gap: 0, padding: '2px 0', borderRadius: 12,
-                  background: myTurn && hover === c && !full ? 'rgba(255,255,255,.12)' : 'transparent', cursor: myTurn && !full ? 'pointer' : 'default' }}>
-                {Array.from({ length: ROWS }, (_, r) => {
-                  const cell = v.board[r][c];
-                  const isLast = last && last.row === r && last.col === c;
-                  const isWin = win.has(`${r}-${c}`);
-                  return (
-                    <span key={r} style={{ display: 'block', padding: '7%' }}>
-                      <span style={{
-                        display: 'block', aspectRatio: '1', borderRadius: '50%',
-                        background: cell ? DISC[cell] : '#002a60',
-                        boxShadow: cell ? 'inset 0 -4px 0 rgba(0,0,0,.18)' : 'inset 0 3px 6px rgba(0,0,0,.45)',
-                        outline: isWin ? '3px solid #fff' : 'none',
-                        animation: isLast ? `drop-${ROWS - r} .35s cubic-bezier(.4,0,.6,1.3)` : isWin ? 'win-pulse .9s ease-in-out infinite' : undefined,
-                      }} />
-                    </span>
-                  );
-                })}
-              </button>
+                style={{ left: `${((PAD + c * CELL) / VB_W) * 100}%`, width: `${(CELL / VB_W) * 100}%`, cursor: myTurn && !full ? 'pointer' : 'default' }} />
             );
           })}
         </div>
       </div>
-      <style>{Array.from({ length: ROWS }, (_, i) => `@keyframes drop-${i + 1} { from { transform: translateY(-${(i + 1) * 110}%); } to { transform: none; } }`).join('\n')
-        + '\n@keyframes win-pulse { 50% { transform: scale(.85); } }'}</style>
       <p className="tiny muted center">{v.moveCount} coup(s) joué(s)</p>
     </div>
   );
