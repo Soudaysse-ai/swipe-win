@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api, { adminError } from '../../utils/api';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
-import { Head, GameSelect, ExportButtons, DataTable, fmt, Loading, ErrorBox, GAME_NAMES } from '../ui';
+import { Head, GameSelect, ExportButtons, DataTable, fmt, Loading, ErrorBox, gameLabel } from '../ui';
 
 const PERIODS = [['week', 'Cette semaine'], ['month', 'Ce mois'], ['season', 'Saison'], ['all', 'Historique']];
 
@@ -11,18 +11,17 @@ export function Leaderboards() {
   const { can } = useAdminAuth();
   const [gameId, setGameId] = useState(null);
   const [period, setPeriod] = useState('season');
-  const [board, setBoard] = useState('rating');
   const [data, setData] = useState(null);
   const [seasons, setSeasons] = useState([]);
   const [error, setError] = useState(null);
   const [msg, setMsg] = useState(null);
   const [season, setSeason] = useState({ name: '', startsAt: '', endsAt: '' });
-  const params = { gameId: gameId || undefined, period, board: gameId === 'penalty' ? board : undefined, limit: 500 };
+  const params = { gameId: gameId || undefined, period, limit: 500 };
   const load = () => {
     api.get('/admin/leaderboards', { params }).then(r => setData(r.data)).catch(e => setError(adminError(e)));
     api.get('/admin/seasons').then(r => setSeasons(r.data.seasons)).catch(() => {});
   };
-  useEffect(load, [gameId, period, board]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [gameId, period]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function recalc() {
     if (!window.confirm('Recalculer les agrégats (XP, niveaux, parties, victoires) depuis les grands livres ?')) return;
@@ -44,7 +43,6 @@ export function Leaderboards() {
       <div className="filters">
         <GameSelect value={gameId} onChange={setGameId} allLabel="Tous les jeux (points)" />
         <select className="adm-input" value={period} onChange={e => setPeriod(e.target.value)} aria-label="Période">{PERIODS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
-        {gameId === 'penalty' && <select className="adm-input" value={board} onChange={e => setBoard(e.target.value)} aria-label="Classement"><option value="rating">Meilleurs joueurs</option><option value="scorers">Meilleurs buteurs</option><option value="keepers">Meilleurs gardiens</option></select>}
       </div>
       <ErrorBox error={error} />
       {!data ? <Loading /> : (
@@ -82,7 +80,7 @@ export function Review() {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
   const load = () => api.get('/admin/matches/review', { params: { status } }).then(r => setList(r.data.matches)).catch(e => setError(adminError(e)));
-  useEffect(load, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
   async function decide(id, decision) {
     const reason = window.prompt(decision === 'void' ? 'Motif de l\'annulation (points, XP et cotes seront compensés) :' : 'Motif de la validation :');
     if (!reason) return;
@@ -95,7 +93,7 @@ export function Review() {
       <ErrorBox error={error} />
       {!list ? <Loading /> : (
         <DataTable rows={list} empty="Rien à examiner." onRowClick={(r) => api.get(`/admin/matches/${r.id}`).then(x => setDetail(x.data))} columns={[
-          { key: 'ended_at', label: 'Date', render: r => fmt.dt(r.ended_at) }, { key: 'game_id', label: 'Jeu', render: r => GAME_NAMES[r.game_id] },
+          { key: 'ended_at', label: 'Date', render: r => fmt.dt(r.ended_at) }, { key: 'game_id', label: 'Jeu', render: r => gameLabel(r.game_id) },
           { key: 'players', label: 'Joueurs', render: r => (r.players || []).map(p => `${p.username} (${p.outcome})`).join(' vs ') },
           { key: 'flags', label: 'Alerte', render: r => (r.flags || []).map(f => f.detail).join(' ; ') },
           ...(status === 'pending' ? [{ key: 'x', label: '', render: r => (

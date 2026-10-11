@@ -57,7 +57,7 @@ function leagueFor(rating, leagues) {
 }
 
 // Défi quotidien : jeu du jour déterministe (rotation sur les 4 jeux), objectif = gagner 1 partie.
-const CHALLENGE_ROTATION = ['connect', 'ludo', 'cards', 'penalty', 'foot'];
+const CHALLENGE_ROTATION = ['connect', 'ludo', 'cards', 'foot'];
 // localDay : 'YYYY-MM-DD' (jour local des Comores, cf. lib/time.js)
 function dailyChallenge(localDay) {
   const day = Math.floor(Date.parse(`${localDay}T00:00:00Z`) / 86400000);

@@ -15,7 +15,7 @@ export function Admins() {
     api.get('/admin/admins').then(r => setAdmins(r.data.admins)).catch(e => setError(adminError(e)));
     api.get('/admin/roles').then(r => setRoles(r.data)).catch(() => {});
   };
-  useEffect(load, []);
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   async function create(e) {
     e.preventDefault();
     try { await api.post('/admin/admins', form); setMsg(`Compte créé pour ${form.email}.`); setForm({ email: '', name: '', role: 'data_analyst', password: '' }); load(); } catch (err) { setError(adminError(err)); }
@@ -114,7 +114,7 @@ export function Settings() {
   const [error, setError] = useState(null);
   const [msg, setMsg] = useState(null);
   const load = () => api.get('/admin/games').then(r => setData(r.data)).catch(e => setError(adminError(e)));
-  useEffect(load, []);
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   async function save(g, patch) {
     try { await api.put(`/admin/games/${g.id}`, patch); setMsg(`${g.name} mis à jour.`); load(); } catch (e) { setError(adminError(e)); }
   }

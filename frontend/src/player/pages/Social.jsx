@@ -172,7 +172,7 @@ export function GameStatsCard({ g }) {
       <div className="row between tiny muted wrap">
         <span>{g.wins} V · {g.losses} D{g.draws ? ` · ${g.draws} N` : ''}</span>
         <span>Série max : {g.bestStreak}</span>
-        {g.gameId === 'penalty' && g.extra?.shots ? <span>{g.extra.goals || 0} buts / {g.extra.shots} tirs · {g.extra.saves || 0} arrêts</span> : null}
+        {g.gameId === 'foot' && g.played ? <span>{g.extra?.goals || 0} buts marqués</span> : null}
         {(g.gameId === 'ludo' || g.gameId === 'cards') && g.played ? <span>Places : {g.places.join(' / ')}</span> : null}
       </div>
     </div>

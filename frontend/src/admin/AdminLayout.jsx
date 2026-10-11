@@ -13,7 +13,6 @@ const NAV = [
   { group: 'Jeux' },
   { to: '/admin/games/cards', label: 'Yas Cards', perm: 'analytics.view' },
   { to: '/admin/games/connect', label: 'Yas Connect', perm: 'analytics.view' },
-  { to: '/admin/games/penalty', label: 'Yas Penalty', perm: 'analytics.view' },
   { to: '/admin/games/ludo', label: 'Yas Ludo', perm: 'analytics.view' },
   { to: '/admin/games/foot', label: 'Yas Foot', perm: 'analytics.view' },
   { group: 'Joueurs' },

@@ -3,6 +3,7 @@ const pool = require('../db/pool');
 const P = require('./progression');
 const { leagues, globalRows } = require('./leaderboards');
 const { notFound } = require('../lib/errors');
+const { getEngine } = require('../games');
 
 async function gameStats(userId) {
   const [stats, games, lg] = await Promise.all([
@@ -11,7 +12,7 @@ async function gameStats(userId) {
     leagues(),
   ]);
   const byGame = Object.fromEntries(stats.rows.map(r => [r.game_id, r]));
-  return games.rows.map((g) => {
+  return games.rows.filter(g => getEngine(g.id)).map((g) => {
     const s = byGame[g.id];
     const rating = s ? Number(s.rating) : 1000;
     return {
@@ -34,6 +35,7 @@ async function badges(userId) {
     `SELECT b.id, b.name, b.description, b.icon, pb.awarded_at,
             (pb.user_id IS NOT NULL) AS earned
        FROM badges b LEFT JOIN player_badges pb ON pb.badge_id = b.id AND pb.user_id = $1
+      WHERE NOT b.retired OR pb.user_id IS NOT NULL
       ORDER BY b.sort_order`, [userId]);
   return rows;
 }

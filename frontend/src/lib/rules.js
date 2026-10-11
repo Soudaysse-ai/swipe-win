@@ -32,11 +32,4 @@ export const RULES = {
     'Le premier à 3 buts gagne. Sinon, à la fin des 5 minutes, le score décide (match nul possible).',
     '20 secondes pour tirer : sinon la main passe ; 3 fois de suite, c\'est forfait.',
   ],
-  penalty: [
-    'Deux joueurs, 5 tirs chacun, rôles alternés : tireur puis gardien.',
-    'Le tireur choisit une zone parmi 5, le gardien choisit où plonger : les choix sont secrets jusqu\'à la révélation.',
-    'Même zone : arrêt ! Zones différentes : but.',
-    '15 secondes pour décider. Tireur sans choix : tir manqué. Gardien sans choix : but (sauf si le tireur n\'a pas choisi non plus).',
-    'Fin anticipée si l\'un ne peut plus rattraper l\'autre ; mort subite en cas d\'égalité (20 tirs maximum, puis match nul).',
-  ],
 };

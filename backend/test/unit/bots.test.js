@@ -10,7 +10,6 @@ const CONFIG = {
   connect: { turnSeconds: 20 },
   ludo: { turnSeconds: 20 },
   cards: { turnSeconds: 20 },
-  penalty: { decisionSeconds: 10, revealMs: 2600 },
   foot: { turnSeconds: 20, matchSeconds: 300, goalsToWin: 3 },
 };
 
@@ -50,7 +49,7 @@ function simulate(gameId, levels, seed) {
 
 const LEVEL_SETS = [['easy', 'hard'], ['normal', 'normal'], ['hard', 'easy']];
 
-for (const gameId of ['connect', 'penalty', 'foot']) {
+for (const gameId of ['connect', 'foot']) {
   test(`${gameId} : parties complètes entre bots, à tous les niveaux`, () => {
     for (const [k, levels] of LEVEL_SETS.entries()) {
       for (let seed = 1; seed <= 6; seed++) {
@@ -109,16 +108,6 @@ test('cards : pas de +4 illégal (bluff) au niveau normal ou difficile', () => {
       assert.notEqual(bots.decide('cards', view, 'bot:1', { level, rng }).action.cardId, 'W4-1');
     }
   }
-});
-
-test('penalty : le bot attend l\'ouverture du tir et ne rejoue pas un choix verrouillé', () => {
-  const rng = seededRng(9);
-  const base = { status: 'playing', players: ['bot:1', 'u'], history: [] };
-  const open = { ...base, kick: { myRole: 'keeper', myChoice: null, opensAt: 5000 } };
-  const d = bots.decide('penalty', open, 'bot:1', { level: 'hard', rng });
-  assert.equal(d.notBefore, 5000);
-  assert.ok([1, 2, 3, 4, 5].includes(d.action.zone));
-  assert.equal(bots.decide('penalty', { ...base, kick: { myRole: 'keeper', myChoice: 2, opensAt: 0 } }, 'bot:1', { level: 'hard', rng }), null);
 });
 
 test('foot : le bot pousse le ballon vers le but adverse quand la voie est libre', () => {

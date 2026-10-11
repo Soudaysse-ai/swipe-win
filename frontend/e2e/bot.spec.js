@@ -30,7 +30,7 @@ test('Yas Connect contre un bot : partie complète jusqu\'à l\'écran de fin', 
 
 test('recherche sans adversaire : proposition de jouer contre un bot', async ({ page }) => {
   await registerViaUi(page, `Seul${Date.now() % 10000}`);
-  await page.goto('/games/penalty');
+  await page.goto('/games/ludo');
   await page.getByRole('button', { name: /Jouer maintenant/ }).click();
   await expect(page.getByText('Recherche d\'adversaires…')).toBeVisible();
   await page.getByRole('button', { name: 'Jouer seul' }).click({ timeout: 20000 });

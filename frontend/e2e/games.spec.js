@@ -1,4 +1,4 @@
-// Les trois autres jeux se lancent entre deux téléphones et répondent aux
+// Les autres jeux se lancent entre deux téléphones et répondent aux
 // actions de l'interface (la logique reste côté serveur).
 import { test, expect } from '@playwright/test';
 import { startDuel } from './helpers';
@@ -31,16 +31,5 @@ test('Yas Cards : mains privées et première action', async ({ browser }) => {
     await first.getByRole('button', { name: 'Piocher une carte' }).click();
   }
   if (SHOTS) await first.screenshot({ path: `${SHOTS}/cards.png`, fullPage: true });
-  await close();
-});
-
-test('Yas Penalty : choix simultanés et révélation', async ({ browser }) => {
-  const { a, b, close } = await startDuel(browser, 'penalty');
-  await expect(a.getByRole('group', { name: 'But et zones de tir' })).toBeVisible({ timeout: 10000 });
-  for (const p of [a, b]) {
-    await p.getByRole('button', { name: /(Tirer|Plonger) : Haut gauche/ }).click();
-  }
-  await expect(a.getByText('ARRÊT !')).toBeVisible({ timeout: 5000 }); // même zone → arrêt
-  if (SHOTS) await a.screenshot({ path: `${SHOTS}/penalty.png`, fullPage: true });
   await close();
 });

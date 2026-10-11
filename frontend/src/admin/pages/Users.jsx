@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import api, { adminError } from '../../utils/api';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import Avatar from '../../components/Avatar';
-import { Head, ExportButtons, DataTable, Pager, fmt, Loading, ErrorBox, StatusDot, Kpi, GAME_NAMES } from '../ui';
+import { Head, ExportButtons, DataTable, Pager, fmt, Loading, ErrorBox, StatusDot, Kpi, GAME_NAMES, gameLabel } from '../ui';
 
 export function Users() {
   const navigate = useNavigate();
@@ -168,7 +168,7 @@ export function UserDetail() {
       <div className="panel">
         <h2>Historique des matchs (50 derniers)</h2>
         <DataTable rows={data.history} empty="Aucun match." columns={[
-          { key: 'endedAt', label: 'Date', render: r => fmt.dt(r.endedAt) }, { key: 'gameId', label: 'Jeu', render: r => GAME_NAMES[r.gameId] },
+          { key: 'endedAt', label: 'Date', render: r => fmt.dt(r.endedAt) }, { key: 'gameId', label: 'Jeu', render: r => gameLabel(r.gameId) },
           { key: 'outcome', label: 'Résultat', render: r => (r.status === 'CANCELLED' ? 'Annulée' : `${r.outcome || '—'}${r.placement ? ` (${r.placement}e)` : ''}`) },
           { key: 'opp', label: 'Adversaires', render: r => r.opponents.map(o => o.username).join(', ') },
           { key: 'ratingDelta', label: 'Δ cote', num: true, render: r => (r.ratingDelta == null ? '—' : `${r.ratingDelta > 0 ? '+' : ''}${r.ratingDelta}`) },

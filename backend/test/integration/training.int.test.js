@@ -86,24 +86,6 @@ test('Yas Connect contre un bot : partie complète, aucun impact sur le classeme
   assert.equal(h.opponents[0].isBot, true);
 });
 
-test('Yas Penalty contre un bot : choix simultanés et cachés, séance menée à son terme', async () => {
-  await setGameConfig('penalty', { revealMs: 0 });
-  const started = ca.waitFor('match:state', s => s.status === 'IN_PROGRESS' && s.view);
-  const res = await ca.emit('bot:start', { gameId: 'penalty', level: 'normal' });
-  assert.equal(res.ok, true, JSON.stringify(res));
-  await started;
-  let n = 0;
-  const end = await playUntilEnd(res.matchId, (v) => {
-    if (v.status !== 'playing' || !v.kick || v.kick.myChoice != null) return null;
-    n += 1;
-    return { type: 'choose', zone: (n % 5) + 1 };
-  });
-  assert.equal(end.training, true);
-  assert.equal(end.placements.length, 2);
-  const shots = end.placements.reduce((t, p) => t + p.stats.shots, 0);
-  assert.ok(shots >= 6, `séance trop courte : ${shots} tirs`);
-});
-
 test('Yas Ludo à 3 bots : abandonner arrête la partie aussitôt', async () => {
   const started = ca.waitFor('match:state', s => s.status === 'IN_PROGRESS' && s.view);
   const res = await ca.emit('bot:start', { gameId: 'ludo', opponents: 3, level: 'easy' });
@@ -173,4 +155,16 @@ test('Yas Foot contre un bot : tir à la fronde, trajectoire reçue, le bot rép
   await ca.emit('match:resign', { matchId: res.matchId });
   const end = await ended;
   assert.equal(end.training, true);
+});
+
+test('Yas Penalty retiré : absent de la liste, introuvable, plus jouable', async () => {
+  const list = await api(srv.base, 'GET', '/api/games');
+  assert.deepEqual(list.data.games.map(g => g.id).sort(), ['cards', 'connect', 'foot', 'ludo']);
+  assert.equal((await api(srv.base, 'GET', '/api/games/penalty')).status, 404);
+  const r = await ca.emit('bot:start', { gameId: 'penalty' });
+  assert.equal(r.code, 'GAME_UNAVAILABLE');
+  const room = await ca.emit('room:create', { gameId: 'penalty', visibility: 'private' });
+  assert.equal(room.ok, false);
+  const stats = await api(srv.base, 'GET', '/api/players/me/stats', { token: alice.token });
+  assert.ok(!stats.data.games.some(g => g.gameId === 'penalty'));
 });

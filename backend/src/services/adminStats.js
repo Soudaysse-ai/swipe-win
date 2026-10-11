@@ -22,7 +22,7 @@ const { leagues } = require('./leaderboards');
 
 const ACTIVE_EVENTS = ['match_started', 'match_completed', 'match_abandoned', 'room_joined', 'room_created',
   'matchmaking_started', 'friend_invited', 'invite_accepted', 'tournament_joined', 'leaderboard_viewed', 'game_opened'];
-const GAMES = ['cards', 'connect', 'penalty', 'ludo', 'foot'];
+const GAMES = ['cards', 'connect', 'ludo', 'foot'];
 
 // Période [from, to] en dates locales (Comores), bornes incluses. Défaut : 30 derniers jours.
 function range(query = {}) {
@@ -252,25 +252,6 @@ async function gameSpecific(gameId, p, inRange) {
          FROM match_results r JOIN match_players mp ON mp.match_id = r.match_id
         WHERE r.game_id = $1 AND r.is_valid AND ${inRange}`, p);
     return rows[0];
-  }
-  if (gameId === 'penalty') {
-    const [agg, scorer, keeper] = await Promise.all([
-      pool.query(
-        `SELECT COALESCE(SUM((mp.stats->>'goals')::int), 0)::int AS goals, COALESCE(SUM((mp.stats->>'shots')::int), 0)::int AS shots,
-                COALESCE(SUM((mp.stats->>'saves')::int), 0)::int AS saves
-           FROM match_results r JOIN match_players mp ON mp.match_id = r.match_id WHERE r.game_id = $1 AND r.is_valid AND ${inRange}`, p),
-      pool.query(
-        `SELECT u.username, s.user_id, (s.extra->>'goals')::int AS goals, (s.extra->>'shots')::int AS shots
-           FROM player_game_stats s JOIN users u ON u.id = s.user_id
-          WHERE s.game_id = 'penalty' AND COALESCE((s.extra->>'shots')::int, 0) >= 10 ORDER BY goals DESC NULLS LAST LIMIT 1`),
-      pool.query(
-        `SELECT u.username, s.user_id, (s.extra->>'saves')::int AS saves, (s.extra->>'shotsFaced')::int AS shots_faced,
-                (s.extra->>'saves')::float / NULLIF((s.extra->>'shotsFaced')::float, 0) AS save_rate
-           FROM player_game_stats s JOIN users u ON u.id = s.user_id
-          WHERE s.game_id = 'penalty' AND COALESCE((s.extra->>'shotsFaced')::int, 0) >= 10 ORDER BY save_rate DESC NULLS LAST LIMIT 1`),
-    ]);
-    const a = agg.rows[0];
-    return { ...a, successRate: a.shots ? a.goals / a.shots : null, bestScorer: scorer.rows[0] || null, bestKeeper: keeper.rows[0] || null };
   }
   if (gameId === 'ludo' || gameId === 'cards') {
     const [sizes, places] = await Promise.all([

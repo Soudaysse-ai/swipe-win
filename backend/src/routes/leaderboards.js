@@ -11,7 +11,7 @@ function params(req) {
   return {
     period: lb.PERIODS.includes(req.query.period) ? req.query.period : 'season',
     limit: req.query.limit,
-    board: ['scorers', 'keepers'].includes(req.query.board) ? req.query.board : 'rating',
+    board: 'rating',
   };
 }
 

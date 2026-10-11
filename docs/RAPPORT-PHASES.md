@@ -7,9 +7,9 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 | Suite | Commande | Résultat |
 |---|---|---|
-| Unitaires backend | `npm test` | **101 / 101** |
-| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **32 / 32** |
-| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **10 / 10** |
+| Unitaires backend | `npm test` | **88 / 88** |
+| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **31 / 31** |
+| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **9 / 9** |
 | Build frontend | `npm run build` | OK |
 | Charge indicative (`scripts/loadtest.js`, 200 clients, 30 s) | | 2 492 parties, 0 erreur, p50 48 ms, p95 384 ms |
 
@@ -57,7 +57,7 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
   saison plafonnés, ligues, badges, classements global/par jeu/périodes, départages, évolution du
   rang (instantanés), profils publics sans données privées, historique.
 
-## Phase 6 — Yas Ludo · Phase 7 — Yas Cards · Phase 8 — Yas Penalty
+## Phase 6 — Yas Ludo · Phase 7 — Yas Cards · Phase 8 — Yas Penalty (retiré depuis, voir plus bas)
 - **Fichiers** : `games/{ludo,cards,penalty}/engine.js`, `frontend/src/games/{ludo,cards,penalty}/*`,
   `games/common/Dice.jsx`.
 - **Tests** : Ludo 17 unitaires + partie à 4 clients ; Cards 20 unitaires + partie complète à
@@ -212,7 +212,7 @@ Retours après les premières parties (comparaison avec Plato) :
   en bas avec les cartes jouables levées.
 
 ## Évolution — Yas Foot (football de table)
-Cinquième jeu, ajouté à côté de Yas Penalty (conservé) — migration 007, classement Elo.
+Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Penalty, retiré ensuite.
 - **Règles** : 2 joueurs, 5 palets chacun et un ballon. À son tour, on tire un de ses palets comme une
   fronde ; tout rebondit (palets, ballon, bords, poteaux) jusqu'à l'arrêt, puis la main passe. But quand le
   ballon franchit entièrement la ligne ; contre son camp, le but va à l'adversaire ; l'équipe qui encaisse
@@ -230,6 +230,22 @@ Cinquième jeu, ajouté à côté de Yas Penalty (conservé) — migration 007, 
 - **Tests** : 9 unitaires du moteur (collisions, buts, contre son camp, fin au score ou au temps,
   forfait, déterminisme, rien ne sort du terrain), bot contre bot jusqu'au bout, 1 d'intégration et 1 E2E
   (visée et tir à la souris, réponse du bot).
+
+## Évolution — Yas Penalty retiré, back-office vérifié
+- **Yas Penalty retiré** à la demande de Yas (migration 008) : plus proposé nulle part (liste des jeux, accueil,
+  classements, défi du jour, tournois, back-office, bot). Moteur, écran, bot et tests supprimés du code.
+  **Aucune donnée effacée** : le jeu est désactivé en base, l'historique des parties reste consultable
+  (« Yas Penalty » / « retiré »), et le badge « Le Mur » n'est plus montré qu'aux joueurs qui l'ont obtenu.
+  Une partie de Penalty en cours au moment de la mise en ligne est annulée proprement au redémarrage.
+- **Back-office passé en revue** (23 pages ouvertes une à une, erreurs JavaScript et appels API relevés) :
+  « Résultats suspects » et « Réglages des jeux » plantaient à l'ouverture (fonction asynchrone passée
+  directement à `useEffect`) ; corrigé, ainsi que deux autres pages qui avaient le même défaut latent.
+- **Tournois** : en production, aucun tournoi n'était visible des joueurs (un tournoi créé reste un
+  brouillon invisible tant qu'il n'est pas publié). Le formulaire propose désormais « Créer et publier »
+  (visible tout de suite, inscriptions ouvertes) ou « Enregistrer en brouillon », la liste a un bouton
+  « Publier » et indique « Brouillon (non visible) ». L'administrateur voit le code de salon de chaque match
+  et les statuts en français. Parcours vérifié de bout en bout : création, inscriptions, lancement,
+  affichage côté joueur avec « Rejoindre mon match ».
 
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render

@@ -1,6 +1,6 @@
 // Illustrations originales et légères (SVG) des jeux. Fond de chaque jeu dans
 // une couleur de la charte (les secondaires sont réservées aux illustrations) :
-// Cards Sunset, Connect Sky Blue, Penalty Twilight, Ludo Berry, Foot Sea Green.
+// Cards Sunset, Connect Sky Blue, Ludo Berry, Foot Sea Green.
 // fit="meet" : illustration entière, centrée sur sa couleur de fond (vignettes verticales).
 export default function GameArt({ gameId, height = 110, fit = 'slice' }) {
   const common = { width: '100%', height, viewBox: '0 0 200 110', preserveAspectRatio: `xMidYMid ${fit}`, 'aria-hidden': true };
@@ -33,20 +33,6 @@ export default function GameArt({ gameId, height = 110, fit = 'slice' }) {
       </svg>
     );
   }
-  if (gameId === 'penalty') {
-    return (
-      <svg {...common} style={{ background: '#58508C' }}>
-        <rect x="0" y="80" width="200" height="30" fill="#3CB167" />
-        <rect x="40" y="18" width="120" height="64" fill="none" stroke="#fff" strokeWidth="5" />
-        {[...Array(6)].map((_, i) => <line key={i} x1={40 + i * 24} y1="18" x2={40 + i * 24} y2="82" stroke="rgba(255,255,255,.35)" strokeWidth="1.5" />)}
-        {[...Array(3)].map((_, i) => <line key={`h${i}`} x1="40" y1={34 + i * 16} x2="160" y2={34 + i * 16} stroke="rgba(255,255,255,.35)" strokeWidth="1.5" />)}
-        <circle cx="100" cy="96" r="9" fill="#fff" stroke="#00377D" strokeWidth="2" />
-        <path d="M96 92l4 3 4-3M97 100l3-2 3 2" stroke="#00377D" strokeWidth="1.5" fill="none" />
-        <rect x="118" y="40" width="14" height="30" rx="7" fill="#FFD100" />
-        <circle cx="125" cy="34" r="7" fill="#FFD100" />
-      </svg>
-    );
-  }
   if (gameId === 'foot') {
     const disc = (x, y, c, ring) => (
       <g transform={`translate(${x} ${y})`}>
@@ -71,7 +57,10 @@ export default function GameArt({ gameId, height = 110, fit = 'slice' }) {
       </svg>
     );
   }
-  // ludo
+  if (gameId !== 'ludo') {
+    // Jeu retiré ou inconnu : fond neutre (historique des parties).
+    return <svg {...common} style={{ background: '#AFCCE9' }}><circle cx="100" cy="55" r="22" fill="#fff" /></svg>;
+  }
   const base = (x, y, c) => <rect x={x} y={y} width="34" height="34" rx="8" fill={c} />;
   return (
     <svg {...common} style={{ background: '#BC4F90' }}>

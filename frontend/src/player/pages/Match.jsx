@@ -19,7 +19,6 @@ const GAMES = {
   connect: lazy(() => import('../../games/connect/ConnectGame')),
   ludo: lazy(() => import('../../games/ludo/LudoGame')),
   cards: lazy(() => import('../../games/cards/CardsGame')),
-  penalty: lazy(() => import('../../games/penalty/PenaltyGame')),
   foot: lazy(() => import('../../games/foot/FootGame')),
 };
 
