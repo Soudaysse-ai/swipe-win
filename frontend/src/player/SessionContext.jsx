@@ -87,6 +87,13 @@ export function SessionProvider({ children }) {
     setMm({ state: 'searching', gameId, since: Date.now(), sizes });
   }
 
+  // Partie d'entraînement contre des bots : démarre aussitôt (match:starting redirige).
+  async function playBot(gameId, { opponents = 1, level = 'normal' } = {}) {
+    await emit('bot:start', { gameId, opponents, level });
+    setProposal(null);
+    setMm({ state: 'idle' });
+  }
+
   async function cancelSearch() {
     await emit('matchmaking:leave').catch(() => {});
     setMm({ state: 'idle' });
@@ -101,7 +108,7 @@ export function SessionProvider({ children }) {
 
   return (
     <SessionCtx.Provider value={{
-      room, setRoom, mm, proposal, quickPlay, cancelSearch, answerProposal, joinRoom,
+      room, setRoom, mm, proposal, quickPlay, playBot, cancelSearch, answerProposal, joinRoom,
       unread, setUnread, activeMatchId,
     }}>
       {children}

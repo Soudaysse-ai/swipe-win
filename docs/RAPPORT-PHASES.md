@@ -7,9 +7,9 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 | Suite | Commande | Résultat |
 |---|---|---|
-| Unitaires backend | `npm test` | **81 / 81** |
-| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **27 / 27** |
-| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **7 / 7** |
+| Unitaires backend | `npm test` | **88 / 88** |
+| Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **31 / 31** |
+| E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **9 / 9** |
 | Build frontend | `npm run build` | OK |
 | Charge indicative (`scripts/loadtest.js`, 200 clients, 30 s) | | 2 492 parties, 0 erreur, p50 48 ms, p95 384 ms |
 
@@ -57,7 +57,7 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
   saison plafonnés, ligues, badges, classements global/par jeu/périodes, départages, évolution du
   rang (instantanés), profils publics sans données privées, historique.
 
-## Phase 6 — Yas Ludo · Phase 7 — Yas Cards · Phase 8 — Yas Penalty
+## Phase 6 — Yas Ludo · Phase 7 — Yas Cards · Phase 8 — Yas Penalty (retiré depuis, voir plus bas)
 - **Fichiers** : `games/{ludo,cards,penalty}/engine.js`, `frontend/src/games/{ludo,cards,penalty}/*`,
   `games/common/Dice.jsx`.
 - **Tests** : Ludo 17 unitaires + partie à 4 clients ; Cards 20 unitaires + partie complète à
@@ -169,8 +169,88 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
   Berry, Sunset), étiquette « Inscriptions ouvertes » en Sunset, 3ᵉ marche du podium en Sunset 30.
   Jaune, Midnight Blue et Sky Blue restent dominants (50 / 40 / 10).
 
+## Évolution — jouer seul contre un bot
+- **Où** : bouton « Jouer contre un bot » sur la page de chaque jeu (niveau Facile / Normal /
+  Difficile, 1 à 3 bots pour Cards et Ludo), onglet « Contre un bot » de la Partie rapide de l'accueil,
+  et proposition automatique après 10 s de recherche sans adversaire. « Rejouer contre le bot » en fin
+  de partie relance les mêmes réglages.
+- **Bots** (`backend/src/games/bots/`) : un module par jeu, qui décide uniquement à partir de
+  `engine.view(state, botId)` — la même vue qu'un joueur (aucune carte ni choix caché de l'adversaire).
+  Connect : recherche negamax alpha-bêta (1, 3 ou 5 coups d'avance) ; Ludo : capture, sécurité,
+  sorties ; Cards : grosses cartes d'abord, Jokers gardés, attaque du joueur suivant, jamais de +4 illégal ;
+  Penalty : au hasard, puis lecture des habitudes de l'adversaire dans l'historique révélé (Difficile).
+  Temps de réflexion simulé (0,5 à 2,6 s).
+- **Transparence** : les bots ne sont pas des comptes joueurs (pas de ligne `users` ni
+  `match_players`, description dans `matches.bots`, migration 005), s'appellent « Bot Ngazidja »,
+  « Bot Mwali », « Bot Ndzuani », ont un avatar robot et une étiquette « Bot ». Le matchmaking ne
+  crée toujours aucun faux adversaire : un bot n'est joué que sur choix du joueur.
+- **Comptabilisation** : partie d'entraînement (`mode = 'bot'`, `is_valid = false`) : aucune ligne
+  `match_results`, donc ni XP, ni cote, ni points de saison, ni badges, ni statistiques, ni KPI du
+  back-office. Elle apparaît dans l'historique du joueur avec la mention « entraînement ».
+- **Robustesse** : actions des bots sérialisées dans la même file que celles du joueur, reprise après
+  redémarrage du serveur, arrêt immédiat si le joueur abandonne une partie à plusieurs bots.
+- **Tests** : 8 unitaires (parties complètes bot contre bot sur les 4 moteurs, de 2 à 4 joueurs et à
+  tous les niveaux, sans coup illégal ; victoire et blocage à Connect ; pas de bluff au +4 ; attente de
+  l'ouverture du tir), 4 d'intégration (Connect, Penalty, Ludo à 3 bots, garde-fous) et 2 E2E (partie
+  complète contre un bot, proposition après une recherche sans adversaire).
+
+## Évolution — écrans de jeu plus lisibles, temps de jeu allongés
+Retours après les premières parties (comparaison avec Plato) :
+- **Bot** : proposé uniquement quand personne n'est disponible — sur la page d'un jeu quand aucun joueur
+  n'y est en ligne, et pendant une recherche restée sans adversaire 10 s. Plus d'onglet bot sur l'accueil.
+- **Temps de jeu** (migration 006, valeurs d'origine seulement) : 30 s par tour pour Cards, Connect et
+  Ludo (au lieu de 20 s), 15 s par décision pour Penalty (au lieu de 10 s). Bots plus posés (1 à 3 s).
+- **Yas Ludo** : chaque joueur est placé au coin de sa base ; un anneau autour de l'avatar fait office
+  de chronomètre ; le dé (refait, centré, faces qui défilent puis se posent) apparaît à côté de celui qui
+  joue ; quand un lancer termine le tour (aucun pion jouable, trois 6), son résultat reste affiché ;
+  les pions avancent case par case ; une ligne d'état dit qui doit faire quoi (« À toi ! Touche le dé »,
+  « Bot Mwali a fait 4 et choisit un pion… »). Le moteur expose le dernier lancer (`lastRoll`).
+- **Yas Cards** : vraies cartes de jeu de défausse (ovale blanc incliné, grand chiffre cerné, index dans
+  les coins, symboles Passe / Inverse / +2, Jokers noirs à l'ovale quatre couleurs, dos « YAS ») sur une
+  table Midnight Blue : adversaires en haut avec leurs cartes en éventail, pioche et défausse au centre
+  (couleur active en halo), « Tu as joué Rouge 3 » puis « À toi : choisis une carte », main en éventail
+  en bas avec les cartes jouables levées.
+
+## Évolution — Yas Foot (football de table)
+Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Penalty, retiré ensuite.
+- **Règles** : 2 joueurs, 5 palets chacun et un ballon. À son tour, on tire un de ses palets comme une
+  fronde ; tout rebondit (palets, ballon, bords, poteaux) jusqu'à l'arrêt, puis la main passe. But quand le
+  ballon franchit entièrement la ligne ; contre son camp, le but va à l'adversaire ; l'équipe qui encaisse
+  engage. Premier à 3 buts, sinon le score à la fin des 5 minutes (nul possible). 20 s pour tirer, 3 tours
+  manqués d'affilée = forfait.
+- **Moteur** (`backend/src/games/foot`) : physique déterministe calculée par le serveur (60 pas/s, 2
+  sous-pas, chocs élastiques avec masses, frottement, filets et poteaux). Chaque tir renvoie la trajectoire
+  (30 images/s, ~18 Ko pour un tir à pleine puissance) ; le tir suivant n'est ouvert qu'après l'animation.
+- **Écran** : terrain vertical sur téléphone (ma cage en bas), horizontal sur ordinateur (ma cage à
+  gauche) ; palets aux couleurs des équipes avec l'avatar du joueur ; visée comme sur la capture de
+  référence (cercle de puissance, flèche, pointillés) ; tableau de score avec chronomètre de match et
+  anneau de tour ; « BUT ! » à chaque but.
+- **Bot** : vise le ballon pour l'envoyer vers la cage adverse (point d'impact calculé), essaie jusqu'à
+  45 tirs avec la vraie physique (Difficile) et garde le meilleur ; imprécision selon le niveau.
+- **Tests** : 9 unitaires du moteur (collisions, buts, contre son camp, fin au score ou au temps,
+  forfait, déterminisme, rien ne sort du terrain), bot contre bot jusqu'au bout, 1 d'intégration et 1 E2E
+  (visée et tir à la souris, réponse du bot).
+
+## Évolution — Yas Penalty retiré, back-office vérifié
+- **Yas Penalty retiré** à la demande de Yas (migration 008) : plus proposé nulle part (liste des jeux, accueil,
+  classements, défi du jour, tournois, back-office, bot). Moteur, écran, bot et tests supprimés du code.
+  **Aucune donnée effacée** : le jeu est désactivé en base, l'historique des parties reste consultable
+  (« Yas Penalty » / « retiré »), et le badge « Le Mur » n'est plus montré qu'aux joueurs qui l'ont obtenu.
+  Une partie de Penalty en cours au moment de la mise en ligne est annulée proprement au redémarrage.
+- **Back-office passé en revue** (23 pages ouvertes une à une, erreurs JavaScript et appels API relevés) :
+  « Résultats suspects » et « Réglages des jeux » plantaient à l'ouverture (fonction asynchrone passée
+  directement à `useEffect`) ; corrigé, ainsi que deux autres pages qui avaient le même défaut latent.
+- **Tournois** : en production, aucun tournoi n'était visible des joueurs (un tournoi créé reste un
+  brouillon invisible tant qu'il n'est pas publié). Le formulaire propose désormais « Créer et publier »
+  (visible tout de suite, inscriptions ouvertes) ou « Enregistrer en brouillon », la liste a un bouton
+  « Publier » et indique « Brouillon (non visible) ». L'administrateur voit le code de salon de chaque match
+  et les statuts en français. Parcours vérifié de bout en bout : création, inscriptions, lancement,
+  affichage côté joueur avec « Rejoindre mon match ».
+
 ## Phase 12 — Déploiement
-**Non effectué** : en attente de validation explicite et des accès (voir `DEPLOIEMENT.md`).
+**Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
+(`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche
+`pre-defi-yas-2`). La production suit la branche `main` (voir `DEPLOIEMENT.md`).
 
 ---
 

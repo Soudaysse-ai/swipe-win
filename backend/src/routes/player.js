@@ -31,7 +31,8 @@ function playersOnlineByGame() {
     seen[gameId].add(userId);
   };
   for (const r of rooms.allRooms()) r.players.forEach(p => add(r.gameId, p.userId));
-  for (const m of runtime.liveMatches()) m.players.forEach(p => add(m.gameId, p.userId));
+  // Les bots des parties d'entraînement ne sont pas des joueurs : ils ne sont pas comptés.
+  for (const m of runtime.liveMatches()) m.players.forEach(p => { if (!p.isBot) add(m.gameId, p.userId); });
   for (const [gameId, q] of matchmaking._internals.queues) q.forEach(e => add(gameId, e.userId));
   for (const [g, set] of Object.entries(seen)) counts[g] = set.size;
   return counts;

@@ -19,7 +19,6 @@ async function evaluateBadges(db, userId, { matchId, gameId, placement, isDraw }
     else if (c.streak) ok = bestStreak >= c.streak;
     else if (c.allGames) ok = played >= 4;
     else if (c.level) ok = gs.level >= c.level;
-    else if (c.penaltySaves) ok = gameId === 'penalty' && (st.saves || 0) >= c.penaltySaves;
     else if (c.connectQuickWin) ok = gameId === 'connect' && won && st.moves > 0 && st.moves <= c.connectQuickWin;
     if (!ok) continue;
     const ins = await db.query(

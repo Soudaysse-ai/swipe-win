@@ -200,3 +200,14 @@ test('cases absolues : départs des 4 couleurs', () => {
   assert.equal(engine._internals.absolute('blue', 20), (39 + 20) % 52);
   assert.equal(engine._internals.absolute('red', 51), null, 'couloir d\'arrivée hors parcours');
 });
+
+test('le dernier lancer reste visible après la fin du tour', () => {
+  const players = [{ userId: 'a', seat: 0 }, { userId: 'b', seat: 1 }];
+  let s = engine.init({ players, rng: scriptedRng([0]), now: 0, config: CONFIG });
+  assert.equal(engine.view(s).lastRoll, null);
+  // a lance un 3 sans pion sorti : le tour passe à b, mais le 3 reste affichable
+  s = engine.apply(s, 'a', { type: 'roll' }, { rng: scriptedRng([2]), now: 1, config: CONFIG }).state;
+  const v = engine.view(s);
+  assert.equal(v.turn, 'b');
+  assert.deepEqual(v.lastRoll, { userId: 'a', value: 3, seq: 1 });
+});

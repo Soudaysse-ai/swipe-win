@@ -41,14 +41,6 @@ export default function GameDashboard() {
               <Kpi label="Matchs nuls" value={fmt.n(sp.draws)} />
               <Kpi label="Coups moyens par partie" value={sp.avg_moves ?? '—'} />
             </>}
-            {gameId === 'penalty' && <>
-              <Kpi label="Buts marqués" value={fmt.n(sp.goals)} />
-              <Kpi label="Tirs effectués" value={fmt.n(sp.shots)} />
-              <Kpi label="Arrêts" value={fmt.n(sp.saves)} />
-              <Kpi label="Taux moyen de réussite" value={fmt.pct(sp.successRate)} />
-              <Highlight label="Meilleur buteur (≥ 10 tirs)" who={sp.bestScorer} value={sp.bestScorer && `${sp.bestScorer.goals} buts / ${sp.bestScorer.shots} tirs`} />
-              <Highlight label="Meilleur gardien (≥ 10 tirs subis)" who={sp.bestKeeper} value={sp.bestKeeper && `${fmt.pct(sp.bestKeeper.save_rate)} d'arrêts`} />
-            </>}
             {(gameId === 'ludo' || gameId === 'cards') && (sp.bySize || []).map(s => (
               <Kpi key={s.players} label={`Parties à ${s.players} joueurs`} value={fmt.n(s.matches)} />
             ))}
@@ -73,7 +65,7 @@ export default function GameDashboard() {
               { key: 'rating', label: 'Cote', num: true }, { key: 'league', label: 'Ligue' },
               { key: 'games_played', label: 'Parties', num: true }, { key: 'wins', label: 'Victoires', num: true },
               { key: 'win_rate', label: 'Taux', num: true, render: r => fmt.pct(r.win_rate) },
-              ...(gameId === 'penalty' ? [{ key: 'goals', label: 'Buts', num: true, render: r => fmt.n(r.extra?.goals || 0) }, { key: 'saves', label: 'Arrêts', num: true, render: r => fmt.n(r.extra?.saves || 0) }] : []),
+              ...(gameId === 'foot' ? [{ key: 'goals', label: 'Buts', num: true, render: r => fmt.n(r.extra?.goals || 0) }] : []),
             ]} />
           </div>
         </div>

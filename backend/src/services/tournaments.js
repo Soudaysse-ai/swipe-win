@@ -334,7 +334,7 @@ async function reopenRooms() {
   }
 }
 
-async function bracket(id, viewerId = null) {
+async function bracket(id, viewerId = null, { admin = false } = {}) {
   const { rows } = await pool.query(
     `SELECT tm.id, tm.round, tm.position, tm.status, tm.winner_id, tm.match_id, tm.room_id, gr.code AS room_code,
             (SELECT json_agg(json_build_object('userId', u.id, 'username', u.username, 'avatar', u.avatar))
@@ -343,7 +343,7 @@ async function bracket(id, viewerId = null) {
       WHERE tm.tournament_id = $1 ORDER BY tm.round, tm.position`, [id]);
   return rows.map(r => ({
     ...r,
-    room_code: r.players?.some(p => p.userId === viewerId) && r.status === 'ready' ? r.room_code : null,
+    room_code: r.status === 'ready' && (admin || r.players?.some(p => p.userId === viewerId)) ? r.room_code : null,
   }));
 }
 
@@ -375,7 +375,7 @@ async function detail(id, userId = null, { admin = false } = {}) {
   return {
     ...t, rules, roundsPlanned: schedule ? schedule.length : null,
     participants: players.rows, registered: players.rows.some(p => p.id === userId),
-    matches: await bracket(id, admin ? null : userId),
+    matches: await bracket(id, admin ? null : userId, { admin }),
     results: results.rows,
   };
 }

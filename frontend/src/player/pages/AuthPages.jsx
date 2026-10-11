@@ -18,7 +18,7 @@ function AuthLayout({ title, subtitle, alt, children }) {
         <Link to="/welcome" className="auth-brand-desktop" aria-label="Défi Yas — accueil"><YasLogo size={64} /></Link>
         <div className="auth-aside-copy">
           <h2>Joue. Défie.<br />Gagne !</h2>
-          <p>Cartes, Connect, Penalty, Ludo : affronte tes amis et toute la communauté Yas en direct.</p>
+          <p>Cartes, Connect, Foot, Ludo : affronte tes amis et toute la communauté Yas en direct.</p>
         </div>
         <div className="auth-aside-visual" aria-hidden>
           <Plectre className="hero-plectre" color="blue" size={380} rotate={-10} />

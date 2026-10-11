@@ -31,7 +31,7 @@ export default function Rankings() {
     playerApi.get(url, { params: { period, board, limit: 100 } }).then(r => setData(r.data)).catch(() => setData({ entries: [], total: 0 }));
   }, [game, period, board]);
 
-  const unit = game === 'all' ? 'pts' : board === 'keepers' ? '% arrêts' : board === 'scorers' ? 'buts' : '';
+  const unit = game === 'all' ? 'pts' : '';
   const entries = data?.entries || [];
   const rest = entries.slice(3, limit);
 
@@ -51,14 +51,7 @@ export default function Rankings() {
           <button key={id} role="tab" aria-selected={period === id} className={`tab${period === id ? ' active' : ''}`} onClick={() => set('period', id)}>{label}</button>
         ))}
       </div>
-      {game === 'penalty' && (
-        <div className="tabs" role="tablist" aria-label="Classement Yas Penalty">
-          {[['rating', 'Meilleurs joueurs'], ['scorers', 'Meilleurs buteurs'], ['keepers', 'Meilleurs gardiens']].map(([id, label]) => (
-            <button key={id} role="tab" aria-selected={board === id} className={`tab${board === id ? ' active' : ''}`} onClick={() => set('board', id)}>{label}</button>
-          ))}
-        </div>
-      )}
-      <p className="tiny muted">{game === 'all' ? 'Classement global : somme des points de saison des 4 jeux.' : board === 'rating' ? 'Classement par cote compétitive du jeu.' : 'Minimum 10 tirs pour apparaître.'}</p>
+      <p className="tiny muted">{game === 'all' ? 'Classement global : somme des points de saison de tous les jeux.' : 'Classement par cote compétitive du jeu.'}</p>
 
       {!data ? <Spinner center /> : !entries.length ? <Empty icon="🏆">Aucun joueur classé sur cette période.</Empty> : (
         <>

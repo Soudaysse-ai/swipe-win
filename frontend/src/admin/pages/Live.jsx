@@ -39,7 +39,8 @@ export default function Live() {
           <div className="panel">
             <h2>Parties en cours</h2>
             <DataTable rows={d.matches} empty="Aucune partie en cours." columns={[
-              { key: 'gameId', label: 'Jeu', render: r => GAME_NAMES[r.gameId] }, { key: 'status', label: 'Statut' },
+              { key: 'gameId', label: 'Jeu', render: r => GAME_NAMES[r.gameId] },
+              { key: 'status', label: 'Statut', render: r => `${r.status}${r.mode === 'bot' ? ' · entraînement' : ''}` },
               { key: 'startedAt', label: 'Début', render: r => (r.startedAt ? fmt.dt(r.startedAt) : 'compte à rebours') },
               { key: 'players', label: 'Joueurs', render: r => r.players.map(p => `${p.username}${p.connected ? '' : ' (déconnecté)'}`).join(', ') },
               { key: 'version', label: 'Actions', num: true },

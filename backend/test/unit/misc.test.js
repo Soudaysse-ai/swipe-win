@@ -53,6 +53,7 @@ test('ligues : seuils par défaut et calibrés', () => {
 test('défi du jour : rotation déterministe des 4 jeux', () => {
   const days = ['2026-10-10', '2026-10-11', '2026-10-12', '2026-10-13'].map(d => P.dailyChallenge(d).gameId);
   assert.equal(new Set(days).size, 4);
+  assert.ok(!days.includes('penalty'));
   assert.equal(P.dailyChallenge('2026-10-14').gameId, days[0]);
 });
 

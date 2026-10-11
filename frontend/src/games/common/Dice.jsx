@@ -1,19 +1,50 @@
 // Dé : le résultat vient toujours du serveur ; l'animation n'est que visuelle.
+// Pendant le lancer, les faces défilent puis le dé se pose sur la valeur reçue.
+import { useEffect, useState } from 'react';
+
+// Positions des points dans une grille 3 × 3 (colonne, ligne).
 const PIPS = {
-  1: [[50, 50]], 2: [[28, 28], [72, 72]], 3: [[28, 28], [50, 50], [72, 72]],
-  4: [[28, 28], [72, 28], [28, 72], [72, 72]], 5: [[28, 28], [72, 28], [50, 50], [28, 72], [72, 72]],
-  6: [[28, 26], [72, 26], [28, 50], [72, 50], [28, 74], [72, 74]],
+  1: [[2, 2]],
+  2: [[1, 1], [3, 3]],
+  3: [[1, 1], [2, 2], [3, 3]],
+  4: [[1, 1], [3, 1], [1, 3], [3, 3]],
+  5: [[1, 1], [3, 1], [2, 2], [1, 3], [3, 3]],
+  6: [[1, 1], [3, 1], [1, 2], [3, 2], [1, 3], [3, 3]],
 };
 
-export default function Dice({ value, rolling, size = 64, color = '#00377D' }) {
-  const v = value || 1;
+function Face({ value, ghost }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={value ? `Dé : ${value}` : 'Dé'}
-      style={{ animation: rolling ? 'dice-roll .6s ease-out' : undefined, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,.2))' }}>
-      <rect x="4" y="4" width="92" height="92" rx="20" fill="#fff" stroke={color} strokeWidth="5" />
-      {value && PIPS[v].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="9" fill={color} />)}
-      {!value && <text x="50" y="62" textAnchor="middle" fontSize="34" fontWeight="800" fill={color}>?</text>}
-      <style>{'@keyframes dice-roll { 0% { transform: rotate(0) scale(.7) } 60% { transform: rotate(320deg) scale(1.1) } 100% { transform: rotate(360deg) scale(1) } }'}</style>
-    </svg>
+    <span className={`die-face${ghost ? ' ghost' : ''}`} aria-hidden>
+      {PIPS[value || 6].map(([c, r], i) => <i key={i} style={{ gridColumn: c, gridRow: r }} />)}
+    </span>
+  );
+}
+
+export default function Dice({ value, rolling = false, size = 56, accent = '#00377D', onClick, active = false, disabled = false, label }) {
+  const [spin, setSpin] = useState(1);
+  useEffect(() => {
+    if (!rolling) return undefined;
+    const t = setInterval(() => setSpin((n) => {
+      let x;
+      do { x = 1 + Math.floor(Math.random() * 6); } while (x === n);
+      return x;
+    }), 90);
+    return () => clearInterval(t);
+  }, [rolling]);
+  const shown = rolling ? spin : value;
+  const aria = label || (rolling ? 'Lancer du dé en cours' : value ? `Dé : ${value}` : 'Dé');
+  const cls = `die${rolling ? ' rolling' : ''}${value && !rolling ? ' landed' : ''}${active ? ' active' : ''}`;
+  const style = { '--die': `${size}px`, '--accent': accent };
+  if (onClick) {
+    return (
+      <button type="button" className={`${cls} as-button`} style={style} onClick={onClick} disabled={disabled} aria-label={label || 'Lancer le dé'}>
+        <Face value={shown} ghost={!shown} />
+      </button>
+    );
+  }
+  return (
+    <span className={cls} style={style} role="img" aria-label={aria} key={rolling ? 'r' : `v${value}`}>
+      <Face value={shown} ghost={!shown} />
+    </span>
   );
 }

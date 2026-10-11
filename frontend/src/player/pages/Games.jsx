@@ -12,6 +12,7 @@ import Plectre from '../../components/Plectre';
 import PlectreFrame from '../../components/PlectreFrame';
 import CoinBadge from '../../components/CoinBadge';
 import { Podium } from './Home';
+import { BotSheet } from '../../components/BotPlay';
 import { RULES } from '../../lib/rules';
 import { GAME_META } from '../../lib/format';
 
@@ -88,6 +89,7 @@ export function GameLobby() {
   const [code, setCode] = useState('');
   const [sizes, setSizes] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [botOpen, setBotOpen] = useState(false);
 
   const load = useCallback(() => {
     playerApi.get(`/games/${gameId}`).then(r => setData(r.data)).catch(() => setData({ error: true }));
@@ -99,6 +101,8 @@ export function GameLobby() {
   const { game, top3, me, publicRooms } = data;
   const multi = game.maxPlayers > 2;
   const searching = mm.state === 'searching' && mm.gameId === gameId;
+  // Le bot n'est proposé que lorsque personne n'est disponible sur ce jeu.
+  const nobodyAround = game.isActive && !searching && (game.playersOnline || 0) === 0;
 
   async function create(visibility) {
     setBusy(true);
@@ -149,6 +153,16 @@ export function GameLobby() {
         <button className="btn block" onClick={play} disabled={searching || !game.isActive}>
           {searching ? 'Recherche en cours…' : <>Jouer maintenant <span className="arrow" /></>}
         </button>
+        {nobodyAround && (
+          <div className="bot-offer">
+            <span className="bot-offer-icon"><Icon name="bot" size={26} /></span>
+            <div className="grow">
+              <b>Personne en ligne sur {game.name}</b>
+              <span>Joue seul contre un bot en attendant.</span>
+            </div>
+            <button className="btn sm blue" onClick={() => setBotOpen(true)}>Jouer seul</button>
+          </div>
+        )}
         <div className="row">
           <button className="btn md outline grow" onClick={() => create('private')} disabled={busy}><Icon name="lock" size={18} /> Salon privé</button>
           <button className="btn md outline grow" onClick={() => create('public')} disabled={busy}><Icon name="friends" size={18} /> Salon public</button>
@@ -184,6 +198,8 @@ export function GameLobby() {
 
         </div>
       </div>
+
+      {botOpen && <BotSheet open onClose={() => setBotOpen(false)} game={game} />}
 
       <Sheet open={rules} onClose={() => setRules(false)} label="Règles">
         <h2 className="h2" style={{ marginBottom: 12 }}>Règles de {game.name}</h2>

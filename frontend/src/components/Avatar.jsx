@@ -5,6 +5,7 @@ const BG = ['#FFD100', '#5F99D2', '#00377D', '#BC4F90', '#3CB167', '#58508C', '#
 export const AVATAR_IDS = EMOJI.map((_, i) => `yas-${String(i + 1).padStart(2, '0')}`);
 
 export function avatarStyle(id) {
+  if (id === 'bot') return { emoji: '🤖', bg: '#00377D' }; // bots des parties d'entraînement
   const i = Math.max(0, AVATAR_IDS.indexOf(id));
   return { emoji: EMOJI[i], bg: BG[i % BG.length] };
 }

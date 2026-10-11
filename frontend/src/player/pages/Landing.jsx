@@ -17,8 +17,8 @@ import { GAME_META } from '../../lib/format';
 const FALLBACK_GAMES = [
   { id: 'cards', name: 'Yas Cards', description: 'Débarrasse-toi de toutes tes cartes avant les autres.' },
   { id: 'connect', name: 'Yas Connect', description: 'Aligne 4 jetons avant ton adversaire.' },
-  { id: 'penalty', name: 'Yas Penalty', description: 'Tire, plonge, marque : la séance de tirs au but.' },
   { id: 'ludo', name: 'Yas Ludo', description: 'Fais le tour du plateau avec tes 4 pions.' },
+  { id: 'foot', name: 'Yas Foot', description: 'Tire tes palets, pousse le ballon et marque avant ton adversaire.' },
 ];
 
 const STEPS = [
@@ -79,7 +79,7 @@ export default function Landing() {
           <div className="hero-copy">
             <p className="hero-eyebrow">Les jeux multijoueurs de Yas Comores</p>
             <h1>Joue. Défie.<br />Gagne !</h1>
-            <p className="hero-lead">Cartes, Connect, Penalty, Ludo : affronte tes amis et toute la communauté Yas en direct, depuis ton téléphone ou ton ordinateur.</p>
+            <p className="hero-lead">Cartes, Connect, Foot, Ludo : affronte tes amis et toute la communauté Yas en direct, depuis ton téléphone ou ton ordinateur.</p>
             <div className="hero-cta">
               <Link to="/register" className="btn blue lg">Créer mon compte <span className="arrow" /></Link>
               <Link to="/login" className="btn outline lg">Se connecter</Link>

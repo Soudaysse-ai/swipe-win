@@ -172,7 +172,7 @@ export function GameStatsCard({ g }) {
       <div className="row between tiny muted wrap">
         <span>{g.wins} V · {g.losses} D{g.draws ? ` · ${g.draws} N` : ''}</span>
         <span>Série max : {g.bestStreak}</span>
-        {g.gameId === 'penalty' && g.extra?.shots ? <span>{g.extra.goals || 0} buts / {g.extra.shots} tirs · {g.extra.saves || 0} arrêts</span> : null}
+        {g.gameId === 'foot' && g.played ? <span>{g.extra?.goals || 0} buts marqués</span> : null}
         {(g.gameId === 'ludo' || g.gameId === 'cards') && g.played ? <span>Places : {g.places.join(' / ')}</span> : null}
       </div>
     </div>
@@ -191,7 +191,7 @@ export function MatchHistory({ matches }) {
           </span>
           <div className="grow">
             <div className="title">{gameName(m.gameId)}</div>
-            <div className="sub">vs {m.opponents.map(o => o.username).join(', ')} · {m.endedAt ? formatDate(m.endedAt) : ''}{m.isValid === false ? ' · non comptée' : ''}</div>
+            <div className="sub">vs {m.opponents.map(o => o.username).join(', ')} · {m.endedAt ? formatDate(m.endedAt) : ''}{m.training ? ' · entraînement' : m.isValid === false ? ' · non comptée' : ''}</div>
           </div>
           {m.ratingDelta != null && <span className={`small bold`} style={{ color: m.ratingDelta >= 0 ? '#1E7A42' : '#B42A28' }}>{m.ratingDelta >= 0 ? '+' : ''}{m.ratingDelta}</span>}
         </div>

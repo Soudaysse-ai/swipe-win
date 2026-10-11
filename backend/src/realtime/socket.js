@@ -4,6 +4,7 @@
 // Client → serveur (avec accusé de réception { ok, ... }) :
 //   room:create, room:join, room:leave, room:ready, room:start, room:list
 //   matchmaking:join, matchmaking:leave, matchmaking:accept, matchmaking:decline
+//   bot:start (partie d'entraînement contre des bots)
 //   match:action, match:sync, match:resign
 //   chat:send, chat:history, friend:invite, ping
 // Serveur → client :
@@ -17,6 +18,7 @@ const hub = require('./hub');
 const rooms = require('./rooms');
 const runtime = require('./matchRuntime');
 const matchmaking = require('./matchmaking');
+const training = require('./training');
 const { verifyToken } = require('../services/authService');
 const friends = require('../services/friends');
 const chat = require('../services/chat');
@@ -137,6 +139,9 @@ function attach(httpServer) {
     on('matchmaking:leave', async () => { matchmaking.leave(user.userId); });
     on('matchmaking:accept', async ({ proposalId }) => matchmaking.accept(user.userId, proposalId));
     on('matchmaking:decline', async ({ proposalId }) => matchmaking.decline(user.userId, proposalId));
+
+    // ── Entraînement contre des bots ──
+    on('bot:start', async ({ gameId, opponents, level }) => training.start(user, gameId, { opponents, level }), { max: 10 });
 
     // ── Parties ──
     on('match:action', async (msg) => {

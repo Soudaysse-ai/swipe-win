@@ -9,7 +9,6 @@ const { leagueFor } = require('./progression');
 
 const MIN_MATCHES_WINRATE = 10;
 const PERIODS = ['week', 'month', 'season', 'all'];
-const PENALTY_MIN_SHOTS = 10;
 
 async function periodBounds(period) {
   if (period === 'week') {
@@ -101,7 +100,7 @@ async function computeGlobalRows(period) {
   }));
 }
 
-// board : 'rating' (défaut) | 'scorers' | 'keepers' (Yas Penalty)
+// board : 'rating' (classement par cote du jeu)
 async function gameRows(gameId, period, board = 'rating') {
   return cached(`game:${gameId}:${period}:${board}`, () => computeGameRows(gameId, period, board));
 }
@@ -114,15 +113,6 @@ async function computeGameRows(gameId, period, board) {
   let valueExpr = 's.rating';
   let order = 's.rating DESC, s.wins DESC, win_rate DESC NULLS LAST, s.rating_updated_at ASC';
   let extraWhere = '';
-  if (gameId === 'penalty' && board === 'scorers') {
-    valueExpr = "COALESCE((s.extra->>'goals')::int, 0)";
-    order = `${valueExpr} DESC, (COALESCE((s.extra->>'goals')::float, 0) / NULLIF((s.extra->>'shots')::float, 0)) DESC NULLS LAST, s.rating DESC`;
-    extraWhere = `AND COALESCE((s.extra->>'shots')::int, 0) >= ${PENALTY_MIN_SHOTS}`;
-  } else if (gameId === 'penalty' && board === 'keepers') {
-    valueExpr = "ROUND(100.0 * COALESCE((s.extra->>'saves')::float, 0) / NULLIF((s.extra->>'shotsFaced')::float, 0))";
-    order = `(COALESCE((s.extra->>'saves')::float, 0) / NULLIF((s.extra->>'shotsFaced')::float, 0)) DESC NULLS LAST, COALESCE((s.extra->>'saves')::int, 0) DESC, s.rating DESC`;
-    extraWhere = `AND COALESCE((s.extra->>'shotsFaced')::int, 0) >= ${PENALTY_MIN_SHOTS}`;
-  }
   const params = [gameId];
   if (activeFilter) params.push(from);
   params.push(MIN_MATCHES_WINRATE);

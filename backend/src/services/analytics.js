@@ -5,7 +5,7 @@ const pool = require('../db/pool');
 const EVENTS = new Set([
   'user_registered', 'user_logged_in', 'game_opened', 'matchmaking_started', 'room_created',
   'room_joined', 'match_started', 'match_completed', 'match_abandoned', 'friend_invited',
-  'invite_accepted', 'tournament_joined', 'leaderboard_viewed',
+  'invite_accepted', 'tournament_joined', 'leaderboard_viewed', 'training_started',
 ]);
 
 async function track(eventName, { userId = null, gameId = null, matchId = null, properties = {} } = {}, db = pool) {

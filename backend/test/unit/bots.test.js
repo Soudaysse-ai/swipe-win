@@ -1,0 +1,136 @@
+// Bots d'entraînement : ils ne jouent que des coups légaux, terminent leurs parties
+// et ne s'appuient que sur la vue d'un joueur (aucune information cachée).
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { getEngine } = require('../../src/games');
+const bots = require('../../src/games/bots');
+const { seededRng } = require('../../src/lib/rng');
+
+const CONFIG = {
+  connect: { turnSeconds: 20 },
+  ludo: { turnSeconds: 20 },
+  cards: { turnSeconds: 20 },
+  foot: { turnSeconds: 20, matchSeconds: 300, goalsToWin: 3 },
+};
+
+// Fait jouer une partie complète entre bots, avec le vrai moteur (qui lève une
+// erreur au moindre coup illégal).
+function simulate(gameId, levels, seed) {
+  const engine = getEngine(gameId);
+  const rng = seededRng(seed);
+  const config = CONFIG[gameId];
+  const players = levels.map((_, i) => ({ userId: `bot:${i + 1}`, seat: i }));
+  let now = 1_000_000;
+  let state = engine.init({ players, rng, now, config });
+  for (let step = 0; step < 6000; step++) {
+    const res = engine.result(state);
+    if (res) return { res, steps: step };
+    let acted = false;
+    for (const [i, p] of players.entries()) {
+      const d = bots.decide(gameId, engine.view(state, p.userId), p.userId, { level: levels[i], rng, now });
+      if (!d) continue;
+      if (d.notBefore && now < d.notBefore) now = d.notBefore;
+      state = engine.apply(state, p.userId, d.action, { rng, now, config }).state;
+      acted = true;
+      break;
+    }
+    if (!acted) {
+      // Personne n'a d'action à jouer : seule une échéance du moteur peut faire avancer la partie
+      // (fin de match après la dernière animation, par exemple).
+      const dl = engine.deadline(state);
+      assert.ok(dl && dl.userIds.length === 0, `${gameId} : aucun bot ne joue à l'étape ${step} (partie bloquée)`);
+      now = Math.max(now, dl.at);
+      state = engine.timeout(state, { rng, now, config }).state;
+    }
+    now += 400;
+  }
+  return assert.fail(`${gameId} : partie non terminée`);
+}
+
+const LEVEL_SETS = [['easy', 'hard'], ['normal', 'normal'], ['hard', 'easy']];
+
+for (const gameId of ['connect', 'foot']) {
+  test(`${gameId} : parties complètes entre bots, à tous les niveaux`, () => {
+    for (const [k, levels] of LEVEL_SETS.entries()) {
+      for (let seed = 1; seed <= 6; seed++) {
+        const { res } = simulate(gameId, levels, seed * 10 + k);
+        assert.equal(res.placements.length, 2);
+      }
+    }
+  });
+}
+
+for (const gameId of ['ludo', 'cards']) {
+  test(`${gameId} : parties complètes entre bots, de 2 à 4 joueurs`, () => {
+    for (const n of [2, 3, 4]) {
+      for (let seed = 1; seed <= 4; seed++) {
+        const levels = Array.from({ length: n }, (_, i) => bots.LEVELS[(i + seed) % 3]);
+        const { res } = simulate(gameId, levels, seed * 7 + n);
+        assert.equal(res.placements.length, n);
+      }
+    }
+  });
+}
+
+test('connect : le bot gagne quand il le peut et bloque une menace', () => {
+  const rng = seededRng(3);
+  const empty = () => Array.from({ length: 6 }, () => Array(7).fill(null));
+  const view = (board, colors = { 'bot:1': 'yellow', u: 'blue' }) => ({ board, colors, turn: 'bot:1', status: 'playing' });
+
+  const win = empty();
+  win[0][0] = 'yellow'; win[0][1] = 'yellow'; win[0][2] = 'yellow';
+  win[1][0] = 'blue'; win[1][1] = 'blue'; win[1][2] = 'blue';
+  for (const level of ['normal', 'hard']) {
+    assert.deepEqual(bots.decide('connect', view(win), 'bot:1', { level, rng }).action, { type: 'drop', col: 3 });
+  }
+
+  const threat = empty();
+  threat[0][4] = 'blue'; threat[0][5] = 'blue'; threat[0][6] = 'blue';
+  threat[1][4] = 'yellow'; threat[1][5] = 'yellow';
+  for (const level of ['normal', 'hard']) {
+    assert.deepEqual(bots.decide('connect', view(threat), 'bot:1', { level, rng }).action, { type: 'drop', col: 3 });
+  }
+});
+
+test('cards : pas de +4 illégal (bluff) au niveau normal ou difficile', () => {
+  const rng = seededRng(5);
+  const hand = [
+    { id: 'W4-1', color: null, kind: 'wild4', value: null },
+    { id: 'R3a', color: 'red', kind: 'number', value: 3 },
+    { id: 'B5a', color: 'blue', kind: 'number', value: 5 },
+  ];
+  const view = {
+    status: 'playing', players: ['bot:1', 'u'], forfeited: [], direction: 1, counts: { 'bot:1': 3, u: 1 },
+    hand, playable: ['W4-1', 'R3a'], activeColor: 'red', turn: 'bot:1', phase: 'play', vulnerable: null,
+  };
+  for (const level of ['normal', 'hard']) {
+    for (let i = 0; i < 20; i++) {
+      assert.notEqual(bots.decide('cards', view, 'bot:1', { level, rng }).action.cardId, 'W4-1');
+    }
+  }
+});
+
+test('foot : le bot pousse le ballon vers le but adverse quand la voie est libre', () => {
+  const foot = getEngine('foot');
+  const { scriptedRng } = require('../../src/lib/rng');
+  const players = [{ userId: 'bot:1', seat: 0 }, { userId: 'u', seat: 1 }];
+  let goals = 0;
+  for (let seed = 1; seed <= 8; seed++) {
+    const s = foot.init({ players, rng: scriptedRng([0]), now: 0, config: CONFIG.foot });
+    s.ball = [820, 300];
+    s.discs['bot:1'][4] = [700, 300];
+    s.discs.u = s.discs.u.map(([x], i) => [480 + i * 12, 40 + i * 50]); // défense absente
+    const d = bots.decide('foot', foot.view(s), 'bot:1', { level: 'hard', rng: seededRng(seed) });
+    const out = foot.apply(s, 'bot:1', d.action, { now: s.turnOpensAt, config: CONFIG.foot });
+    if (out.state.score['bot:1'] === 1) goals++;
+  }
+  assert.ok(goals >= 6, `le bot difficile marque presque à coup sûr (${goals}/8)`);
+});
+
+test('bots : identités clairement distinctes des joueurs', () => {
+  const list = bots.create(3, 'hard');
+  assert.deepEqual(list.map(b => b.userId), ['bot:1', 'bot:2', 'bot:3']);
+  assert.ok(list.every(b => b.isBot && b.username.startsWith('Bot ') && b.avatar === 'bot' && b.level === 'hard'));
+  assert.equal(bots.isBotId('bot:2'), true);
+  assert.equal(bots.isBotId('6f1c2d1e-0000-4000-8000-000000000000'), false);
+});

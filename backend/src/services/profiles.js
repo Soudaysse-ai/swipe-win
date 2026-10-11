@@ -3,6 +3,7 @@ const pool = require('../db/pool');
 const P = require('./progression');
 const { leagues, globalRows } = require('./leaderboards');
 const { notFound } = require('../lib/errors');
+const { getEngine } = require('../games');
 
 async function gameStats(userId) {
   const [stats, games, lg] = await Promise.all([
@@ -11,7 +12,7 @@ async function gameStats(userId) {
     leagues(),
   ]);
   const byGame = Object.fromEntries(stats.rows.map(r => [r.game_id, r]));
-  return games.rows.map((g) => {
+  return games.rows.filter(g => getEngine(g.id)).map((g) => {
     const s = byGame[g.id];
     const rating = s ? Number(s.rating) : 1000;
     return {
@@ -34,6 +35,7 @@ async function badges(userId) {
     `SELECT b.id, b.name, b.description, b.icon, pb.awarded_at,
             (pb.user_id IS NOT NULL) AS earned
        FROM badges b LEFT JOIN player_badges pb ON pb.badge_id = b.id AND pb.user_id = $1
+      WHERE NOT b.retired OR pb.user_id IS NOT NULL
       ORDER BY b.sort_order`, [userId]);
   return rows;
 }
@@ -88,7 +90,7 @@ async function publicProfile(userId, viewerId = null) {
 
 async function matchHistory(userId, { gameId = null, limit = 20, offset = 0 } = {}) {
   const { rows } = await pool.query(
-    `SELECT m.id, m.game_id, m.status, m.started_at, m.ended_at, m.end_reason, m.is_valid,
+    `SELECT m.id, m.game_id, m.status, m.started_at, m.ended_at, m.end_reason, m.is_valid, m.mode, m.bots,
             me.placement, me.outcome, me.rating_before, me.rating_after, me.stats,
             (SELECT json_agg(json_build_object('userId', u.id, 'username', u.username, 'avatar', u.avatar,
                      'placement', o.placement, 'outcome', o.outcome) ORDER BY o.seat)
@@ -102,7 +104,11 @@ async function matchHistory(userId, { gameId = null, limit = 20, offset = 0 } = 
     matchId: r.id, gameId: r.game_id, status: r.status, startedAt: r.started_at, endedAt: r.ended_at,
     endReason: r.end_reason, isValid: r.is_valid, placement: r.placement, outcome: r.outcome,
     ratingDelta: r.rating_after != null ? Math.round(Number(r.rating_after) - Number(r.rating_before)) : null,
-    stats: r.stats, opponents: r.opponents || [],
+    stats: r.stats, training: r.mode === 'bot',
+    opponents: [
+      ...(r.opponents || []),
+      ...(r.bots || []).map(b => ({ userId: b.userId, username: b.username, avatar: b.avatar, isBot: true })),
+    ],
   }));
 }
 
