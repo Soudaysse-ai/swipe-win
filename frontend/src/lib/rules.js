@@ -1,0 +1,34 @@
+// Règles résumées affichées aux joueurs (V1).
+export const RULES = {
+  connect: [
+    'Deux joueurs, une grille de 7 colonnes et 6 lignes.',
+    'À ton tour, touche une colonne : ton jeton tombe dans la case libre la plus basse.',
+    'Aligne 4 jetons horizontalement, verticalement ou en diagonale pour gagner.',
+    'Grille pleine sans alignement : match nul.',
+    '20 secondes par coup : au-delà, tu perds par forfait.',
+  ],
+  ludo: [
+    '2 à 4 joueurs, 4 pions chacun.',
+    'Fais 6 pour sortir un pion de ta base. Un 6 donne un lancer supplémentaire, trois 6 d\'affilée annulent le tour.',
+    'Tombe sur un pion adverse (hors case protégée ⭐) pour le renvoyer à sa base et rejouer.',
+    'Il faut le nombre exact pour entrer dans la zone d\'arrivée.',
+    'Le premier à ramener ses 4 pions gagne ; les autres continuent pour les places suivantes.',
+    '20 secondes par action : sinon le serveur joue automatiquement le premier coup possible.',
+  ],
+  cards: [
+    '2 à 4 joueurs, 7 cartes chacun, paquet de 108 cartes.',
+    'Pose une carte de la même couleur, du même chiffre ou du même symbole, ou une carte Joker.',
+    'Aucune carte jouable ? Pioche : si la carte piochée est jouable, tu peux la poser.',
+    'Passe ⦸ : le suivant passe son tour. Inverse ⟲ : change de sens (à 2 : comme Passe). +2 : le suivant pioche 2 et passe.',
+    'Joker : choisis la couleur. Joker +4 : choisis la couleur, le suivant pioche 4 — autorisé seulement sans carte de la couleur demandée. Le suivant peut contester !',
+    'À une carte, appuie sur « Dernière carte » avant qu\'un adversaire ne te signale (+2 cartes).',
+    'Le premier sans carte gagne. Pas de cumul des +2 / +4 en V1.',
+  ],
+  penalty: [
+    'Deux joueurs, 5 tirs chacun, rôles alternés : tireur puis gardien.',
+    'Le tireur choisit une zone parmi 5, le gardien choisit où plonger : les choix sont secrets jusqu\'à la révélation.',
+    'Même zone : arrêt ! Zones différentes : but.',
+    '10 secondes pour décider. Tireur sans choix : tir manqué. Gardien sans choix : but (sauf si le tireur n\'a pas choisi non plus).',
+    'Fin anticipée si l\'un ne peut plus rattraper l\'autre ; mort subite en cas d\'égalité (20 tirs maximum, puis match nul).',
+  ],
+};

@@ -1,0 +1,156 @@
+/* ==========================================================================
+   Yas Design Tokens — derived from the Yas Brand Guideline,
+   the Yas App Design Best Practices (2026 V1.0) and the
+   Yas / Mixx UI Toolkit (Jan 2025).
+   Values are the OFFICIAL brand hex codes, not the (brighter) JPG export.
+   ========================================================================== */
+
+:root {
+  /* --- Primary brand --------------------------------------------------- */
+  --yas-yellow: #FFD100;        /* Sunshine Yellow — backgrounds, imagery, buttons */
+  --yas-blue: #00377D;          /* Midnight Blue — primary text, primary surfaces */
+  --yas-sky: #5F99D2;           /* Sky Blue — large headings / info status */
+
+  /* Sunshine Yellow scale (100 → 15) + tints */
+  --yas-yellow-100: #FFD100;
+  --yas-yellow-80:  #FFDA37;
+  --yas-yellow-60:  #FFE369;
+  --yas-yellow-45:  #FFEA8F;
+  --yas-yellow-30:  #FFF1B4;
+  --yas-yellow-15:  #FFF8DA;
+
+  /* Midnight Blue scale (100 → 10) */
+  --yas-blue-100: #00377D;
+  --yas-blue-70:  #4D73A4;
+  --yas-blue-50:  #809BBE;
+  --yas-blue-35:  #A6B9D2;
+  --yas-blue-15:  #D9E1EB;
+  --yas-blue-10:  #F2F5F9;
+
+  /* Sky Blue scale (100 → 10) */
+  --yas-sky-100: #5F99D2;
+  --yas-sky-80:  #7FADDB;
+  --yas-sky-50:  #AFCCE9;
+  --yas-sky-35:  #C7DBEF;
+  --yas-sky-20:  #DFEBF6;
+  --yas-sky-10:  #EFF5FB;
+
+  /* --- Secondary / status --------------------------------------------- */
+  --yas-sunset: #FFA602;        /* Warning */
+  --yas-sunset-70: #FFC14E;
+  --yas-sunset-50: #FFD280;
+  --yas-sunset-30: #FFE4B3;
+  --yas-sunset-10: #FFF6E6;
+
+  --yas-fuscia: #FF6462;        /* Error */
+  --yas-fuscia-70: #FF9391;
+  --yas-fuscia-50: #FFB1B0;
+  --yas-fuscia-30: #FFD1D0;
+  --yas-fuscia-10: #FFF0EF;
+
+  --yas-sea-green: #3CB167;     /* Success */
+  --yas-sea-green-70: #64D68E;
+  --yas-sea-green-50: #90E2AE;
+  --yas-sea-green-30: #BDEECF;
+  --yas-sea-green-10: #E9F9EF;
+
+  --yas-berry: #BC4F90;         /* Secondary-level offers */
+  --yas-berry-70: #D084B1;
+  --yas-berry-50: #DDA7C7;
+  --yas-berry-30: #EBCADE;
+  --yas-berry-10: #F8EDF4;
+
+  --yas-twilight: #58508C;      /* Tertiary-level offers */
+  --yas-twilight-70: #8A85AF;
+  --yas-twilight-50: #ABA7C5;
+  --yas-twilight-30: #CDCBDD;
+  --yas-twilight-10: #EEEEF4;
+
+  /* --- Neutrals (100 = black → 00 = white) ---------------------------- */
+  --yas-neutral-100: #0E0E10;   /* Black — primary text, focus outline, dark surface */
+  --yas-neutral-95:  #1A1A1C;
+  --yas-neutral-90:  #272728;
+  --yas-neutral-85:  #323234;
+  --yas-neutral-80:  #3E3E40;   /* Icons, text on label button */
+  --yas-neutral-70:  #575758;   /* Secondary text */
+  --yas-neutral-60:  #6E6E70;
+  --yas-neutral-50:  #868687;   /* Tab bar / inactive icons & text */
+  --yas-neutral-40:  #9F9F9F;   /* Disabled text / icons */
+  --yas-neutral-30:  #B7B7B8;
+  --yas-neutral-20:  #CFCFCF;   /* Disabled icons, divider on secondary surface */
+  --yas-neutral-15:  #DBDBDB;
+  --yas-neutral-10:  #E7E7E8;   /* Secondary surface, dividers on primary surface */
+  --yas-neutral-05:  #F3F3F3;
+  --yas-neutral-00:  #FFFFFF;   /* White — primary surface, negative icons & text */
+
+  /* --- Semantic roles ------------------------------------------------- */
+  --yas-text-primary: var(--yas-blue);          /* Midnight Blue body text on light */
+  --yas-text-on-yellow: var(--yas-blue);
+  --yas-text-on-blue: var(--yas-neutral-00);
+  --yas-text-secondary: var(--yas-neutral-70);
+  --yas-text-disabled: var(--yas-neutral-40);
+  --yas-surface: var(--yas-neutral-00);
+  --yas-surface-secondary: var(--yas-neutral-10);
+  --yas-border: var(--yas-neutral-10);
+  --yas-focus-outline: var(--yas-neutral-100);
+
+  /* --- Typography ----------------------------------------------------- */
+  /* Figtree. ExtraBold Italic for headings; Regular/Medium/Bold for the rest.
+     Light and Black weights are NOT permitted in product UI. */
+  --yas-font: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --yas-h1: italic 800 60px/1.0 var(--yas-font);
+  --yas-h2: italic 800 46px/1.1 var(--yas-font);
+  --yas-h3: italic 800 36px/1.0 var(--yas-font);
+  --yas-h4: italic 800 28px/1.2 var(--yas-font);
+  --yas-h5: 400 28px/1.2 var(--yas-font);
+  --yas-body-lg: 400 20px/1.2 var(--yas-font);
+  --yas-body-md: 400 16px/1.2 var(--yas-font);   /* min. body size on web */
+  --yas-body-sm: 400 14px/1.4 var(--yas-font);   /* minimum legible size */
+  --yas-label: italic 800 30px/1.1 var(--yas-font);
+  --yas-price: 700 30px/1.0 var(--yas-font);
+  --yas-button: 500 18px/1.0 var(--yas-font);
+
+  /* --- Radius (from UI Toolkit component specs) ----------------------- */
+  --yas-radius-btn-sm: 16px;    /* 32px-tall button */
+  --yas-radius-btn-md: 22px;    /* 44px-tall button */
+  --yas-radius-btn-lg: 28px;    /* 56px-tall button */
+  --yas-radius-tab: 16px;
+  --yas-radius-card: 24px;      /* offer / special / packages / review cards */
+  --yas-radius-card-sm: 16px;   /* article / product cards */
+  --yas-radius-input: 24px;     /* input "circles" */
+  --yas-radius-toast: 12px;
+  --yas-radius-thumb: 30px;
+  --yas-radius-icon-tile: 12px; /* 48×48 icon holding tile */
+
+  /* --- Component heights ---------------------------------------------- */
+  --yas-btn-sm: 32px;
+  --yas-btn-md: 44px;
+  --yas-btn-lg: 56px;
+  --yas-tab: 48px;
+  --yas-badge-sm: 26px;
+  --yas-badge-md: 36px;
+  --yas-badge-lg: 42px;
+  --yas-tap-min: 44px;          /* WCAG AA minimum tap target */
+  --yas-footer: 552px;
+  --yas-hero: 725px;
+
+  /* --- Elevation ------------------------------------------------------ */
+  --yas-shadow-card: 0 4px 24px 0 rgba(0, 0, 0, 0.15);  /* cards, tiles */
+  --yas-shadow-nav:  0 16px 16px 0 rgba(0, 0, 0, 0.15); /* sticky header */
+
+  /* --- Card content-scrim gradient (thumbnails / image cards) --------- */
+  --yas-scrim: linear-gradient(to top left, rgba(0,0,0,1), rgba(0,0,0,0));
+}
+
+/* Pulse ripple — the signature Yas hover on buttons/icons. Yellow ripple
+   for yellow/Yas, blue ripple for Mixx-by-Yas. Attach on :hover. */
+@keyframes yas-ripple {
+  0%   { box-shadow: 0 0 0 0 rgba(255,209,0,.5), 0 0 0 0 rgba(255,209,0,.5); }
+  70%  { box-shadow: 0 0 0 12px rgba(255,209,0,0), 0 0 0 24px rgba(255,209,0,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,209,0,0), 0 0 0 0 rgba(255,209,0,0); }
+}
+@keyframes yas-ripple-blue {
+  0%   { box-shadow: 0 0 0 0 rgba(0,55,125,.5), 0 0 0 0 rgba(0,55,125,.5); }
+  70%  { box-shadow: 0 0 0 12px rgba(0,55,125,0), 0 0 0 24px rgba(0,55,125,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,55,125,0), 0 0 0 0 rgba(0,55,125,0); }
+}

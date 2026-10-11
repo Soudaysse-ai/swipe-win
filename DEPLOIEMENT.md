@@ -1,107 +1,70 @@
-# Déploiement — Swipe & Win Yas Comores
+# Déploiement — Défi Yas 2.0
 
-Application gamifiée (quiz football / Coupe du Monde 2026).
+> ⚠️ **Aucune mise en production sans validation explicite de Yas Comores** (phase 12).
+> Ce document décrit la procédure ; il n'a pas été exécuté sur l'infrastructure de production
+> (aucun accès n'était disponible pendant le développement).
 
-## Architecture
+## Architecture d'hébergement recommandée
 
-- **frontend/** — React 18 + Vite (site statique après `npm run build`). Styles inline, pas de framework CSS.
-- **backend/** — Node.js + Express, PostgreSQL (driver `pg`), auth admin via JWT.
-- **Base de données** — PostgreSQL (tables : admins, players, questions, prizes, sessions, answers, audit_logs, settings).
-
-## Plan de déploiement (le moins cher possible)
-
-| Composant | Service recommandé | Coût |
+| Composant | Service | Remarque |
 |---|---|---|
-| Base PostgreSQL | **Neon** (neon.tech) | Gratuit |
-| Backend (API Node) | **Render** (render.com) | Gratuit |
-| Frontend (statique) | **Vercel** (vercel.com) | Gratuit |
-| Nom de domaine | Namecheap / Cloudflare | ~10-12 €/an |
+| PostgreSQL | Neon (actuel) ou équivalent managé | Activer les sauvegardes automatiques / branches |
+| API + WebSocket | Render **plan payant toujours actif** (ou Railway, Fly.io) | Le plan gratuit met le service en veille : incompatible avec les parties en temps réel. **Une seule instance** en V1 (voir docs/ARCHITECTURE.md §8). |
+| Frontend | Vercel (actuel) | `vercel.json` : réécriture SPA, cache immuable des assets, en-têtes de sécurité |
+| Domaine | `www.defi-yas.com` → frontend ; `api.defi-yas.com` → API (recommandé) | HTTPS / WSS obligatoires |
+| E-mails | Resend | Créer une clé API, **vérifier le domaine** d'expédition (ex. `defi-yas.com`, enregistrements DNS SPF/DKIM fournis par Resend), renseigner `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL` |
 
-Tous reliés via le dépôt GitHub : https://github.com/Soudaysse-ai/swipe-win
-
----
+## Environnements
+- **dev** : local (`npm run dev`).
+- **staging** : copie (branche Neon) de la base de production + services séparés ; tests
+  d'intégration et E2E avant chaque mise en production.
+- **production**.
 
 ## Variables d'environnement
+Backend : voir `backend/.env.example` (obligatoires en production : `DATABASE_URL`,
+`JWT_SECRET` ≥ 32 caractères, `CORS_ORIGINS`, `NODE_ENV=production`, `APP_URL` en https — l'API refuse de démarrer sans).
+Frontend : `VITE_API_URL` (par défaut `https://defi-yas-api.onrender.com`, fixé dans
+`frontend/.env.production` ; une variable définie sur Vercel est prioritaire, ex.
+`https://api.defi-yas.com`). Projet Vercel : Root Directory `frontend`, preset Vite.
+`CORS_ORIGINS` doit contenir l'adresse exacte du site ; un motif `*` est accepté pour les aperçus
+Vercel, ex. `https://defi-yas-*.vercel.app`.
+E-mails : `RESEND_API_KEY`, `MAIL_FROM` (adresse d'un domaine vérifié dans Resend), `APP_URL=https://www.defi-yas.com`.
 
-### Backend (`backend/.env` en local, ou variables Render en prod)
-```
-DATABASE_URL=postgresql://user:pass@host.neon.tech/db?sslmode=require
-JWT_SECRET=<longue chaîne secrète aléatoire>
-JWT_EXPIRES_IN=7d
-ADMIN_EMAIL=admin@yas.km
-ADMIN_PASSWORD=<mot de passe admin>
-PORT=3001
-NODE_ENV=production
-```
-> Le pool PostgreSQL active le SSL automatiquement si `NODE_ENV=production` ou si l'URL contient `sslmode=require` (voir `backend/src/db/pool.js`).
+## Procédure de mise à jour (base existante Swipe & Win)
 
-### Frontend (variable Vercel)
-```
-VITE_API_URL=https://<ton-service>.onrender.com
-```
-> Le frontend appelle `VITE_API_URL + '/api'` (voir `frontend/src/utils/api.js`). Si vide → utilise le proxy local Vite (dev seulement).
+1. **Sauvegarde** : `cd backend && DATABASE_URL=… npm run db:backup` (pg_dump au format custom,
+   fichier dans `backend/backups/`) **et** création d'une branche Neon `pre-defi-yas-2`.
+2. **Staging** : `DATABASE_URL=<branche staging> npm run migrate`, puis tests
+   (`npm run test:integration` sur une base de test, `npm run test:e2e` sur le staging).
+3. **Migrations en production** : `npm run migrate` (additives, transactionnelles, rejouables,
+   verrou consultatif contre les exécutions concurrentes). L'API applique aussi les migrations
+   au démarrage.
+4. **Premier super admin** : `ADMIN_EMAIL=… ADMIN_PASSWORD=… npm run seed` (ne remplace jamais le
+   mot de passe d'un compte existant). Les anciens admins sont convertis : `superadmin → super_admin`,
+   `editor → platform_admin`.
+5. Déployer l'API (Build `npm ci`, Start `npm start`), vérifier `GET /health`.
+6. Déployer le frontend avec `VITE_API_URL`.
+7. Vérifications : inscription, « mot de passe oublié » (réception de l'e-mail), partie Connect
+   entre deux téléphones, `/admin` (dashboard, activité en direct), export CSV.
 
----
+### Comptes existants
+Les joueurs Swipe & Win n'avaient ni mot de passe ni pseudonyme. Lorsqu'ils créent leur compte
+Défi Yas avec le **même numéro**, il est automatiquement lié à leur ancien profil (historique quiz
+conservé). Aucune donnée existante n'est supprimée par la migration.
 
-## Étapes
+### Retour arrière
+- Code : redéployer la version précédente (Render / Vercel gardent l'historique des déploiements).
+- Données : les migrations n'ont fait qu'ajouter des tables/colonnes, sauf le renommage des rôles
+  administrateur (`superadmin → super_admin`, `editor → platform_admin`) que l'ancienne application
+  ne reconnaît pas. Pour revenir entièrement à l'ancienne version, restaurer la sauvegarde :
+  `pg_restore --clean --no-owner -d "$DATABASE_URL" backups/backup_….dump` (les parties jouées depuis
+  la mise à jour seraient alors perdues : exporter d'abord si nécessaire).
 
-### 0. Pousser sur GitHub
-```bash
-cd swipe-win
-git init        # si pas déjà fait
-git add -A
-git commit -m "Initial"
-git remote add origin https://github.com/Soudaysse-ai/swipe-win.git
-git branch -M main
-git push -u origin main
-```
-Authentification : token GitHub (Personal Access Token classic, scope `repo`) comme mot de passe.
-
-### 1. Base de données — Neon
-1. Créer un compte sur neon.tech, créer un projet PostgreSQL.
-2. Copier la **connection string** (`postgresql://...?sslmode=require`) → ce sera `DATABASE_URL`.
-
-### 2. Backend — Render
-1. render.com → **New → Web Service** → connecter le dépôt GitHub.
-2. Réglages :
-   - **Root Directory** : `backend`
-   - **Build Command** : `npm install`
-   - **Start Command** : `npm start`
-3. Ajouter les variables d'environnement (voir ci-dessus).
-4. Déployer. Noter l'URL (ex: `https://swipe-win-api.onrender.com`).
-5. **Initialiser la base** (créer tables + admin + questions) :
-   - Via le **Shell** Render : `npm run seed`
-   - OU en local pointant sur Neon : `cd backend && DATABASE_URL="..." npm run seed`
-
-### 3. Frontend — Vercel
-1. vercel.com → importer le dépôt GitHub.
-2. **Root Directory** : `frontend`
-3. Variable : `VITE_API_URL` = l'URL Render de l'étape 2.
-4. Déployer.
-
-### 4. Domaine
-1. Acheter le domaine (Namecheap / Cloudflare).
-2. Dans Vercel → **Settings → Domains** → ajouter le domaine et suivre les enregistrements DNS indiqués.
-
----
-
-## Vérifications post-déploiement
-```bash
-# API en ligne
-curl https://<service>.onrender.com/health        # -> {"ok":true}
-
-# Lots actifs
-curl https://<service>.onrender.com/api/prizes/active
-
-# Login admin
-curl -X POST https://<service>.onrender.com/api/admin/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"admin@yas.km","password":"<mot de passe>"}'
-```
-- Jeu joueur : `https://<domaine>/`
-- Back-office : `https://<domaine>/admin`
-
-## Notes
-- Le plan gratuit Render met le service en veille après inactivité (premier appel ~30 s à réveiller).
-- Charte graphique : jaune #FFD100, bleu #00377D, police Figtree. Pas d'orange.
-- Option « Distribuer des lots » dans le back-office (table `settings`, clé `prizes_enabled`).
+## Exploitation
+- Journaux : sortie standard de l'API (erreurs internes détaillées uniquement côté serveur).
+- Supervision : `/health`, page **Activité en direct** du back-office (sockets, latence, erreurs,
+  déconnexions, parties, files d'attente, mémoire).
+- Tâches horaires intégrées : instantanés des classements, cohortes de rétention, levée des
+  suspensions expirées, purge des liens de réinitialisation.
+- Arrêt / redémarrage : les parties en cours sont restaurées au redémarrage (délai de grâce pour
+  que les joueurs se reconnectent).

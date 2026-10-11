@@ -19,7 +19,7 @@ export default function AdminThemes() {
 
   async function load() {
     try {
-      const { data } = await api.get('/admin/themes');
+      const { data } = await api.get('/admin/quiz/themes');
       setThemes(data.themes);
       setActiveTheme(data.active_theme);
     } finally {
@@ -33,7 +33,7 @@ export default function AdminThemes() {
     setActiveTheme(theme);
     setSaving(true);
     try {
-      await api.put('/admin/settings/active-theme', { theme });
+      await api.put('/admin/quiz/settings/active-theme', { theme });
     } catch (e) {
       setActiveTheme(prev); // rollback
       alert('Erreur : ' + (e.response?.data?.error || e.message));

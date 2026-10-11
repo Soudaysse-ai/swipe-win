@@ -14,7 +14,7 @@ router.get('/active', async (req, res) => {
     );
     res.json({ prizes: result.rows, enabled: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Erreur interne, réessayez.' });
   }
 });
 

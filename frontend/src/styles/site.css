@@ -1,0 +1,242 @@
+/* ==========================================================================
+   Défi Yas — pages « site » : accueil public et écrans de compte.
+   Modèles de la charte web Yas (en-tête deux rangées, héros, cartes produits,
+   bandeaux, pied de page) et du guide « App Design Best Practices » 2026.
+   Les éléments de marque (logo, plectre, Pulse) viennent des fichiers officiels
+   et ne sont jamais déformés : seules la taille et la rotation varient.
+   ========================================================================== */
+
+.wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+@media (min-width: 720px) { .wrap { padding: 0 32px; } }
+@media (min-width: 1024px) { .wrap { padding: 0 40px; } }
+
+.only-desktop { display: none !important; }
+@media (min-width: 1024px) { .only-desktop { display: inline-flex !important; } .only-mobile { display: none !important; } }
+
+/* Bouton Large (56 px) réservé aux grands écrans ; Medium (44 px) sur mobile */
+@media (max-width: 1023px) { .btn.lg { height: var(--yas-btn-md); border-radius: var(--yas-radius-btn-md); padding: 0 24px; font-size: 18px; } }
+
+.landing { min-height: 100dvh; background: #fff; color: var(--yas-blue); overflow-x: clip; }
+
+/* ── En-tête web (pages Yas) : barre Sunshine Yellow sur une rangée, logo calé à
+   gauche, liens Menu séparés par de fins filets, actions à droite ─────────── */
+.site-header { position: sticky; top: 0; z-index: 30; box-shadow: var(--yas-shadow-nav); }
+.main-bar { background: var(--yas-yellow); position: relative; }
+.main-bar .wrap { display: flex; align-items: center; gap: 24px; height: 68px; }
+.site-logo { display: flex; flex-shrink: 0; }
+.site-logo img { width: 52px !important; }
+.main-menu { display: none; }
+.main-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.bar-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 16px; font-weight: 500; padding: 0 6px; min-height: 44px; }
+.bar-link:hover { text-decoration: underline; }
+.mobile-menu {
+  position: absolute; left: 0; right: 0; top: 100%;
+  display: flex; flex-direction: column; padding: 8px 20px 16px;
+  background: #fff; box-shadow: var(--yas-shadow-nav);
+}
+.mobile-menu a {
+  display: flex; align-items: center; justify-content: space-between; min-height: 52px;
+  text-decoration: none; font-size: 18px; font-weight: 500; border-bottom: 1px solid var(--yas-neutral-10);
+}
+.mobile-menu a:last-child { border-bottom: none; }
+/* Sur les pages du site, bouton Midnight Blue à libellé jaune (comme yas.km) */
+.landing .btn.blue { color: var(--yas-yellow); }
+@media (min-width: 1024px) {
+  .main-bar .wrap { height: 88px; gap: 36px; }
+  .site-logo img { width: 64px !important; }
+  .main-menu { display: flex; align-items: center; }
+  .main-menu a { position: relative; text-decoration: none; font-size: 16px; font-weight: 500; padding: 10px 14px; }
+  .main-menu a + a::before { content: ''; position: absolute; left: 0; top: 50%; width: 1px; height: 12px; translate: 0 -50%; background: rgba(0, 55, 125, .35); }
+  .main-menu a:hover { text-decoration: underline; }
+  .mobile-menu { display: none; }
+}
+
+/* ── Héros : fond Sunshine Yellow, titre Midnight Blue, plectre officiel ──── */
+.hero { background: var(--yas-yellow); padding: 40px 0 0; overflow: hidden; }
+.hero-grid { display: grid; gap: 8px; }
+.hero-eyebrow { font-size: 18px; font-weight: 500; }
+.hero h1 { font: italic 800 56px/0.95 var(--yas-font); margin: 14px 0 18px; letter-spacing: -0.5px; }
+.hero-lead { font-size: 18px; line-height: 1.35; max-width: 34ch; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.hero-cta .btn { flex: 1 1 100%; }
+.hero-facts { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 20px; font-size: 16px; font-weight: 700; }
+.hero-facts li { display: inline-flex; align-items: center; gap: 6px; }
+.hero-live { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 15px; font-weight: 500; }
+.hero-live .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--yas-sea-green); }
+
+.hero-copy { position: relative; z-index: 1; }
+.hero-visual { position: relative; height: 430px; margin: 8px -20px 0; }
+.hero-plectre { position: absolute; left: 34%; top: 50%; width: 380px; height: auto; translate: -50% -50%; }
+.device.hero-device { position: absolute; left: 73%; top: 52%; translate: -50% -50%; width: 182px; }
+
+@media (min-width: 720px) {
+  .hero h1 { font-size: 76px; }
+  .hero-cta .btn { flex: 0 0 auto; }
+  .hero-visual { height: 520px; margin: 0; }
+  .hero-plectre { width: 470px; left: 36%; }
+  .device.hero-device { left: 70%; }
+  .device.hero-device { width: 230px; }
+  }
+@media (min-width: 1024px) {
+  .hero { padding: 56px 0 0; }
+  .hero-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 40px; align-items: center; min-height: 560px; }
+
+  .hero h1 { font-size: 96px; }
+  .hero-lead { font-size: 20px; line-height: 1.3; }
+  .hero-copy { padding-bottom: 56px; }
+  .hero-visual { height: 640px; }
+  .hero-plectre { width: 560px; left: 36%; }
+  .device.hero-device { width: 258px; left: 76%; }
+  }
+
+/* ── Aperçu de l'application dans un cadre de téléphone ──────────────────── */
+.device {
+  width: 236px; aspect-ratio: 9 / 18.6; box-sizing: border-box; padding: 8px; border-radius: 38px;
+  background: var(--yas-neutral-100); box-shadow: 0 30px 60px rgba(0, 35, 80, .35);
+}
+.device-screen { position: relative; height: 100%; border-radius: 30px; overflow: hidden; background: var(--yas-blue-10); display: flex; flex-direction: column; }
+.dm-bar { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 14px; background: var(--yas-yellow); box-shadow: 0 4px 4px rgba(0,0,0,.1); }
+.dm-bar b { flex: 1; text-align: center; font: italic 800 15px/1 var(--yas-font); }
+.dm-body { display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 0; }
+.dm-players { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.dm-player { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; border-radius: 17px; background: #fff; font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.dm-player.on { box-shadow: inset 0 0 0 2px var(--yas-blue); }
+.dm-player i { width: 12px; height: 12px; border-radius: 50%; }
+.dm-turn { text-align: center; font-size: 13px; font-weight: 700; margin-top: 2px; }
+.dm-timer { height: 5px; border-radius: 3px; background: var(--yas-blue-15); overflow: hidden; }
+.dm-timer i { display: block; width: 72%; height: 100%; background: var(--yas-blue); }
+.dm-board { width: 100%; height: auto; display: block; margin-top: 2px; }
+.dm-hint { text-align: center; font-size: 11px; font-weight: 500; color: var(--yas-neutral-70); }
+.dm-nav {
+  position: absolute; left: 10px; right: 10px; bottom: 12px; height: 44px; border-radius: 22px;
+  background: var(--yas-blue); color: #fff; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; justify-items: center; padding: 0 4px;
+}
+.dm-nav span { width: min(34px, 100%); aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.dm-nav span.on { background: var(--yas-yellow); color: var(--yas-blue); }
+@media (min-width: 1024px) { .device { width: 270px; } }
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
+.section { padding: 56px 0; background: #fff; }
+.section.tint { background: #FFFDF2; }               /* jaune très clair des pages Yas */
+.section-head { max-width: 680px; margin-bottom: 32px; }
+.section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+.section-head h2, .split-title { font: italic 800 34px/1.05 var(--yas-font); }
+.hl { color: var(--yas-sky); }                       /* mise en avant : Sky Blue, sur fond clair */
+.section-head p, .split-lead { font-size: 18px; line-height: 1.4; margin-top: 12px; }
+@media (min-width: 1024px) {
+  .section { padding: 96px 0; }
+  .section-head { margin-bottom: 56px; }
+  .section-head h2, .split-title { font-size: 48px; }
+}
+
+/* Les jeux : plectres tournés qui « tiennent » l'illustration, avec halo */
+.game-showcase { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 16px; }
+@media (min-width: 1024px) { .game-showcase { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; } }
+.showcase-item { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; text-decoration: none; }
+.showcase-item .pframe { margin-bottom: 10px; transition: transform .2s ease; }
+.showcase-item:hover .pframe { transform: translateY(-4px) scale(1.03); }
+.showcase-item b { font: italic 800 22px/1.1 var(--yas-font); }
+.showcase-item .players { font-size: 15px; font-weight: 700; color: var(--yas-blue-70); }
+.showcase-item .desc { font-size: 16px; line-height: 1.35; max-width: 24ch; }
+@media (max-width: 719px) { .showcase-item .pframe { width: 140px !important; height: 140px !important; } .showcase-item b { font-size: 19px; } .showcase-item .desc { font-size: 15px; } }
+
+.pframe { position: relative; display: inline-flex; flex-shrink: 0; }
+.pframe .pf-layer { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pframe .pf-clip { position: absolute; inset: 0; display: block; }
+.pframe .pf-clip svg { width: 100%; height: 100%; }
+.pframe .pf-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--yas-blue); }
+
+/* Blocs texte / visuel alternés */
+.split { display: grid; gap: 36px; align-items: center; }
+.split-copy { display: flex; flex-direction: column; align-items: flex-start; }
+.split-copy .btn { margin-top: 24px; }
+@media (min-width: 1024px) {
+  .split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 72px; }
+  .split.reverse > :first-child { order: 0; }
+}
+.step-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.step-list li { display: flex; align-items: center; gap: 16px; padding: 16px 20px 16px 12px; border-radius: var(--yas-radius-card); background: #FFFDF2; }
+.step-list .step-num { display: block; font-size: 14px; font-weight: 700; color: var(--yas-blue-70); }
+.step-list b { display: block; font: italic 800 22px/1.15 var(--yas-font); margin: 2px 0 4px; }
+.step-list li div > span:last-child { font-size: 16px; line-height: 1.35; }
+
+.feature-panel {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px;
+  padding: 32px 20px; border-radius: var(--yas-radius-card); background: var(--yas-yellow);
+}
+.feature-cell { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; }
+.feature-cell .pf-icon { color: var(--yas-yellow); }
+.feature-cell b { font-size: 18px; font-weight: 700; }
+@media (min-width: 1024px) { .feature-panel { padding: 48px 32px; gap: 40px 24px; } }
+.check-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 20px; font-size: 17px; }
+.check-list li { display: flex; align-items: flex-start; gap: 10px; }
+.check-list svg { flex-shrink: 0; margin-top: 3px; color: var(--yas-sky); }
+
+/* ── Bandeau d'appel à l'action (Sunshine Yellow, centré) ────────────────── */
+.cta-band { background: var(--yas-yellow); padding: 56px 0; text-align: center; }
+.cta-inner { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.cta-band h2 { font: italic 800 32px/1.05 var(--yas-font); }
+.cta-band p { font-size: 18px; margin-bottom: 14px; }
+@media (min-width: 1024px) { .cta-band { padding: 72px 0; } .cta-band h2 { font-size: 44px; } }
+
+/* ── Pied de page Midnight Blue ──────────────────────────────────────────── */
+.site-footer { background: var(--yas-blue); color: #fff; padding: 48px 0 calc(24px + var(--safe-bottom)); }
+.footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px 20px; }
+.footer-brand { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 14px; }
+.footer-brand p { font-size: 16px; line-height: 1.4; color: var(--yas-blue-15); max-width: 300px; }
+.site-footer nav { display: flex; flex-direction: column; gap: 12px; }
+.site-footer nav b { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+.site-footer a { color: #fff; text-decoration: none; font-size: 16px; font-weight: 500; }
+.site-footer a:hover { text-decoration: underline; }
+.footer-bottom {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
+  margin-top: 40px; padding-top: 20px !important; border-top: 1px solid rgba(255, 255, 255, .25);
+  font-size: 14px; font-style: italic; color: #fff;
+}
+.footer-bottom a { font-size: 14px; font-style: normal; }
+@media (min-width: 1024px) {
+  .site-footer { padding-top: 64px; }
+  .footer-grid { grid-template-columns: 1.6fr 1fr 1fr 1fr; }
+  .footer-brand { grid-column: auto; }
+}
+
+/* Pastille « pièce » */
+.coin-badge {
+  position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFE369 0, var(--yas-yellow) 55%, #F2C200 100%);
+  box-shadow: inset 0 0 0 4px rgba(0, 55, 125, .08), 0 8px 20px rgba(0, 0, 0, .18);
+  color: var(--yas-blue); transform: rotate(-10deg); line-height: 1;
+}
+.coin-badge b { font: italic 800 2.1em/1 var(--yas-font); }
+.coin-badge small { font-size: .72em; font-weight: 700; margin-top: 2px; }
+.coin-badge .coin-spark { position: absolute; top: 14%; right: 22%; }
+
+/* ── Écrans de compte ────────────────────────────────────────────────────── */
+.auth-page { min-height: 100dvh; display: flex; background: #fff; }
+.auth-aside { display: none; }
+.auth-main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--yas-blue-10); }
+.auth-top { display: flex; align-items: center; gap: 12px; height: 72px; padding: 0 20px; background: var(--yas-yellow); box-shadow: 0 4px 4px rgba(0, 0, 0, .1); }
+.auth-brand { display: flex; align-items: center; text-decoration: none; }
+.auth-hero { background: var(--yas-yellow); padding: 8px 20px 64px; }
+.auth-hero .h1 { font-size: 36px; }
+.auth-sub { font-size: 18px; margin-top: 8px; line-height: 1.35; max-width: 36ch; }
+.auth-body { width: 100%; max-width: 480px; margin: -40px auto 0; padding: 0 16px 40px; }
+.auth-card { color: var(--yas-blue); }
+@media (min-width: 1024px) {
+  .auth-aside {
+    display: flex; flex-direction: column; position: sticky; top: 0; height: 100dvh; overflow: hidden;
+    flex: 0 0 46%; max-width: 720px; padding: 28px 48px 0; background: var(--yas-yellow); color: var(--yas-blue);
+  }
+  .auth-aside-copy { margin-top: 48px; }
+  .auth-aside-copy h2 { font: italic 800 72px/0.95 var(--yas-font); }
+  .auth-aside-copy p { font-size: 20px; line-height: 1.3; margin-top: 18px; max-width: 30ch; }
+  .auth-aside-visual { position: relative; flex: 1; min-height: 300px; margin-top: 16px; }
+  .auth-aside-visual .hero-plectre { width: 460px; left: 34%; top: 48%; }
+  .auth-aside-visual .device.device { position: absolute; left: 68%; top: 48%; translate: -50% -50%; width: 220px; }
+  .auth-main { justify-content: center; background: #fff; }
+  .auth-top { position: absolute; top: 0; right: 0; left: 46%; justify-content: flex-end; background: transparent; box-shadow: none; padding: 0 32px; }
+  .auth-top .auth-brand { display: none; }
+  .auth-hero { background: transparent; padding: 0; width: 100%; max-width: 480px; margin: 96px auto 0; padding: 0 16px; }
+  .auth-body { margin-top: 24px; }
+}
+.auth-brand-desktop { display: flex; }

@@ -8,7 +8,7 @@ export default function LeaderboardScore() {
 
   const load = () => {
     setLoading(true);
-    api.get('/admin/leaderboard/score')
+    api.get('/admin/quiz/leaderboard/score')
       .then(r => setRows(r.data.leaderboard))
       .finally(() => setLoading(false));
   };
@@ -19,7 +19,7 @@ export default function LeaderboardScore() {
     if (!window.confirm('Réinitialiser le classement ? Toutes les sessions et réponses seront supprimées définitivement.')) return;
     setResetting(true);
     try {
-      await api.delete('/admin/leaderboard/reset');
+      await api.delete('/admin/quiz/leaderboard/reset');
       setRows([]);
     } catch (e) {
       alert('Erreur : ' + (e.response?.data?.error || e.message));

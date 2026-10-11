@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import api from '../utils/api';
+import api from '../lib/playerApi';
 import YasLogo from '../components/YasLogo';
 import Plectre from '../components/Plectre';
 
@@ -25,7 +25,7 @@ export default function GameOver() {
   const maxScore = total * 15;
 
   const player = (() => {
-    try { return JSON.parse(localStorage.getItem('sw_player') || 'null'); } catch { return null; }
+    try { const id = localStorage.getItem('sw_player_id'); return id ? { id } : null; } catch { return null; }
   })();
   const myId = session.player_id || player?.id;
 
@@ -74,7 +74,7 @@ export default function GameOver() {
       <Plectre color="blue" size={200} rotate={150} style={s.plectreBottom} />
 
       <div style={s.content}>
-        <YasLogo size={96} style={{ margin: '0 auto' }} />
+        <YasLogo size={56} style={{ margin: '0 auto' }} />
         <h1 style={s.title}>Game over&nbsp;!</h1>
         <p style={s.subtitle}>Tu as récolté :</p>
 
@@ -102,12 +102,12 @@ export default function GameOver() {
         )}
 
         <div style={s.actions}>
-          <button style={s.btnReplay} onClick={() => navigate('/game')}>RE-JOUER →</button>
+          <button style={s.btnReplay} onClick={() => navigate('/quiz/play')}>RE-JOUER →</button>
           <button style={s.btnPrizes} onClick={toggleLeaderboard}>🏆 VOIR LE CLASSEMENT</button>
           {prizes.length > 0 && (
             <button style={s.btnPrizes} onClick={() => setShowPrizes(v => !v)}>VOIR LES PRIX</button>
           )}
-          <button style={s.btnHome} onClick={() => navigate('/')}>Retour à l'accueil</button>
+          <button style={s.btnHome} onClick={() => navigate('/')}>Retour à Défi Yas</button>
         </div>
 
         {showLeaderboard && (

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
+import api from '../lib/playerApi';
 import YasLogo from '../components/YasLogo';
 import Plectre from '../components/Plectre';
 
@@ -62,13 +62,12 @@ export default function Game() {
   }, [current, questions]);
 
   async function initGame() {
-    const player = JSON.parse(localStorage.getItem('sw_player') || 'null');
-    if (!player) return navigate('/');
     try {
       const [qRes, sRes] = await Promise.all([
         api.get(`/questions/random?count=${TOTAL_QUESTIONS}`),
-        api.post('/sessions/start', { player_id: player.id }),
+        api.post('/sessions/start'),
       ]);
+      try { localStorage.setItem('sw_player_id', sRes.data.player_id); } catch { /* stockage indisponible */ }
       if (!qRes.data.questions.length) {
         // Aucun thème actif ne sert de questions : écran d'attente plutôt qu'un crash
         setPaused(true);
@@ -83,7 +82,7 @@ export default function Game() {
         setPaused(true);
         setLoading(false);
       } else {
-        navigate('/');
+        navigate('/quiz');
       }
     }
   }
@@ -127,9 +126,9 @@ export default function Game() {
     const total = questions.length || TOTAL_QUESTIONS;
     try {
       const { data } = await api.post(`/sessions/${sessionId}/end`);
-      navigate('/game-over', { state: { session: data.session, total } });
+      navigate('/quiz/results', { state: { session: data.session, total } });
     } catch {
-      navigate('/game-over', { state: { session: { score, correct_count: 0 }, total } });
+      navigate('/quiz/results', { state: { session: { score, correct_count: 0 }, total } });
     }
   }
 
@@ -151,14 +150,14 @@ export default function Game() {
 
   if (loading) return (
     <div style={s.loading}>
-      <YasLogo size={70} />
+      <YasLogo size={40} />
       <p style={{ color: '#00377D', marginTop: 16, fontWeight: 800 }}>Chargement...</p>
     </div>
   );
 
   if (paused) return (
     <div style={s.loading}>
-      <YasLogo size={70} />
+      <YasLogo size={40} />
       <p style={{ fontSize: 48, marginTop: 16 }}>⏸</p>
       <p style={{ color: '#00377D', marginTop: 8, fontWeight: 800, fontSize: 18, textAlign: 'center', padding: '0 24px' }}>
         Le jeu est en pause pour le moment.
@@ -172,7 +171,7 @@ export default function Game() {
           background: '#FFD100', color: '#00377D', fontFamily: "'Figtree', sans-serif",
           fontWeight: 900, fontSize: 16, cursor: 'pointer',
         }}
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/quiz')}
       >
         Retour à l'accueil
       </button>

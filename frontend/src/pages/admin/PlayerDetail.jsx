@@ -10,7 +10,7 @@ export default function PlayerDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get(`/admin/players/${id}`)
+    api.get(`/admin/quiz/players/${id}`)
       .then(r => setData(r.data))
       .finally(() => setLoading(false));
   }, [id]);
@@ -30,7 +30,7 @@ export default function PlayerDetail() {
 
   return (
     <div>
-      <button style={styles.back} onClick={() => navigate('/admin/players')}>← Retour</button>
+      <button style={styles.back} onClick={() => navigate('/admin/quiz/players')}>← Retour</button>
 
       <div style={styles.playerCard}>
         <div style={styles.avatar}>{(player.name || player.phone)[0].toUpperCase()}</div>
