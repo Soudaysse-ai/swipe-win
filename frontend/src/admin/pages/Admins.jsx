@@ -106,7 +106,7 @@ export function Audit() {
 const CONFIG_LABELS = {
   turnSeconds: 'Secondes par tour', decisionSeconds: 'Secondes par décision', reconnectSeconds: 'Délai de reconnexion (s)',
   networkToleranceSeconds: 'Tolérance réseau (s)', maxTimeouts: 'Expirations avant forfait', minActionsForValid: 'Actions min. pour valider',
-  maxShotsPerPlayer: 'Tirs max par joueur',
+  maxShotsPerPlayer: 'Tirs max par joueur', setupSeconds: 'Avant-match (s)',
 };
 
 // « Swipe & gagne » : visible ou masqué pour les joueurs (menus, accueil, pages du quiz).

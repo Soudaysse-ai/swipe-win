@@ -7,7 +7,7 @@ en exécutant réellement les suites (PostgreSQL 16 local, Chromium via Playwrig
 
 | Suite | Commande | Résultat |
 |---|---|---|
-| Unitaires backend | `npm test` | **88 / 88** |
+| Unitaires backend | `npm test` | **92 / 92** |
 | Intégration backend (vraie base, vrais clients Socket.IO) | `npm run test:integration` | **32 / 32** |
 | E2E navigateur (Pixel 7 et écran 1440 px) | `npm run test:e2e` | **11 / 11** |
 | Build frontend | `npm run build` | OK |
@@ -262,6 +262,23 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   lots et historiques restent gérables dans le back-office.
 - Tests : 1 d'intégration (masqué par défaut, droits, journal, blocage), 2 E2E (masqué ; activé depuis
   le back-office puis partie jouée).
+
+### Corrections Ludo et Connect, Yas Foot 1.1
+- **Ludo bloqué** : quand un lancer sans pion jouable était aussitôt suivi d'un lancer du bot,
+  le minuteur qui efface « aucun pion ne peut avancer » était annulé : message figé, dé
+  verrouillé, tour perdu jusqu'au forfait. Chaque affichage a désormais son propre minuteur
+  (reproduit puis corrigé ; test E2E contre un bot).
+- **Grille Connect** : dessinée en SVG ; elle ne dépend plus d'`aspect-ratio` ni de l'étirement
+  des boutons (Safari, anciens Android) qui pouvaient l'écraser en bandeau vide. Replis
+  ajoutés ailleurs (dés de Ludo, vignettes, hauteurs en `dvh`).
+- **Yas Foot 1.1** (migration 010, règles 1.1.0) : avant-match de 15 s (équipe parmi
+  16 drapeaux, 4 formations, stade au choix — Standard, Nocturne, Plage de Moroni, Arène Yas,
+  visuel propre à chaque joueur), écran « VS », palets et ballon plus grands, terrain plein
+  écran (barre d'abandon et d'options intégrée), guide de trajectoire pendant la visée,
+  **passes** (le ballon envoyé sur un coéquipier redonne la main, deux fois de suite au plus),
+  sons synthétisés (coupés par défaut, interrupteur dans les options), « BUT ! » avec confettis.
+  Le bot choisit son équipe et sa formation et valorise les passes. Les choix d'avant-match ne
+  sont jamais refusés pour « version périmée » (`versionFreeActions`).
 
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render

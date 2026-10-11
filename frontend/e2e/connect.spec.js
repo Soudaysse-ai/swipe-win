@@ -54,12 +54,14 @@ test('deux téléphones jouent une partie de Yas Connect jusqu\'à la victoire',
   await expect(first.locator('.result-stats b', { hasText: '+30' })).toBeVisible();
   await expect(first.locator('.result-stats b', { hasText: '+16' })).toBeVisible();
 
-  // Le classement est à jour
-  await first.goto('/rankings?game=connect&period=week');
-  // « Ma position » reflète immédiatement la nouvelle cote (le podium dépend des autres joueurs de la base)
-  const mine = first.locator('.card.yellow', { hasText: 'Ma position' });
-  await expect(mine).toBeVisible();
-  await expect(mine).toContainText('1016');
+  // Le classement est à jour. Les résultats sont enregistrés juste après la fin de
+  // partie : on recharge la page jusqu'à voir la nouvelle cote (le podium dépend des
+  // autres joueurs de la base, « Ma position » non).
+  await expect(async () => {
+    await first.goto('/rankings?game=connect&period=week');
+    const mine = first.locator('.card.yellow', { hasText: 'Ma position' });
+    await expect(mine).toContainText('1016', { timeout: 2000 });
+  }).toPass({ timeout: 15000 });
   await ctxA.close();
   await ctxB.close();
 });

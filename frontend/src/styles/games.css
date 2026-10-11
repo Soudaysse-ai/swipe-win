@@ -12,7 +12,7 @@
   width: 74%; height: 74%; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr);
   place-items: center;
 }
-.die-face i { width: 64%; aspect-ratio: 1; border-radius: 50%; background: #10233F; box-shadow: inset 0 1px 1px rgba(0, 0, 0, .4); }
+.die-face i { width: 64%; height: 64%; border-radius: 50%; background: #10233F; box-shadow: inset 0 1px 1px rgba(0, 0, 0, .4); }
 .die-face.ghost i { opacity: .16; }
 .die.rolling { animation: die-tumble .75s cubic-bezier(.3, .7, .4, 1) infinite; }
 .die.landed { animation: die-land .35s ease-out; }
@@ -84,7 +84,7 @@
   padding: 14px 12px 16px; border-radius: 26px; color: #fff;
   background: radial-gradient(120% 70% at 50% 38%, #0D4C9E 0%, #00377D 55%, #00275A 100%);
   box-shadow: 0 10px 30px rgba(0, 31, 77, .25);
-  min-height: calc(100dvh - 120px); justify-content: space-between;
+  min-height: calc(100vh - 120px); min-height: calc(100dvh - 120px); justify-content: space-between;
 }
 .card-svg { display: block; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .3)); }
 
@@ -184,47 +184,164 @@
 .cards-opps.n3 .opp-text b { font-size: 13px; max-width: 104px; }
 
 /* ── Yas Foot : football de table ─────────────────────────────────────────── */
-.foot { width: 100%; max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
-.foot.portrait { max-width: 560px; }
-.foot-board {
-  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; padding: 8px 10px;
-  border-radius: 20px; background: linear-gradient(180deg, #0D4C9E, #00377D); color: #fff; box-shadow: var(--yas-shadow-card);
+.foot { width: 100%; max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+.foot.portrait { max-width: 620px; }
+.match-page.immersive { gap: 6px; max-width: 1180px; }
+.foot-top { display: flex; align-items: center; gap: 6px; }
+.foot-icon {
+  width: 42px; height: 42px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%;
+  background: #00377D; color: #fff; box-shadow: var(--yas-shadow-card);
 }
-.foot-team { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 4px 6px; border-radius: 14px; }
+.foot-board {
+  flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 6px; padding: 5px 6px;
+  border-radius: 18px; background: linear-gradient(180deg, #0D4C9E, #00377D); color: #fff; box-shadow: var(--yas-shadow-card);
+}
+.foot-team { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 4px; border-radius: 14px; }
 .foot-team.right { flex-direction: row-reverse; text-align: right; }
 .foot-team.active { background: rgba(255, 255, 255, .12); box-shadow: inset 0 0 0 2px var(--team); }
+.foot-avatar { position: relative; flex-shrink: 0; display: inline-flex; }
+.foot-flag-mini { position: absolute; right: -4px; bottom: -4px; line-height: 0; border-radius: 50%; box-shadow: 0 0 0 2px #00377D; }
 .foot-name {
-  flex: 1; min-width: 0; font-weight: 700; font-size: 14px; line-height: 1.15; overflow: hidden;
+  flex: 1; min-width: 0; font-weight: 700; font-size: 13px; line-height: 1.15; overflow: hidden;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere;
 }
 .foot-score {
-  min-width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; flex-shrink: 0;
-  background: #fff; color: #00377D; font: italic 900 24px/1 var(--yas-font); box-shadow: inset 0 -3px 0 var(--team);
+  min-width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; flex-shrink: 0;
+  background: #fff; color: #00377D; font: italic 900 21px/1 var(--yas-font); box-shadow: inset 0 -3px 0 var(--team);
 }
 .foot-clock {
-  padding: 6px 12px; border-radius: 12px; background: #FFD100; color: #00377D;
-  font: italic 900 20px/1 var(--yas-font); letter-spacing: .5px; font-variant-numeric: tabular-nums;
+  padding: 6px 9px; border-radius: 11px; background: #FFD100; color: #00377D;
+  font: italic 900 17px/1 var(--yas-font); letter-spacing: .5px; font-variant-numeric: tabular-nums;
 }
 .foot-clock.low { background: var(--yas-fuscia); color: #fff; }
 .foot-board .seat-avatar > .avatar { box-shadow: 0 0 0 2px #00377D; }
 .foot-board .seat-avatar.timing { background: conic-gradient(var(--pc) calc(var(--p) * 1turn), rgba(255, 255, 255, .25) 0); }
 .foot-field-wrap { position: relative; }
-.foot-field { display: block; width: 100%; height: auto; touch-action: none; user-select: none; -webkit-user-select: none; filter: drop-shadow(0 8px 18px rgba(0, 31, 77, .22)); }
-.foot.portrait .foot-field { max-height: calc(100dvh - 250px); margin: 0 auto; }
+.foot-field {
+  display: block; width: 100%; height: auto; border-radius: 16px; touch-action: none; user-select: none; -webkit-user-select: none;
+  filter: drop-shadow(0 8px 18px rgba(0, 31, 77, .22));
+}
+/* Terrain le plus grand possible : toute la hauteur moins la barre et la ligne d'état. */
+.foot.portrait .foot-field { max-height: calc(100vh - 136px); max-height: calc(100dvh - 136px); margin: 0 auto; }
+.foot:not(.portrait) .foot-field { max-height: calc(100vh - 140px); max-height: calc(100dvh - 140px); margin: 0 auto; }
+.foot-status { padding: 7px 14px; min-height: 0; font-size: 14px; }
+.foot-training { flex-shrink: 0; height: 24px; padding: 0 8px; font-size: 12px; gap: 3px; }
 .foot-disc.mine { cursor: grab; }
 .foot-disc .disc-glow { animation: disc-glow 1.1s ease-in-out infinite; }
 @keyframes disc-glow { 50% { opacity: .25; } }
+
+/* Avant-match : panneau sombre posé sur le terrain, comme un vestiaire. */
+.foot-setup {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px;
+  border-radius: 16px; background: rgba(5, 18, 38, .9); color: #fff; overflow: hidden;
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: fade .25s ease-out;
+}
+.foot-setup-head { text-align: center; }
+.foot-setup-head h2 { font: italic 800 24px/1.1 var(--yas-font); }
+.foot-setup-head h2 span { color: var(--yas-yellow); }
+.foot-setup-head p { margin-top: 4px; font-size: 14px; opacity: .9; }
+.foot-setup-head p b { color: var(--yas-yellow); font-size: 18px; }
+.foot-setup-tabs { justify-content: center; }
+.foot-setup-tabs .tab { background: rgba(255, 255, 255, .1); color: #fff; border-color: transparent; }
+.foot-setup-tabs .tab.active { background: var(--yas-yellow); color: #00377D; }
+.foot-setup-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 2px; }
+.flag-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.flag-pick, .formation-pick, .stadium-pick {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 14px;
+  background: rgba(255, 255, 255, .06); color: #fff; border: 2px solid transparent; min-width: 0;
+}
+.flag-pick small, .stadium-pick b, .formation-pick small { font-size: 12px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+.flag-pick.on, .formation-pick.on, .stadium-pick.on { border-color: var(--yas-yellow); background: rgba(255, 209, 0, .14); }
+.flag-pick:disabled { opacity: .45; }
+.flag-pick.on:disabled, .formation-pick.on:disabled { opacity: 1; }
+.flag-pick em {
+  position: absolute; top: 4px; left: 50%; transform: translateX(-50%); padding: 1px 7px; border-radius: 10px;
+  background: #E5484D; color: #fff; font: normal 700 10px/1.4 var(--yas-font);
+}
+.formation-grid, .stadium-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.formation-thumb { width: 100%; max-width: 120px; height: auto; border-radius: 8px; display: block; }
+.formation-pick b { font: italic 800 16px/1 var(--yas-font); }
+.stadium-thumb { width: 100%; height: auto; border-radius: 10px; display: block; }
+.stadium-grid p { grid-column: 1 / -1; opacity: .8; }
+.sheet .stadium-pick { background: var(--yas-blue-10); color: var(--yas-blue); }
+
+/* Écran « équipe contre équipe » avant le coup d'envoi */
+.foot-vs {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; gap: 14px;
+  border-radius: 16px; background: rgba(5, 18, 38, .88); color: #fff; animation: fade .2s ease-out; pointer-events: none;
+}
+.foot-vs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; max-width: 40%; animation: vs-in .45s cubic-bezier(.2, .9, .3, 1.3); }
+.foot-vs-team:last-child { animation-name: vs-in-right; }
+.foot-vs-team b { font: italic 800 20px/1.1 var(--yas-font); color: var(--yas-yellow); }
+.foot-vs-team span { font-size: 14px; opacity: .9; overflow-wrap: anywhere; }
+.foot-vs strong { font: italic 900 44px/1 var(--yas-font); color: #fff; text-shadow: 0 4px 0 #00377D; }
+@keyframes vs-in { from { transform: translateX(-40px) scale(.8); opacity: 0; } }
+@keyframes vs-in-right { from { transform: translateX(40px) scale(.8); opacity: 0; } }
+
+/* But ! et passe réussie */
 .foot-goal {
-  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-  pointer-events: none; animation: pop .35s ease-out;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  pointer-events: none; overflow: hidden; border-radius: 16px;
 }
 .foot-goal b {
-  font: italic 900 clamp(48px, 14vw, 96px)/1 var(--yas-font); color: #FFD100;
-  -webkit-text-stroke: 3px #00377D; text-shadow: 0 6px 0 #00377D, 0 12px 24px rgba(0, 0, 0, .35);
+  position: relative; font: italic 900 clamp(56px, 17vw, 110px)/1 var(--yas-font); color: #FFD100;
+  -webkit-text-stroke: 3px #00377D; text-shadow: 0 6px 0 #00377D, 0 12px 28px rgba(0, 0, 0, .4);
+  animation: goal-zoom .6s cubic-bezier(.2, .9, .3, 1.4);
 }
-.foot-goal span { padding: 6px 14px; border-radius: 16px; background: #00377D; color: #fff; font-weight: 700; }
+.foot-goal span { position: relative; padding: 6px 14px; border-radius: 16px; background: #00377D; color: #fff; font-weight: 700; animation: pop .4s ease-out .15s backwards; }
+@keyframes goal-zoom { 0% { transform: scale(.2) rotate(-12deg); opacity: 0; } 70% { transform: scale(1.12) rotate(3deg); opacity: 1; } 100% { transform: none; } }
+.foot-confetti { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+.foot-confetti i { position: absolute; top: -12px; width: 9px; height: 15px; border-radius: 2px; animation: confetti-fall linear forwards; }
+@keyframes confetti-fall { to { transform: translateY(110vh) rotate(var(--r)); } }
+.foot-pass {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 12px 22px; border-radius: 20px; background: rgba(11, 90, 46, .94); color: #fff; text-align: center; pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .3); animation: pop .3s ease-out;
+}
+.foot-pass b { font: italic 900 24px/1 var(--yas-font); color: #C6F432; }
+.foot-pass span { font-size: 14px; font-weight: 700; }
+
+/* Options : interrupteur des sons */
+.foot-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.foot-option span { display: flex; flex-direction: column; }
+.foot-option small { color: var(--yas-neutral-70); }
+.switch { position: relative; width: 52px; height: 30px; flex-shrink: 0; border-radius: 15px; background: #B8C2CF; transition: background .2s; }
+.switch span { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s; }
+.switch.on { background: var(--yas-sea-green, #2FA35A); }
+.switch.on span { transform: translateX(22px); }
+
 @media (max-width: 420px) {
-  .foot-name { font-size: 13px; }
-  .foot-score { min-width: 34px; height: 34px; font-size: 20px; }
-  .foot-clock { font-size: 17px; padding: 6px 9px; }
+  .foot-name { display: none; }
+  .foot-team.right { flex-direction: row-reverse; }
+  .foot-score { min-width: 30px; height: 30px; font-size: 18px; }
+  .foot-clock { font-size: 15px; padding: 5px 7px; }
+  .foot-icon { width: 38px; height: 38px; }
+  .flag-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 }
+@media (prefers-reduced-motion: reduce) {
+  .foot-confetti, .foot-vs-team, .foot-goal b { animation: none; }
+}
+
+/* ── Yas Connect : grille dessinée en SVG, une colonne cliquable par bouton ──
+   Hauteur réservée par padding (ratio du viewBox 736 × 636) : aucun recours à
+   aspect-ratio ni à l'étirement des boutons, fragiles sur Safari / anciens Android. */
+.connect-frame { position: relative; width: 100%; height: 0; padding-bottom: 86.413%; }
+.connect-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .15)); }
+.connect-col {
+  position: absolute; top: 0; bottom: 0; margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: transparent; -webkit-appearance: none; appearance: none;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.connect-col:focus-visible { outline: 3px solid var(--yas-yellow); outline-offset: -3px; border-radius: 28px; }
+.cx-drop { animation-duration: .4s; animation-timing-function: cubic-bezier(.4, 0, .6, 1.3); }
+.cx-drop-1 { animation-name: cx-drop-1; } .cx-drop-2 { animation-name: cx-drop-2; } .cx-drop-3 { animation-name: cx-drop-3; }
+.cx-drop-4 { animation-name: cx-drop-4; } .cx-drop-5 { animation-name: cx-drop-5; } .cx-drop-6 { animation-name: cx-drop-6; }
+@keyframes cx-drop-1 { from { transform: translateY(-120px); } to { transform: none; } }
+@keyframes cx-drop-2 { from { transform: translateY(-220px); } to { transform: none; } }
+@keyframes cx-drop-3 { from { transform: translateY(-320px); } to { transform: none; } }
+@keyframes cx-drop-4 { from { transform: translateY(-420px); } to { transform: none; } }
+@keyframes cx-drop-5 { from { transform: translateY(-520px); } to { transform: none; } }
+@keyframes cx-drop-6 { from { transform: translateY(-620px); } to { transform: none; } }
+.cx-win { animation: cx-win .9s ease-in-out infinite; }
+@keyframes cx-win { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .cx-drop, .cx-win { animation: none; } }

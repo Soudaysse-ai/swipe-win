@@ -116,7 +116,7 @@ test('foot : le bot pousse le ballon vers le but adverse quand la voie est libre
   const players = [{ userId: 'bot:1', seat: 0 }, { userId: 'u', seat: 1 }];
   let goals = 0;
   for (let seed = 1; seed <= 8; seed++) {
-    const s = foot.init({ players, rng: scriptedRng([0]), now: 0, config: CONFIG.foot });
+    const s = foot.init({ players, rng: scriptedRng([0]), now: 0, config: { ...CONFIG.foot, setupSeconds: 0 } });
     s.ball = [820, 300];
     s.discs['bot:1'][4] = [700, 300];
     s.discs.u = s.discs.u.map(([x], i) => [480 + i * 12, 40 + i * 50]); // défense absente

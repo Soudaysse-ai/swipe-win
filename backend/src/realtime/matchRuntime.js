@@ -301,7 +301,10 @@ async function handleAction(userId, msg = {}) {
     if (p.forfeited) return { ok: false, code: 'FORFEITED', message: 'Vous avez quitté cette partie' };
     const key = msg.commandId ? `${userId}:${msg.commandId}` : null;
     if (key && m.commands.has(key)) return { ok: true, duplicate: true, version: m.version };
-    if (msg.version != null && msg.version !== m.version) {
+    // Les actions indépendantes de l'état du plateau (ex. choix d'avant-match) ne sont
+    // pas refusées quand l'adversaire a joué entre-temps.
+    const versionFree = (m.engine.versionFreeActions || []).includes(msg.action?.type);
+    if (msg.version != null && msg.version !== m.version && !versionFree) {
       hub.emitToUser(userId, 'match:state', snapshotFor(m, userId));
       return { ok: false, code: 'STALE_VERSION', message: 'État désynchronisé, resynchronisation…', version: m.version };
     }
