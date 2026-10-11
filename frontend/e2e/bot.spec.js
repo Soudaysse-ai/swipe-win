@@ -55,6 +55,17 @@ test('Yas Foot contre un bot : viser à la fronde, tirer, le bot répond', async
   await expect(page).toHaveURL(/\/match\//, { timeout: 10000 });
   await expect(page.getByRole('img', { name: 'Terrain de Yas Foot' })).toBeVisible({ timeout: 15000 });
 
+  // Avant-match : équipe, formation, puis « Je suis prêt » (le bot choisit seul).
+  const setup = page.getByRole('dialog', { name: 'Avant-match' });
+  await expect(setup).toBeVisible();
+  await page.getByRole('button', { name: 'Comores' }).click();
+  await expect(page.getByRole('button', { name: 'Comores' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('tab', { name: 'Formation' }).click();
+  await page.getByRole('button', { name: /1-2-2/ }).click();
+  await page.getByRole('button', { name: /Je suis prêt/ }).click();
+  await expect(setup).toBeHidden({ timeout: 10000 });
+  await expect(page.getByText('VS', { exact: true })).toBeVisible();
+
   // Attendre son tour (le bot peut engager), puis tirer l'attaquant vers l'arrière.
   const disc = page.getByRole('button', { name: 'Tirer le palet 5' });
   await disc.waitFor({ timeout: 30000 });

@@ -16,8 +16,14 @@ persiste chaque événement et diffuse les vues aux joueurs.
   forfeit(state, userId, ctx) -> { state, events }          // abandon / non-retour après déconnexion
   result(state) -> null | { placements: [{ userId, place, outcome, stats }], isDraw, reason }
   actionsCount(state, userId) -> nombre d'actions jouées (validité anti-abus)
+  versionFreeActions?: ['setup']  // actions acceptées même si l'état a changé entre-temps
 }
 ```
+
+`versionFreeActions` (facultatif) : types d'action qui ne dépendent pas du
+plateau (ex. choix d'équipe avant le match dans Yas Foot). Le runtime ne les
+refuse pas pour « version périmée » quand l'adversaire a joué en même temps ;
+le moteur reste seul juge de leur validité.
 
 `ctx = { rng, now, config }` : `rng.int(n)` renvoie un entier dans `[0, n)`
 (`crypto.randomInt` en production, générateur à graine dans les tests), `now`

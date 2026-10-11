@@ -21,6 +21,8 @@ const GAMES = {
   cards: lazy(() => import('../../games/cards/CardsGame')),
   foot: lazy(() => import('../../games/foot/FootGame')),
 };
+// Jeux affichés en plein écran (ils dessinent eux-mêmes boutons d'abandon et d'options).
+const IMMERSIVE = new Set(['foot']);
 
 // Abonnement aux événements de jeu (animations) pour un match donné.
 export function useGameEvents(matchId, handler) {
@@ -232,10 +234,12 @@ export default function Match() {
   const Game = GAMES[snap.gameId];
   const others = snap.players.filter(p => p.userId !== user?.id);
   const bots = snap.players.filter(p => p.isBot);
+  // Jeux plein écran : leur propre barre (abandon, options) remplace l'en-tête.
+  const immersive = IMMERSIVE.has(snap.gameId) && snap.status !== 'READY' && !!snap.view;
 
   return (
-    <div className="stack match-page" style={{ marginTop: -8 }}>
-      <div className="row between">
+    <div className={`stack match-page${immersive ? ' immersive' : ''}`} style={{ marginTop: -8 }}>
+      {!immersive && <div className="row between">
         <button className="btn sm ghost" onClick={() => setResignOpen(true)} aria-label="Abandonner"><Icon name="flag" size={18} /> Abandonner</button>
         <span className="match-title">
           <span className="h3">{gameName(snap.gameId)}</span>
@@ -244,7 +248,7 @@ export default function Match() {
         {snap.training
           ? <span className="icon-btn" aria-hidden />
           : <button className="icon-btn" onClick={() => setChatOpen(true)} aria-label="Chat et réactions"><Icon name="chat" /></button>}
-      </div>
+      </div>}
 
       {others.filter(p => !p.connected && !p.forfeited).map(p => (
         <div key={p.userId} className="alert warning" role="status">
@@ -263,7 +267,8 @@ export default function Match() {
         </div>
       ) : (
         <Suspense fallback={<Spinner center />}>
-          <Game snapshot={snap} me={user?.id} sendAction={sendAction} matchId={matchId} />
+          <Game snapshot={snap} me={user?.id} sendAction={sendAction} matchId={matchId}
+            onResign={() => setResignOpen(true)} onChat={snap.training ? null : () => setChatOpen(true)} />
         </Suspense>
       )}
 
