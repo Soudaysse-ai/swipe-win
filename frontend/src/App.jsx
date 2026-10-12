@@ -8,7 +8,6 @@ import MatchmakingOverlay from './components/MatchmakingOverlay';
 import { Spinner } from './components/ui';
 import { useFeatures } from './lib/features';
 import { Login, Register, ResetPassword, Terms } from './player/pages/AuthPages';
-import Landing from './player/pages/Landing';
 import Home from './player/pages/Home';
 import { GamesList, GameLobby } from './player/pages/Games';
 import Room from './player/pages/Room';
@@ -57,7 +56,7 @@ function PlayerRoutes() {
   return (
     <SessionProvider>
       <Routes>
-        <Route path="/welcome" element={<GuestOnly><Landing /></GuestOnly>} />
+        <Route path="/welcome" element={<GuestOnly><Login /></GuestOnly>} />
         <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
         <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
         <Route path="/reset" element={<ResetPassword />} />

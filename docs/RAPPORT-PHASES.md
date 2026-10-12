@@ -280,6 +280,16 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   Le bot choisit son équipe et sa formation et valorise les passes. Les choix d'avant-match ne
   sont jamais refusés pour « version périmée » (`versionFreeActions`).
 
+## Évolution — portail d'accueil, récupération de compte, inscription
+- **Accueil public** (`/welcome`) remplacé par un portail de connexion d'un seul écran, dans le style de
+  l'application connectée (barre jaune, bandeau bleu illustré, carte de connexion). Inscription et mot
+  de passe oublié reprennent la même mise en page.
+- **Mot de passe oublié par numéro** : lien vers l'e-mail du compte, ou demande au service client
+  (back-office « Récupération de compte » : rappel du numéro, puis envoi du lien). Rappel sur l'accueil
+  des joueurs sans e-mail pour qu'ils en ajoutent un.
+- **Inscription** : pseudonymes avec accents et espaces acceptés, message clair pour les numéros non
+  Yas, refus d'inscription journalisés (code seulement) pour diagnostiquer les échecs.
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

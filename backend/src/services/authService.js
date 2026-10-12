@@ -8,7 +8,14 @@ const { containsBlocked } = require('./contentFilter');
 const { isValidAvatar } = require('./avatars');
 const { bad, unauthorized, forbidden, conflict, AppError } = require('../lib/errors');
 
-const USERNAME_RE = /^[A-Za-z0-9_\-.]{3,20}$/;
+// Lettres de toutes les langues (accents compris), chiffres, _ - . et espaces
+// simples entre les mots : « Moussa Saïd », « Élodie_97 ».
+const USERNAME_RE = /^(?=.{3,20}$)[\p{L}\p{N}_.-]+(?: [\p{L}\p{N}_.-]+)*$/u;
+
+// Espaces en trop retirés et forme Unicode unique (é saisi en un ou deux caractères).
+function normalizeUsername(raw) {
+  return String(raw || '').normalize('NFC').trim().replace(/\s+/g, ' ');
+}
 
 // Accepte les saisies courantes : « 412 34 56 », « +269 412 34 56 », « 00269 4123456 », « 2694123456 ».
 function normalizePhone(raw) {
@@ -16,7 +23,7 @@ function normalizePhone(raw) {
   if (digits.startsWith('00')) digits = digits.slice(2);
   if (digits.length > 7 && digits.startsWith('269')) digits = digits.slice(3);
   const phone = `+269${digits}`;
-  if (!config.phoneRegex.test(phone)) throw bad('PHONE_INVALID', 'Numéro invalide : 7 chiffres commençant par 4 (ex. 412 34 56)');
+  if (!config.phoneRegex.test(phone)) throw bad('PHONE_INVALID', 'Défi Yas est réservé aux numéros Yas : 7 chiffres commençant par 4 (ex. 412 34 56)');
   return phone;
 }
 
@@ -27,7 +34,7 @@ function validatePassword(pw) {
 
 function validateUsername(name) {
   if (!USERNAME_RE.test(name || '')) {
-    throw bad('USERNAME_INVALID', 'Pseudonyme : 3 à 20 caractères (lettres, chiffres, _ - .)');
+    throw bad('USERNAME_INVALID', 'Pseudonyme : 3 à 20 caractères (lettres, chiffres, espaces, _ - .)');
   }
   if (containsBlocked(name)) throw bad('USERNAME_FORBIDDEN', 'Ce pseudonyme n\'est pas autorisé');
 }
@@ -48,7 +55,7 @@ async function createSession(db, userId, meta = {}) {
 async function register(input, meta = {}) {
   const phone = normalizePhone(input.phone);
   validatePassword(input.password);
-  const username = String(input.username || '').trim();
+  const username = normalizeUsername(input.username);
   validateUsername(username);
   const avatar = input.avatar || 'yas-01';
   if (!isValidAvatar(avatar)) throw bad('AVATAR_INVALID', 'Avatar invalide');
@@ -169,6 +176,6 @@ function invalidateUserCache(userId) {
 }
 
 module.exports = {
-  register, login, logout, resetPassword, verifyToken, normalizePhone, validateUsername,
+  register, login, logout, resetPassword, verifyToken, normalizePhone, validateUsername, normalizeUsername,
   validatePassword, invalidateUserCache, assertCanPlay,
 };

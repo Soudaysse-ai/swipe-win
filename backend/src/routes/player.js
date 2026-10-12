@@ -15,7 +15,7 @@ const matchmaking = require('../realtime/matchmaking');
 const { activityOf } = require('../realtime/socket');
 const { getEngine } = require('../games');
 const { requirePlayer, optionalPlayer } = require('../middleware/playerAuth');
-const { validateUsername } = require('../services/authService');
+const { validateUsername, normalizeUsername } = require('../services/authService');
 const { isValidAvatar } = require('../services/avatars');
 const { sanitize, filterText } = require('../services/contentFilter');
 const bcrypt = require('bcryptjs');
@@ -132,7 +132,7 @@ router.patch('/players/me', requirePlayer, ah(async (req, res) => {
     await pool.query('UPDATE users SET avatar = $2 WHERE id = $1', [userId, avatar]);
   }
   if (username !== undefined) {
-    const name = String(username).trim();
+    const name = normalizeUsername(username);
     validateUsername(name);
     const taken = await pool.query('SELECT 1 FROM users WHERE LOWER(username) = LOWER($1) AND id <> $2', [name, userId]);
     if (taken.rows.length) throw conflict('USERNAME_TAKEN', 'Ce pseudonyme est déjà pris');

@@ -21,6 +21,7 @@ const NAV = [
   { to: '/admin/leaderboards', label: 'Classements & saisons', perm: 'leaderboards.view' },
   { to: '/admin/review', label: 'Résultats suspects', perm: 'matches.review' },
   { to: '/admin/moderation', label: 'Modération', perm: 'reports.manage' },
+  { to: '/admin/recovery', label: 'Récupération de compte', perm: 'players.moderate' },
   { group: 'Compétitions' },
   { to: '/admin/tournaments', label: 'Tournois', perm: 'tournaments.manage' },
   { group: 'Configuration' },
