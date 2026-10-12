@@ -105,7 +105,8 @@ Limitation de fréquence par événement et par joueur (ex. 6 messages / 10 s da
 ## 6. Données
 
 Migrations : `backend/src/db/migrations` (`001` schéma Swipe & Win existant, `002` plateforme,
-`003` données de référence, `004` e-mail et jetons de réinitialisation). Toutes additives et rejouables.
+`003` données de référence, `004` e-mail et jetons de réinitialisation, … `011` demandes de récupération
+de compte). Toutes additives et rejouables.
 
 Utilisateurs (`users`, `profiles`, `auth_sessions`, `password_reset_tokens`, `friendships`, `friend_requests`,
 `blocked_users`) · Jeux (`games`, `game_rules_versions`, `game_rooms`, `room_players`, `matches`,
@@ -132,6 +133,12 @@ ajoute une écriture compensatoire signée par l'administrateur, rien n'est effa
   annule les précédentes, réponse identique que l'adresse existe ou non, sessions fermées après
   réinitialisation. E-mail facultatif (obligatoire avec `EMAIL_REQUIRED=true`) ; le changer exige le
   mot de passe actuel. Sans e-mail : lien remis par le service client depuis le back-office (journalisé).
+- Mot de passe oublié à partir du **numéro** (`POST /api/auth/password/forgot-phone`) : lien envoyé à
+  l'e-mail du compte (adresse masquée affichée) ; sans e-mail utilisable, demande de récupération
+  (`POST /api/auth/recovery` → table `recovery_requests`, une seule en attente par compte). L'agent
+  rappelle le numéro, puis « envoie le lien » (`/api/admin/recovery`, permission `players.moderate`,
+  journalisé) : l'adresse demandée n'est rattachée au compte qu'à ce moment. Personne ne peut donc
+  détourner un compte en y associant sa propre adresse.
   La table `otp_codes` (migration 002) n'est plus utilisée.
 - Permissions administrateur vérifiées **côté serveur** sur chaque route (6 rôles).
 - Limitation de fréquence HTTP (globale, connexion par numéro, mot de passe oublié) et WebSocket ; seuils

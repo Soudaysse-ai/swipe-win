@@ -12,6 +12,7 @@ import Live from './pages/Live';
 import { Leaderboards, Review } from './pages/Leaderboards';
 import { TournamentsAdmin, TournamentAdminDetail } from './pages/Tournaments';
 import Moderation from './pages/Moderation';
+import Recovery from './pages/Recovery';
 import { Admins, Audit, Settings } from './pages/Admins';
 // Pages historiques du quiz Swipe & Win (conservées)
 const QuizDashboard = lazy(() => import('../pages/admin/Dashboard'));
@@ -55,6 +56,7 @@ export default function AdminApp() {
           <Route path="leaderboards" element={<Leaderboards />} />
           <Route path="review" element={<Review />} />
           <Route path="moderation" element={<Moderation />} />
+          <Route path="recovery" element={<Recovery />} />
           <Route path="tournaments" element={<TournamentsAdmin />} />
           <Route path="tournaments/:id" element={<TournamentAdminDetail />} />
           <Route path="settings" element={<Settings />} />

@@ -48,7 +48,10 @@ function onMatchEnded(fn) { hooks.ended.push(fn); }
 
 function enqueue(m, fn) {
   const run = m.queue.then(fn);
-  m.queue = run.catch((err) => { console.error(`match ${m.id}:`, err); hub.countError(); });
+  m.queue = run.catch((err) => {
+    if (err?.stale) { console.warn(`match ${m.id}: état modifié par une autre instance, resynchronisé`); return; }
+    console.error(`match ${m.id}:`, err); hub.countError();
+  });
   return run;
 }
 
@@ -101,14 +104,24 @@ function computeStatus(m) {
 async function commit(m, out, evt) {
   const nextVersion = m.version + 1;
   const status = computeStatus(m);
-  await pool.tx(async (db) => {
-    await db.query(
-      `INSERT INTO match_events (match_id, seq, user_id, type, payload, command_id) VALUES ($1,$2,$3,$4,$5,$6)`,
-      [m.id, nextVersion, evt.userId || null, evt.type, JSON.stringify({ ...evt.payload, events: (out.events || []).filter(e => !e.to).map(e => e.type) }), evt.commandId || null]
-    );
-    await db.query('UPDATE matches SET state = $2, state_version = $3, status = $4 WHERE id = $1',
-      [m.id, JSON.stringify(out.state), nextVersion, status]);
-  });
+  try {
+    await pool.tx(async (db) => {
+      await db.query(
+        `INSERT INTO match_events (match_id, seq, user_id, type, payload, command_id) VALUES ($1,$2,$3,$4,$5,$6)`,
+        [m.id, nextVersion, evt.userId || null, evt.type, JSON.stringify({ ...evt.payload, events: (out.events || []).filter(e => !e.to).map(e => e.type) }), evt.commandId || null]
+      );
+      await db.query('UPDATE matches SET state = $2, state_version = $3, status = $4 WHERE id = $1',
+        [m.id, JSON.stringify(out.state), nextVersion, status]);
+    });
+  } catch (err) {
+    // Une autre instance (ex. ancienne version pendant un déploiement) a fait avancer
+    // la partie : on recharge l'état officiel au lieu de rester désynchronisé.
+    if (err.code === '23505' && /match_events/.test(err.constraint || '')) {
+      await resync(m);
+      throw Object.assign(new Error('STALE_MATCH'), { stale: true });
+    }
+    throw err;
+  }
   m.state = out.state;
   m.version = nextVersion;
   m.status = status;
@@ -118,6 +131,20 @@ async function commit(m, out, evt) {
   const res = m.engine.result(m.state) || trainingAbandon(m, evt);
   if (res) await finish(m, res);
   else { schedule(m); scheduleBots(m); }
+}
+
+// Recharge l'état officiel d'une partie depuis la base (après un conflit d'écriture).
+async function resync(m) {
+  clearTimeout(m.timer);
+  clearTimeout(m.botTimer);
+  const { rows } = await pool.query('SELECT state, state_version, status FROM matches WHERE id = $1', [m.id]);
+  const row = rows[0];
+  if (!row || row.status === 'COMPLETED' || row.status === 'CANCELLED') { cleanup(m); return; }
+  m.state = row.state;
+  m.version = row.state_version;
+  broadcastState(m);
+  schedule(m);
+  scheduleBots(m);
 }
 
 // Entraînement à plusieurs bots : si le joueur abandonne (ou ne revient pas), la
@@ -315,7 +342,12 @@ async function handleAction(userId, msg = {}) {
       if (err instanceof EngineError) return { ok: false, code: err.code, message: err.message };
       throw err;
     }
-    await commit(m, out, { type: 'action', userId, payload: { action: msg.action }, commandId: msg.commandId });
+    try {
+      await commit(m, out, { type: 'action', userId, payload: { action: msg.action }, commandId: msg.commandId });
+    } catch (err) {
+      if (err.stale) return { ok: false, code: 'STALE_VERSION', message: 'État désynchronisé, resynchronisation…', version: m.version };
+      throw err;
+    }
     if (key) {
       m.commands.add(key);
       if (m.commands.size > 1000) m.commands.delete(m.commands.values().next().value);

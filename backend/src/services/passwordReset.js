@@ -72,22 +72,38 @@ async function sendLink(user, link) {
   await mailer.send({ to: user.email, ...mail });
 }
 
-// Demande publique : aucune information sur l'existence du compte n'est renvoyée.
+// Envoie un lien au joueur (au plus 5 par heure : pas de bombardement d'e-mails).
+// Renvoie false si l'e-mail n'a pas pu partir.
+async function emailLink(user, { ip } = {}) {
+  const recent = await pool.query(
+    `SELECT COUNT(*)::int AS n FROM password_reset_tokens WHERE user_id = $1 AND created_at > NOW() - INTERVAL '1 hour'`, [user.id]);
+  if (recent.rows[0].n >= 5) return true; // silencieux : les liens précédents sont déjà partis
+  const link = await createLink(pool, user.id, { ip });
+  try {
+    await sendLink(user, link);
+    return true;
+  } catch (err) {
+    console.error('réinitialisation : e-mail non envoyé', err.message);
+    return false;
+  }
+}
+
+// Demande publique par e-mail : aucune information sur l'existence du compte n'est renvoyée.
 async function requestReset(rawEmail, { ip } = {}) {
   const email = normalizeEmail(rawEmail);
   const { rows } = await pool.query(
     `SELECT id, username, email, status FROM users WHERE LOWER(email) = $1 AND status IN ('active','suspended')`, [email]);
-  const user = rows[0];
-  if (!user) return;
-  const recent = await pool.query(
-    `SELECT COUNT(*)::int AS n FROM password_reset_tokens WHERE user_id = $1 AND created_at > NOW() - INTERVAL '1 hour'`, [user.id]);
-  if (recent.rows[0].n >= 5) return; // silencieux : pas de bombardement d'e-mails
-  const link = await createLink(pool, user.id, { ip });
-  try {
-    await sendLink(user, link);
-  } catch (err) {
-    console.error('réinitialisation : e-mail non envoyé', err.message);
-  }
+  if (rows[0]) await emailLink(rows[0], { ip });
+}
+
+// « so•••••e@g•••.com » : assez pour que le joueur reconnaisse son adresse.
+function maskEmail(email) {
+  const [local, domain = ''] = String(email).split('@');
+  const dot = domain.lastIndexOf('.');
+  const host = dot > 0 ? domain.slice(0, dot) : domain;
+  const tld = dot > 0 ? domain.slice(dot) : '';
+  const hide = (s, keepEnd) => (s.length <= 2 ? `${s[0] || ''}•••` : `${s.slice(0, 2)}•••${keepEnd ? s.slice(-1) : ''}`);
+  return `${hide(local, true)}@${hide(host, false)}${tld}`;
 }
 
 async function resetPassword(token, newPassword, validatePassword) {
@@ -120,4 +136,4 @@ async function adminLink(userId, adminId) {
   return { emailed: false, link, expiresInMinutes: config.resetTokenMinutes };
 }
 
-module.exports = { normalizeEmail, requestReset, resetPassword, adminLink, resetEmail, _hash: hash };
+module.exports = { normalizeEmail, requestReset, emailLink, createLink, sendLink, maskEmail, resetPassword, adminLink, resetEmail, _hash: hash };

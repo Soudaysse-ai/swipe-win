@@ -2,41 +2,30 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import playerApi, { apiError } from '../../lib/playerApi';
 import { useAuth } from '../AuthContext';
-import Plectre from '../../components/Plectre';
-import YasLogo from '../../components/YasLogo';
-import DeviceMock from '../../components/DeviceMock';
+import YasMark from '../../components/YasMark';
 import Avatar, { AVATAR_IDS } from '../../components/Avatar';
 import Icon from '../../components/Icon';
+import { HomeScene } from '../../components/Covers';
 
-// Écrans de compte. Mobile : barre Sunshine Yellow avec le logo calé à gauche,
-// titre sur fond jaune, formulaire dans une carte. Ordinateur : panneau jaune à
-// gauche (logo, accroche, plectre officiel tenant un aperçu de l'application).
+// Portail de compte, à l'image de l'application connectée : barre Sunshine
+// Yellow avec la marque, bandeau Midnight Blue illustré (la coupe et les quatre
+// jeux), puis une carte unique qui chevauche le bandeau. Rien d'autre.
 function AuthLayout({ title, subtitle, alt, children }) {
   return (
-    <div className="auth-page">
-      <aside className="auth-aside">
-        <Link to="/welcome" className="auth-brand-desktop" aria-label="Défi Yas — accueil"><YasLogo size={64} /></Link>
-        <div className="auth-aside-copy">
-          <h2>Joue. Défie.<br />Gagne !</h2>
-          <p>Cartes, Connect, Foot, Ludo : affronte tes amis et toute la communauté Yas en direct.</p>
+    <div className="portal">
+      <header className="app-header portal-header">
+        <Link to="/welcome" className="header-mark" aria-label="Défi Yas — accueil"><YasMark height={30} /></Link>
+        <span className="grow" />
+        {alt}
+      </header>
+      <section className="portal-hero cover">
+        <HomeScene className="cover-scene" />
+        <div className="cover-copy">
+          <h1 className="portal-title">{title}</h1>
+          {subtitle && <p className="portal-sub">{subtitle}</p>}
         </div>
-        <div className="auth-aside-visual" aria-hidden>
-          <Plectre className="hero-plectre" color="blue" size={380} rotate={-10} />
-          <DeviceMock />
-        </div>
-      </aside>
-      <main className="auth-main">
-        <header className="auth-top">
-          <Link to="/welcome" className="auth-brand" aria-label="Défi Yas — accueil"><YasLogo size={48} /></Link>
-          <span className="grow" />
-          {alt}
-        </header>
-        <div className="auth-hero">
-          <h1 className="h1">{title}</h1>
-          {subtitle && <p className="auth-sub">{subtitle}</p>}
-        </div>
-        <div className="auth-body">{children}</div>
-      </main>
+      </section>
+      <main className="portal-body">{children}</main>
     </div>
   );
 }
@@ -86,6 +75,18 @@ function ErrorText({ children }) {
 }
 
 const PHONE_HINT = '7 chiffres commençant par 4 (ex. 412 34 56)';
+const PHONE_ERROR = `Défi Yas est réservé aux numéros Yas : ${PHONE_HINT}`;
+
+// Même règle que le serveur : lettres (accents compris), chiffres, _ - . et
+// espaces simples entre les mots.
+export const normalizeUsername = (v) => String(v || '').normalize('NFC').trim().replace(/\s+/g, ' ');
+export function usernameError(raw) {
+  const v = normalizeUsername(raw);
+  if (v.length < 3) return 'Au moins 3 caractères';
+  if (v.length > 20) return '20 caractères au maximum';
+  if (!/^[\p{L}\p{N}_.-]+(?: [\p{L}\p{N}_.-]+)*$/u.test(v)) return 'Lettres, chiffres, espaces, _ - . uniquement (pas d\'emoji ni de @)';
+  return null;
+}
 
 export function Login() {
   const { login } = useAuth();
@@ -98,7 +99,7 @@ export function Login() {
   async function submit(e) {
     e.preventDefault();
     const errs = {};
-    if (!/^4\d{6}$/.test(phone)) errs.phone = `Numéro invalide : ${PHONE_HINT}`;
+    if (!/^4\d{6}$/.test(phone)) errs.phone = PHONE_ERROR;
     if (!password) errs.password = 'Saisis ton mot de passe';
     setErrors(errs);
     if (Object.keys(errs).length) return;
@@ -112,9 +113,10 @@ export function Login() {
   }
 
   return (
-    <AuthLayout title="Content de te revoir !" subtitle="Connecte-toi pour retrouver tes parties, tes amis et ton classement."
-      alt={<Link to="/register" className="btn sm outline">Créer un compte</Link>}>
+    <AuthLayout title={<>Joue. Défie. <span className="hl">Gagne&nbsp;!</span></>}
+      subtitle="Cartes, Connect, Foot et Ludo en direct avec toute la communauté Yas.">
       <form className="card stack lg auth-card" onSubmit={submit} noValidate>
+        <h2 className="h3">Connexion</h2>
         <div className="field">
           <label htmlFor="phone">Numéro de téléphone</label>
           <PhoneInput value={phone} onChange={setPhone} invalid={!!errors.phone} />
@@ -127,10 +129,9 @@ export function Login() {
         </div>
         <ErrorText>{errors.form}</ErrorText>
         <button className="btn block" disabled={busy}>{busy ? 'Connexion…' : <>Se connecter <span className="arrow" /></>}</button>
-        <div className="row between small wrap">
-          <Link to="/reset" className="link">Mot de passe oublié</Link>
-          <Link to="/register" className="link">Créer un compte</Link>
-        </div>
+        <Link to="/reset" className="link small center">Mot de passe oublié ?</Link>
+        <div className="portal-sep"><span>Nouveau sur Défi Yas ?</span></div>
+        <Link to="/register" className="btn block outline">Créer un compte gratuit</Link>
       </form>
     </AuthLayout>
   );
@@ -151,12 +152,11 @@ export function Register() {
   function validate() {
     const errs = {};
     const email = form.email.trim();
-    if (!/^4\d{6}$/.test(form.phone)) errs.phone = `Numéro invalide : ${PHONE_HINT}`;
+    if (!/^4\d{6}$/.test(form.phone)) errs.phone = PHONE_ERROR;
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errs.email = 'Adresse e-mail invalide';
     if (cfg.emailRequired && !email) errs.email = 'Adresse e-mail requise';
-    if (!/^[A-Za-z0-9_\-.]{3,20}$/.test(form.username)) {
-      errs.username = form.username.length < 3 ? 'Au moins 3 caractères' : 'Lettres sans accent, chiffres, _ - . uniquement (pas d\'espace)';
-    }
+    const nameErr = usernameError(form.username);
+    if (nameErr) errs.username = nameErr;
     if (form.password.length < 8) errs.password = '8 caractères minimum';
     if (!form.acceptTerms) errs.terms = 'Accepte les conditions pour continuer';
     return errs;
@@ -170,36 +170,38 @@ export function Register() {
     if (first) { refs[first].current?.focus(); return; }
     setBusy(true);
     try {
-      await register({ ...form, email: form.email.trim() || undefined, phone: `+269${form.phone}` });
+      await register({ ...form, username: normalizeUsername(form.username), email: form.email.trim() || undefined, phone: `+269${form.phone}` });
       navigate('/');
     } catch (err) {
       // Erreurs du serveur rattachées au bon champ quand c'est possible.
       const code = err?.response?.data?.code || '';
       const msg = apiError(err);
       const field = /PHONE/.test(code) ? 'phone' : /EMAIL/.test(code) ? 'email' : /USERNAME/.test(code) ? 'username' : /PASSWORD/.test(code) ? 'password' : 'form';
-      setErrors({ [field]: msg });
+      setErrors({ [field]: msg, phoneTaken: code === 'PHONE_TAKEN' });
       if (field !== 'form') refs[field].current?.focus();
     } finally { setBusy(false); }
   }
 
   return (
-    <AuthLayout title="Rejoins le Défi !" subtitle="Ton compte est gratuit et prêt en une minute."
-      alt={<Link to="/login" className="btn sm outline">Se connecter</Link>}>
+    <AuthLayout title={<>Rejoins le <span className="hl">Défi</span>&nbsp;!</>} subtitle="Ton compte est gratuit et prêt en une minute."
+      alt={<Link to="/login" className="btn sm blue">Se connecter</Link>}>
       <form className="card stack lg auth-card" onSubmit={submit} noValidate>
+        <h2 className="h3">Créer un compte</h2>
         <div className="field">
           <label htmlFor="phone">Numéro de téléphone</label>
           <PhoneInput value={form.phone} onChange={set('phone')} invalid={!!errors.phone} inputRef={refs.phone} />
           {errors.phone ? <FieldError id="phone-err">{errors.phone}</FieldError> : <span className="help">Ton numéro reste privé : il n'est jamais affiché aux autres joueurs.</span>}
+          {errors.phoneTaken && <span className="help">C'est ton numéro ? <Link to="/login" className="link">Connecte-toi</Link> ou <Link to="/reset" className="link">récupère ton compte</Link>.</span>}
         </div>
         <div className="field">
           <label htmlFor="em">E-mail{cfg.emailRequired ? '' : ' (facultatif)'}</label>
           <div className={`input-line${errors.email ? ' invalid' : ''}`}><input id="em" ref={refs.email} type="email" inputMode="email" autoComplete="email" placeholder="toi@exemple.km" value={form.email} onChange={e => set('email')(e.target.value)} aria-invalid={!!errors.email || undefined} /></div>
-          {errors.email ? <FieldError id="em-err">{errors.email}</FieldError> : <span className="help">Il te servira à récupérer ton mot de passe si tu l'oublies. Il reste privé.</span>}
+          {errors.email ? <FieldError id="em-err">{errors.email}</FieldError> : <span className="help">Conseillé : c'est le moyen le plus simple de récupérer ton compte si tu oublies ton mot de passe. Il reste privé.</span>}
         </div>
         <div className="field">
           <label htmlFor="un">Pseudonyme</label>
-          <div className={`input-line${errors.username ? ' invalid' : ''}`}><input id="un" ref={refs.username} autoComplete="nickname" autoCapitalize="none" maxLength={20} value={form.username} onChange={e => set('username')(e.target.value)} aria-invalid={!!errors.username || undefined} /></div>
-          {errors.username ? <FieldError id="un-err">{errors.username}</FieldError> : <span className="help">3 à 20 caractères : lettres, chiffres, _ - . (visible par les autres joueurs)</span>}
+          <div className={`input-line${errors.username ? ' invalid' : ''}`}><input id="un" ref={refs.username} autoComplete="nickname" maxLength={24} value={form.username} onChange={e => set('username')(e.target.value)} aria-invalid={!!errors.username || undefined} /></div>
+          {errors.username ? <FieldError id="un-err">{errors.username}</FieldError> : <span className="help">3 à 20 caractères, accents et espaces acceptés (visible par les autres joueurs)</span>}
         </div>
         <div className="field">
           <label htmlFor="pw">Mot de passe</label>
@@ -233,30 +235,161 @@ export function Register() {
   );
 }
 
-// Mot de passe oublié : demande d'un lien par e-mail, puis choix du nouveau
-// mot de passe depuis le lien reçu (/reset?token=…).
+// Mot de passe oublié, à partir du numéro :
+//  - le compte a un e-mail → le lien part tout de suite (adresse masquée affichée) ;
+//  - pas d'e-mail (ou plus d'accès) → demande au service client : un conseiller
+//    rappelle le numéro Yas pour vérifier l'identité, puis envoie le lien.
+// Le lien reçu ramène ici (/reset?token=…) pour choisir le nouveau mot de passe.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 export function ResetPassword() {
-  const navigate = useNavigate();
   const [params] = useSearchParams();
   const token = params.get('token');
+  const [step, setStep] = useState('phone'); // phone | sent | none | request | requested | email | emailSent
+  const [phone, setPhone] = useState('');
+  const [hint, setHint] = useState(null);
+  const [hasEmail, setHasEmail] = useState(false);
   const [email, setEmail] = useState('');
-  const [pw, setPw] = useState('');
-  const [pw2, setPw2] = useState('');
-  const [sent, setSent] = useState(false);
-  const [done, setDone] = useState(false);
+  const [note, setNote] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  async function request(e) {
+  const go = (s) => { setError(''); setStep(s); };
+
+  async function byPhone(e) {
     e.preventDefault();
     setError('');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return setError('Adresse e-mail invalide');
+    if (!/^4\d{6}$/.test(phone)) return setError(PHONE_ERROR);
+    setBusy(true);
+    try {
+      const { data } = await playerApi.post('/auth/password/forgot-phone', { phone: `+269${phone}` });
+      if (data.method === 'email') { setHint(data); go('sent'); } else if (data.method === 'request') { setHasEmail(!!data.hasEmail); go('request'); } else go('none');
+    } catch (err) { setError(apiError(err)); } finally { setBusy(false); }
+  }
+
+  async function sendRequest(e) {
+    e.preventDefault();
+    setError('');
+    if (!EMAIL_RE.test(email.trim())) return setError('Adresse e-mail invalide');
+    setBusy(true);
+    try {
+      await playerApi.post('/auth/recovery', { phone: `+269${phone}`, email: email.trim(), note: note.trim() || undefined });
+      go('requested');
+    } catch (err) { setError(apiError(err)); } finally { setBusy(false); }
+  }
+
+  async function byEmail(e) {
+    e.preventDefault();
+    setError('');
+    if (!EMAIL_RE.test(email.trim())) return setError('Adresse e-mail invalide');
     setBusy(true);
     try {
       await playerApi.post('/auth/password/forgot', { email: email.trim() });
-      setSent(true);
+      go('emailSent');
     } catch (err) { setError(apiError(err)); } finally { setBusy(false); }
   }
+
+  if (token) return <ChooseNewPassword token={token} />;
+
+  const shown = `+269 ${formatPhone(phone)}`;
+  return (
+    <AuthLayout title={<>Mot de passe <span className="hl">oublié</span>&nbsp;?</>}
+      subtitle="Pas de panique : on t'aide à retrouver ton compte."
+      alt={<Link to="/login" className="btn sm blue">Se connecter</Link>}>
+      <div className="card stack lg auth-card">
+        {step === 'phone' && (
+          <form className="stack lg" onSubmit={byPhone} noValidate>
+            <h2 className="h3">Retrouver mon compte</h2>
+            <div className="field">
+              <label htmlFor="phone">Ton numéro de téléphone</label>
+              <PhoneInput value={phone} onChange={(v) => { setPhone(v); setError(''); }} invalid={!!error} />
+              <span className="help">Le numéro avec lequel tu t'es inscrit.</span>
+            </div>
+            <ErrorText>{error}</ErrorText>
+            <button className="btn block" disabled={busy}>{busy ? 'Recherche…' : <>Continuer <span className="arrow" /></>}</button>
+            <button type="button" className="link small center" onClick={() => go('email')}>Utiliser mon e-mail à la place</button>
+          </form>
+        )}
+
+        {step === 'sent' && (
+          <div className="stack lg">
+            <div className="alert success" role="status"><Icon name="check" size={20} /><span>Lien envoyé à <b>{hint.emailHint}</b>. Il est valable {hint.expiresInMinutes} minutes.</span></div>
+            <p className="small">Ouvre l'e-mail « Choisis ton nouveau mot de passe Défi Yas » et touche le bouton. Rien reçu ? Regarde dans les spams.</p>
+            <button className="btn block outline" onClick={() => { setHasEmail(true); go('request'); }}>Je n'ai plus accès à cette adresse</button>
+          </div>
+        )}
+
+        {step === 'none' && (
+          <div className="stack lg">
+            <div className="alert error" role="alert"><Icon name="alert" size={20} /><span>Aucun compte Défi Yas avec le numéro <b>{shown}</b>.</span></div>
+            <Link to="/register" className="btn block">Créer un compte <span className="arrow" /></Link>
+            <button className="btn block outline" onClick={() => go('phone')}>Essayer un autre numéro</button>
+          </div>
+        )}
+
+        {step === 'request' && (
+          <form className="stack lg" onSubmit={sendRequest} noValidate>
+            <h2 className="h3">Demande au service client</h2>
+            <p className="small">
+              {hasEmail ? 'Indique ta nouvelle adresse e-mail.' : "Ton compte n'a pas encore d'adresse e-mail. Indique celle où recevoir ton lien."}
+              {' '}Un conseiller Yas t'appelle au <b>{shown}</b> pour vérifier que c'est bien toi, puis t'envoie le lien.
+            </p>
+            <div className="field">
+              <label htmlFor="rem">E-mail où recevoir le lien</label>
+              <div className="input-line"><input id="rem" type="email" inputMode="email" autoComplete="email" placeholder="toi@exemple.km" value={email} onChange={e => setEmail(e.target.value)} /></div>
+              <span className="help">Elle sera enregistrée sur ton compte pour la prochaine fois.</span>
+            </div>
+            <div className="field">
+              <label htmlFor="rnote">Un détail pour t'identifier (facultatif)</label>
+              <div className="input-line"><input id="rnote" maxLength={300} placeholder="Ton pseudo, ton jeu préféré…" value={note} onChange={e => setNote(e.target.value)} /></div>
+            </div>
+            <ErrorText>{error}</ErrorText>
+            <button className="btn block" disabled={busy}>{busy ? 'Envoi…' : <>Envoyer ma demande <span className="arrow" /></>}</button>
+          </form>
+        )}
+
+        {step === 'requested' && (
+          <div className="stack lg">
+            <div className="alert success" role="status"><Icon name="check" size={20} /><span>Demande envoyée ! Un conseiller Yas va t'appeler au <b>{shown}</b>.</span></div>
+            <p className="small">Après vérification, tu recevras le lien à <b>{email.trim()}</b>. Garde ton téléphone à portée de main.</p>
+          </div>
+        )}
+
+        {step === 'email' && (
+          <form className="stack lg" onSubmit={byEmail} noValidate>
+            <h2 className="h3">Recevoir un lien par e-mail</h2>
+            <div className="field">
+              <label htmlFor="em">Ton e-mail</label>
+              <div className="input-line"><input id="em" type="email" inputMode="email" autoComplete="email" placeholder="toi@exemple.km" value={email} onChange={e => setEmail(e.target.value)} /></div>
+              <span className="help">L'adresse enregistrée sur ton compte.</span>
+            </div>
+            <ErrorText>{error}</ErrorText>
+            <button className="btn block" disabled={busy}>{busy ? 'Envoi…' : <>Recevoir le lien <span className="arrow" /></>}</button>
+            <button type="button" className="link small center" onClick={() => go('phone')}>Utiliser mon numéro à la place</button>
+          </form>
+        )}
+
+        {step === 'emailSent' && (
+          <div className="stack lg">
+            <div className="alert info" role="status"><Icon name="chat" size={20} /><span>Si un compte Défi Yas est lié à cette adresse, un e-mail avec un lien vient de partir. Le lien est valable 30 minutes.</span></div>
+            <p className="small muted">Rien reçu ? Regarde dans tes spams, ou retrouve ton compte avec ton numéro.</p>
+            <button className="btn block outline" onClick={() => go('phone')}>Utiliser mon numéro</button>
+          </div>
+        )}
+
+        <Link to="/login" className="link small center">Retour à la connexion</Link>
+      </div>
+    </AuthLayout>
+  );
+}
+
+function ChooseNewPassword({ token }) {
+  const navigate = useNavigate();
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   async function reset(e) {
     e.preventDefault();
@@ -272,39 +405,21 @@ export function ResetPassword() {
   }
 
   return (
-    <AuthLayout title={token ? 'Nouveau mot de passe' : 'Mot de passe oublié ?'}
-      subtitle={token ? 'Choisis un mot de passe que tu n\'utilises pas ailleurs.' : 'Pas de panique : on t\'envoie un lien par e-mail.'}
-      alt={<Link to="/login" className="btn sm outline">Se connecter</Link>}>
+    <AuthLayout title={<>Nouveau <span className="hl">mot de passe</span></>} subtitle="Choisis un mot de passe que tu n'utilises pas ailleurs."
+      alt={<Link to="/login" className="btn sm blue">Se connecter</Link>}>
       <div className="card stack lg auth-card">
         {done ? (
           <div className="alert success" role="status"><Icon name="check" size={20} /> C'est fait ! Connecte-toi avec ton nouveau mot de passe.</div>
-        ) : token ? (
+        ) : (
           <form className="stack lg" onSubmit={reset}>
-            <div className="field"><label htmlFor="np">Nouveau mot de passe</label><div className="input-line"><input id="np" type="password" autoComplete="new-password" value={pw} onChange={e => setPw(e.target.value)} /></div><span className="help">8 caractères minimum.</span></div>
-            <div className="field"><label htmlFor="np2">Confirme-le</label><div className="input-line"><input id="np2" type="password" autoComplete="new-password" value={pw2} onChange={e => setPw2(e.target.value)} /></div></div>
+            <div className="field"><label htmlFor="np">Nouveau mot de passe</label><PasswordInput id="np" value={pw} onChange={setPw} autoComplete="new-password" /><span className="help">8 caractères minimum.</span></div>
+            <div className="field"><label htmlFor="np2">Confirme-le</label><PasswordInput id="np2" value={pw2} onChange={setPw2} autoComplete="new-password" /></div>
             <ErrorText>{error}</ErrorText>
             {error && /lien/i.test(error) && <Link to="/reset" className="link small">Demander un nouveau lien</Link>}
             <button className="btn block" disabled={busy}>{busy ? 'Enregistrement…' : <>Enregistrer <span className="arrow" /></>}</button>
           </form>
-        ) : sent ? (
-          <div className="stack">
-            <div className="alert info" role="status"><Icon name="chat" size={20} /> Si un compte Défi Yas est lié à cette adresse, un e-mail avec un lien vient de partir. Le lien est valable 30 minutes.</div>
-            <p className="small muted">Rien reçu ? Regarde dans tes spams, ou recommence dans quelques minutes.</p>
-            <button className="btn block outline" onClick={() => setSent(false)}>Utiliser une autre adresse</button>
-          </div>
-        ) : (
-          <form className="stack lg" onSubmit={request}>
-            <div className="field">
-              <label htmlFor="em">Ton e-mail</label>
-              <div className="input-line"><input id="em" type="email" inputMode="email" autoComplete="email" placeholder="toi@exemple.km" value={email} onChange={e => setEmail(e.target.value)} /></div>
-              <span className="help">On t'envoie un lien pour choisir un nouveau mot de passe.</span>
-            </div>
-            <ErrorText>{error}</ErrorText>
-            <button className="btn block" disabled={busy}>{busy ? 'Envoi…' : <>Recevoir le lien <span className="arrow" /></>}</button>
-            <p className="small muted">Pas d'e-mail sur ton compte ? Contacte le service client Yas : un conseiller pourra te transmettre un lien de réinitialisation.</p>
-          </form>
         )}
-        <Link to="/login" className="link small">Retour à la connexion</Link>
+        <Link to="/login" className="link small center">Retour à la connexion</Link>
       </div>
     </AuthLayout>
   );

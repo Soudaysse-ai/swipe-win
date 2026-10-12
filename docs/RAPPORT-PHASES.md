@@ -280,6 +280,28 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   Le bot choisit son équipe et sa formation et valorise les passes. Les choix d'avant-match ne
   sont jamais refusés pour « version périmée » (`versionFreeActions`).
 
+## Évolution — portail d'accueil, récupération de compte, inscription
+- **Accueil public** (`/welcome`) remplacé par un portail de connexion d'un seul écran, dans le style de
+  l'application connectée (barre jaune, bandeau bleu illustré, carte de connexion). Inscription et mot
+  de passe oublié reprennent la même mise en page.
+- **Mot de passe oublié par numéro** : lien vers l'e-mail du compte, ou demande au service client
+  (back-office « Récupération de compte » : rappel du numéro, puis envoi du lien). Rappel sur l'accueil
+  des joueurs sans e-mail pour qu'ils en ajoutent un.
+- **Inscription** : pseudonymes avec accents et espaces acceptés, message clair pour les numéros non
+  Yas, refus d'inscription journalisés (code seulement) pour diagnostiquer les échecs.
+
+## Évolution — Yas Foot sans délai (modèle Soccer Stars)
+- **Tir instantané** : la physique est dans un module unique (`backend/src/games/foot/physics.js`) dont
+  le navigateur a une copie exacte (`frontend/src/games/foot/sim.js`, générée par `npm run sync:foot`,
+  vérifiée par un test). Au relâchement, le tir est calculé et animé aussitôt ; le serveur, qui fait
+  foi, calcule la même chose et confirme. S'il refuse le tir ou trouve autre chose, l'écran se cale
+  sur sa version. Vérifié avec le serveur gelé : le palet part en ~20 ms.
+- **Animation fluide** : 60 images par seconde pour le tireur (interpolation des images du serveur
+  chez l'adversaire), palets déplacés directement dans le SVG, terrain non redessiné pendant le tir.
+- **Look Soccer Stars** : cercle sombre de visée qui grandit avec la puissance et flèche blanche,
+  anneaux lumineux sur l'équipe qui a la main (bleu pour moi, rouge pour l'adversaire), bulle
+  « Belle passe ! » au-dessus du receveur, traînée du ballon, « Premier à 3 » sous le chrono.
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

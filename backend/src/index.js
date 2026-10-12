@@ -73,7 +73,19 @@ async function start({ port = config.port, migrate = true } = {}) {
 
 if (require.main === module) {
   start()
-    .then(({ port }) => console.log(`🚀 Défi Yas API sur http://localhost:${port}`))
+    .then(({ port, close }) => {
+      console.log(`🚀 Défi Yas API sur http://localhost:${port}`);
+      // Arrêt demandé par l'hébergeur (nouvelle version en ligne) : on coupe les
+      // minuteurs des parties tout de suite pour ne plus écrire en même temps que
+      // la nouvelle instance, puis on ferme les connexions.
+      const stop = (signal) => {
+        console.log(`${signal} : arrêt propre`);
+        setTimeout(() => process.exit(0), 8000).unref();
+        close().catch(() => {}).finally(() => process.exit(0));
+      };
+      process.once('SIGTERM', () => stop('SIGTERM'));
+      process.once('SIGINT', () => stop('SIGINT'));
+    })
     .catch((err) => { console.error('Démarrage impossible', err); process.exit(1); });
 }
 

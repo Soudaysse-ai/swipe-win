@@ -5,6 +5,7 @@ const router = express.Router();
 const config = require('../config');
 const auth = require('../services/authService');
 const passwordReset = require('../services/passwordReset');
+const recovery = require('../services/accountRecovery');
 const profiles = require('../services/profiles');
 const { requirePlayer } = require('../middleware/playerAuth');
 const { ah, clientIp } = require('../lib/http');
@@ -18,6 +19,8 @@ const byPhone = (req) => `${req.ip}:${String(req.body?.phone || '').replace(/\D/
 const authLimiter = limiter({ name: 'auth', max: 10, windowMs: 60_000, key: byPhone });
 const forgotLimiter = limiter({ name: 'forgot', max: 3, windowMs: 60_000, key: (req) => `${req.ip}:${String(req.body?.email || '').toLowerCase()}` });
 const ipLimiter = limiter({ name: 'auth-ip', max: 200, windowMs: 60_000 });
+const forgotPhoneLimiter = limiter({ name: 'forgot-phone', max: 3, windowMs: 60_000, key: byPhone });
+const recoveryLimiter = limiter({ name: 'recovery', max: 10, windowMs: 3600_000 });
 
 const meta = (req) => ({ ip: clientIp(req), userAgent: req.headers['user-agent'] });
 
@@ -34,7 +37,15 @@ router.get('/config', (_req, res) => {
 });
 
 router.post('/register', ipLimiter, authLimiter, ah(async (req, res) => {
-  const out = await auth.register(req.body || {}, meta(req));
+  let out;
+  try {
+    out = await auth.register(req.body || {}, meta(req));
+  } catch (err) {
+    // Trace des refus (code seulement, aucune donnée personnelle) pour comprendre
+    // les inscriptions qui échouent.
+    if (err.status && err.status < 500 && !config.isTest) console.info(`inscription refusée : ${err.code}`);
+    throw err;
+  }
   res.status(201).json(sessionPayload(out));
 }));
 
@@ -50,6 +61,16 @@ router.post('/logout', requirePlayer, ah(async (req, res) => {
 
 router.get('/me', requirePlayer, ah(async (req, res) => {
   res.json({ user: await profiles.me(req.user.userId) });
+}));
+
+// Mot de passe oublié à partir du numéro : lien envoyé à l'e-mail du compte s'il
+// en a un, sinon demande de récupération auprès du service client.
+router.post('/password/forgot-phone', ipLimiter, forgotPhoneLimiter, ah(async (req, res) => {
+  res.json(await recovery.forgotByPhone(req.body?.phone, { ip: clientIp(req) }));
+}));
+
+router.post('/recovery', ipLimiter, recoveryLimiter, ah(async (req, res) => {
+  res.status(201).json(await recovery.createRequest(req.body || {}, { ip: clientIp(req) }));
 }));
 
 // Mot de passe oublié : envoie un lien par e-mail (réponse identique que le compte existe ou non).

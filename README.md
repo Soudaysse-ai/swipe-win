@@ -62,7 +62,7 @@ npm run dev                     # http://localhost:5173 (proxy /api et /socket.i
 | `http://localhost:5173/admin` | Back-office (identifiants du `.env` : `ADMIN_EMAIL` / `ADMIN_PASSWORD`) |
 | `http://localhost:5173/quiz` | Quiz Swipe & gagne |
 
-Mot de passe oublié : un lien est envoyé par e-mail via [Resend](https://resend.com) (`RESEND_API_KEY`). En développement, sans clé, l'e-mail est écrit dans les logs de l'API.
+Mot de passe oublié (à partir du numéro) : si le compte a un e-mail, un lien y est envoyé via [Resend](https://resend.com) (`RESEND_API_KEY`) ; sinon le joueur dépose une demande que le service client traite dans le back-office (« Récupération de compte ») après avoir rappelé le numéro. En développement, sans clé, l'e-mail est écrit dans les logs de l'API.
 
 ## Tests
 

@@ -149,6 +149,17 @@ export default function Home() {
           </div>
         ))}
 
+        {!me.email && (
+          <Link to="/profile" className="notice-card email-nudge">
+            <span className="circle-icon" aria-hidden><Icon name="lock" size={22} /></span>
+            <div className="grow">
+              <b>Ajoute ton e-mail</b>
+              <span>Pour récupérer ton compte en un clic si tu oublies ton mot de passe.</span>
+            </div>
+            <Icon name="chevron" size={20} />
+          </Link>
+        )}
+
         <nav className="quick-actions" aria-label="Actions rapides">
           {ACTIONS.map(a => (
             <button key={a.label} onClick={a.onClick}>

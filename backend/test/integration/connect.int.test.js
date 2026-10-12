@@ -255,3 +255,32 @@ test('chat du salon : filtrage des insultes et messages rapides', async () => {
   const bad = await cb.emit('chat:send', { roomId: created.room.id, kind: 'reaction', emoji: '💩' });
   assert.equal(bad.ok, false);
 });
+
+test('partie avancée par une autre instance (déploiement) : resynchronisation, la partie continue', async () => {
+  const { matchId, state } = await startConnectMatch();
+  const turn = state.view.turn;
+  const other = turn === alice.userId ? bob.userId : alice.userId;
+  // « Autre instance » : un coup enregistré directement en base (événement + nouvel état).
+  const { rows } = await pool.query('SELECT state, state_version FROM matches WHERE id = $1', [matchId]);
+  const engine = require('../../src/games').getEngine('connect');
+  const next = engine.apply(rows[0].state, turn, { type: 'drop', col: 3 }, { rng: { int: () => 0 }, now: Date.now(), config: { turnSeconds: 30 } }).state;
+  const v = rows[0].state_version + 1;
+  await pool.query(`INSERT INTO match_events (match_id, seq, type, payload) VALUES ($1, $2, 'action', '{}')`, [matchId, v]);
+  await pool.query('UPDATE matches SET state = $2, state_version = $3 WHERE id = $1', [matchId, JSON.stringify(next), v]);
+
+  // Ce serveur, resté à l'ancienne version, reçoit un coup : conflit d'écriture → resynchronisation.
+  const stale = await drop(clientOf(turn), matchId, 0, state.version);
+  assert.equal(stale.ok, false);
+  assert.equal(stale.code, 'STALE_VERSION');
+  const snap = (await clientOf(other).emit('match:sync', { matchId })).snapshot;
+  assert.equal(snap.version, v);
+  assert.equal(snap.view.turn, other);
+  assert.equal(snap.view.board[0][3], state.view.colors[turn]);
+
+  // La partie reprend normalement sur l'état officiel.
+  const ok = await drop(clientOf(other), matchId, 4, snap.version);
+  assert.equal(ok.ok, true, JSON.stringify(ok));
+  const ended = ca.waitFor('match:ended', e => e.matchId === matchId);
+  await ca.emit('match:resign', { matchId });
+  await ended;
+});

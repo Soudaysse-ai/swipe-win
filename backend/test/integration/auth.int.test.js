@@ -118,3 +118,83 @@ test('service client : lien envoyé par e-mail, ou remis à l\'administrateur sa
   const audit = await pool.query(`SELECT COUNT(*)::int AS n FROM audit_logs WHERE action = 'RESET_LINK'`);
   assert.equal(audit.rows[0].n, 2);
 });
+
+test('inscription : pseudos accentués et espaces acceptés, numéros non Yas expliqués', async () => {
+  const ok = await api(srv.base, 'POST', '/api/auth/register', { body: { phone: phone(20), password: 'motdepasse123', username: '  Moussa   Saïd ', acceptTerms: true } });
+  assert.equal(ok.status, 201);
+  assert.equal(ok.data.user.username, 'Moussa Saïd', 'espaces en trop retirés');
+  const accent = await api(srv.base, 'POST', '/api/auth/register', { body: { phone: phone(21), password: 'motdepasse123', username: 'Élodie_97', acceptTerms: true } });
+  assert.equal(accent.status, 201);
+  const same = await api(srv.base, 'POST', '/api/auth/register', { body: { phone: phone(22), password: 'motdepasse123', username: 'moussa saïd', acceptTerms: true } });
+  assert.equal(same.data.code, 'USERNAME_TAKEN', 'unicité sans tenir compte de la casse');
+  for (const bad of ['ab', 'a'.repeat(21), 'émoji 🎮', 'nom@mail']) {
+    const r = await api(srv.base, 'POST', '/api/auth/register', { body: { phone: phone(23), password: 'motdepasse123', username: bad, acceptTerms: true } });
+    assert.equal(r.data.code, 'USERNAME_INVALID', bad);
+  }
+  const telma = await api(srv.base, 'POST', '/api/auth/register', { body: { phone: '+269 332 12 34', password: 'motdepasse123', username: 'Telma', acceptTerms: true } });
+  assert.equal(telma.data.code, 'PHONE_INVALID');
+  assert.match(telma.data.error, /numéros Yas/);
+});
+
+test('oubli par numéro : lien vers l\'e-mail du compte, adresse masquée', async () => {
+  await api(srv.base, 'POST', '/api/auth/register', { body: { phone: phone(30), email: 'mariama.test@example.km', password: 'motdepasse123', username: 'AvecMail', acceptTerms: true } });
+  mailer.outbox.length = 0;
+  const r = await api(srv.base, 'POST', '/api/auth/password/forgot-phone', { body: { phone: '470 00 30' } });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.method, 'email');
+  assert.equal(r.data.emailHint, 'ma•••t@ex•••.km');
+  assert.ok(await waitMail('mariama.test@example.km'));
+  const none = await api(srv.base, 'POST', '/api/auth/password/forgot-phone', { body: { phone: '+2694999999' } });
+  assert.deepEqual(none.data, { method: 'none' });
+  const bad = await api(srv.base, 'POST', '/api/auth/password/forgot-phone', { body: { phone: '123' } });
+  assert.equal(bad.data.code, 'PHONE_INVALID');
+});
+
+test('compte sans e-mail : demande vérifiée par le service client, puis lien envoyé', async () => {
+  await api(srv.base, 'POST', '/api/auth/register', { body: { phone: phone(40), password: 'motdepasse123', username: 'Oublieux', acceptTerms: true } });
+  const r = await api(srv.base, 'POST', '/api/auth/password/forgot-phone', { body: { phone: phone(40) } });
+  assert.deepEqual(r.data, { method: 'request', hasEmail: false });
+  const unknown = await api(srv.base, 'POST', '/api/auth/recovery', { body: { phone: '+2694999998', email: 'x@example.km' } });
+  assert.equal(unknown.status, 404);
+  const first = await api(srv.base, 'POST', '/api/auth/recovery', { body: { phone: phone(40), email: 'premier@example.km' } });
+  assert.equal(first.status, 201);
+  const again = await api(srv.base, 'POST', '/api/auth/recovery', { body: { phone: phone(40), email: 'oublieux@example.km', note: 'Je joue surtout à Ludo' } });
+  assert.equal(again.status, 201);
+  const rows = await pool.query(`SELECT r.email, r.note FROM recovery_requests r JOIN users u ON u.id = r.user_id WHERE u.username = 'Oublieux'`);
+  assert.equal(rows.rows.length, 1, 'une seule demande en attente, mise à jour');
+  assert.equal(rows.rows[0].email, 'oublieux@example.km');
+  const stillNoMail = await pool.query(`SELECT email FROM users WHERE username = 'Oublieux'`);
+  assert.equal(stillNoMail.rows[0].email, null, 'aucune adresse rattachée sans vérification');
+
+  const admin = (await api(srv.base, 'POST', '/api/admin/login', { body: { email: 'mod@yas.km', password: 'motdepasse-admin' } })).data.token;
+  assert.equal((await api(srv.base, 'GET', '/api/admin/recovery')).status, 401);
+  const list = await api(srv.base, 'GET', '/api/admin/recovery', { token: admin });
+  assert.equal(list.data.pending, 1);
+  const req = list.data.requests[0];
+  assert.equal(req.username, 'Oublieux');
+  assert.equal(req.phone, phone(40));
+  mailer.outbox.length = 0;
+  const sent = await api(srv.base, 'POST', `/api/admin/recovery/${req.id}/approve`, { token: admin });
+  assert.equal(sent.data.emailed, true);
+  const mail = await waitMail('oublieux@example.km');
+  assert.ok(mail);
+  const reset = await api(srv.base, 'POST', '/api/auth/password/reset', { body: { token: tokenOf(mail), newPassword: 'retrouve-123' } });
+  assert.equal(reset.status, 200);
+  assert.equal((await api(srv.base, 'POST', '/api/auth/login', { body: { phone: phone(40), password: 'retrouve-123' } })).status, 200);
+  const user = await pool.query(`SELECT email FROM users WHERE username = 'Oublieux'`);
+  assert.equal(user.rows[0].email, 'oublieux@example.km', 'adresse enregistrée pour la prochaine fois');
+  assert.equal((await api(srv.base, 'POST', `/api/admin/recovery/${req.id}/approve`, { token: admin })).data.code, 'ALREADY_HANDLED');
+  // La prochaine fois, le lien part directement.
+  const next = await api(srv.base, 'POST', '/api/auth/password/forgot-phone', { body: { phone: phone(40) } });
+  assert.equal(next.data.method, 'email');
+
+  // Refus : motif obligatoire, journalisé.
+  await api(srv.base, 'POST', '/api/auth/register', { body: { phone: phone(41), password: 'motdepasse123', username: 'Douteux', acceptTerms: true } });
+  await api(srv.base, 'POST', '/api/auth/recovery', { body: { phone: phone(41), email: 'douteux@example.km' } });
+  const pending = (await api(srv.base, 'GET', '/api/admin/recovery', { token: admin })).data.requests[0];
+  assert.equal((await api(srv.base, 'POST', `/api/admin/recovery/${pending.id}/reject`, { token: admin, body: {} })).data.code, 'REASON_REQUIRED');
+  assert.equal((await api(srv.base, 'POST', `/api/admin/recovery/${pending.id}/reject`, { token: admin, body: { reason: 'Numéro injoignable' } })).status, 200);
+  const audit = await pool.query(`SELECT action FROM audit_logs WHERE action LIKE 'RECOVERY_%' ORDER BY created_at`);
+  assert.deepEqual(audit.rows.map(a => a.action), ['RECOVERY_SENT', 'RECOVERY_REJECTED']);
+  assert.equal((await api(srv.base, 'GET', '/api/admin/recovery?status=rejected', { token: admin })).data.requests[0].admin_note, 'Numéro injoignable');
+});

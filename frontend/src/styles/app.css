@@ -451,6 +451,9 @@ img, svg { display: block; }
 }
 .notice-card b { display: block; font-size: 15px; }
 .notice-card span { font-size: 14px; color: var(--yas-sky); font-weight: 500; }
+.email-nudge { text-decoration: none; color: var(--yas-blue); }
+.email-nudge .circle-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: var(--yas-yellow); color: var(--yas-blue); }
+.email-nudge span.grow, .email-nudge .grow span { color: var(--yas-neutral-70); }
 
 .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 20px; }
 .quick-actions button { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; line-height: 1.2; text-align: center; color: var(--yas-blue); }

@@ -7,6 +7,7 @@ const stats = require('../../services/adminStats');
 const lb = require('../../services/leaderboards');
 const profiles = require('../../services/profiles');
 const moderation = require('../../services/moderation');
+const recovery = require('../../services/accountRecovery');
 const exporter = require('../../services/exporter');
 const runtime = require('../../realtime/matchRuntime');
 const { liveStats } = require('../../services/live');
@@ -151,6 +152,16 @@ router.post('/players/:id/anonymize', auth('players.anonymize'), ah(async (req, 
 }));
 router.post('/players/:id/reset-link', auth('players.moderate'), ah(async (req, res) => {
   res.json(await moderation.resetLink(req.admin, req.params.id, req.body.reason, clientIp(req)));
+}));
+// Demandes de récupération de compte (joueurs sans e-mail)
+router.get('/recovery', auth('players.moderate'), ah(async (req, res) => {
+  res.json(await recovery.list(req.query.status));
+}));
+router.post('/recovery/:id/approve', auth('players.moderate'), ah(async (req, res) => {
+  res.json(await recovery.approve(req.admin, req.params.id, clientIp(req)));
+}));
+router.post('/recovery/:id/reject', auth('players.moderate'), ah(async (req, res) => {
+  res.json(await recovery.reject(req.admin, req.params.id, req.body?.reason, clientIp(req)));
 }));
 router.post('/players/:id/adjust', auth('leaderboards.correct'), ah(async (req, res) => {
   await moderation.adjustScore(req.admin, req.params.id, req.body || {}, clientIp(req));
