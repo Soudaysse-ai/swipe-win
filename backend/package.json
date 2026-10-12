@@ -10,7 +10,8 @@
     "db:backup": "node scripts/backup.js",
     "test": "node --test 'test/unit/*.test.js'",
     "test:integration": "node --test --test-concurrency=1 'test/integration/*.test.js'",
-    "test:all": "npm test && npm run test:integration"
+    "test:all": "npm test && npm run test:integration",
+    "sync:foot": "node scripts/sync-foot-physics.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

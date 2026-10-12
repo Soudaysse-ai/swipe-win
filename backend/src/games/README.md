@@ -25,6 +25,13 @@ plateau (ex. choix d'équipe avant le match dans Yas Foot). Le runtime ne les
 refuse pas pour « version périmée » quand l'adversaire a joué en même temps ;
 le moteur reste seul juge de leur validité.
 
+Prédiction côté navigateur (Yas Foot) : la physique vit dans
+`foot/physics.js`, sans dépendance ni fonction dont la précision varie selon
+le moteur JavaScript. Le navigateur en a une copie générée
+(`npm run sync:foot` → `frontend/src/games/foot/sim.js`) pour animer un tir
+dès le relâchement ; le serveur reste juge. Un test unitaire échoue si la copie
+n'est plus identique.
+
 `ctx = { rng, now, config }` : `rng.int(n)` renvoie un entier dans `[0, n)`
 (`crypto.randomInt` en production, générateur à graine dans les tests), `now`
 est l'horloge du serveur en millisecondes, `config` la configuration du jeu
