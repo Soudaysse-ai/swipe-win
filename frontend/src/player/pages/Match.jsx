@@ -9,6 +9,7 @@ import { useToast } from '../ToastContext';
 import Avatar from '../../components/Avatar';
 import Icon from '../../components/Icon';
 import ChatPanel from '../../components/ChatPanel';
+import ChatBar from '../../components/ChatBar';
 import PlectreFrame from '../../components/PlectreFrame';
 import CoinBadge from '../../components/CoinBadge';
 import { Sheet, Spinner, Countdown, Confetti } from '../../components/ui';
@@ -270,6 +271,11 @@ export default function Match() {
           <Game snapshot={snap} me={user?.id} sendAction={sendAction} matchId={matchId}
             onResign={() => setResignOpen(true)} onChat={snap.training ? null : () => setChatOpen(true)} />
         </Suspense>
+      )}
+      {/* Jeux plein écran : barre de chat en bas, comme dans Soccer Stars. */}
+      {immersive && (
+        <ChatBar roomId={snap.training ? null : snap.roomId} onHistory={() => setChatOpen(true)}
+          disabledText="Le chat s'ouvre quand tu joues contre un vrai joueur" />
       )}
 
       <FloatingReactions matchId={matchId} players={snap.players} />

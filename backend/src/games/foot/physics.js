@@ -12,10 +12,10 @@
 
 const W = 1000;                 // longueur du terrain (axe x, buts à gauche et à droite)
 const H = 600;                  // largeur du terrain (axe y)
-// Proportions de Soccer Stars : buts larges (40 % de la largeur), ballon ≈ 6 %.
-const GOAL_TOP = 180;
-const GOAL_BOTTOM = 420;
-const GOAL_DEPTH = 60;
+// Proportions de Soccer Stars : grands buts (plus de 40 % de la largeur), ballon ≈ 6 %.
+const GOAL_TOP = 170;
+const GOAL_BOTTOM = 430;
+const GOAL_DEPTH = 66;
 const DISC_R = 32;
 const BALL_R = 18;
 const POST_R = 6;
