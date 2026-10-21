@@ -16,7 +16,7 @@ export function cardName(c) {
 }
 
 // Texte cerné de noir avec une ombre portée, comme sur les cartes imprimées.
-function Ink({ x, y, size, fill, children, outline = 3.2 }) {
+export function Ink({ x, y, size, fill, children, outline = 3.2 }) {
   const common = { x, y, fontSize: size, fontWeight: 900, fontStyle: 'italic', textAnchor: 'middle', dominantBaseline: 'central', fontFamily: 'var(--yas-font)' };
   return (
     <>
@@ -27,7 +27,7 @@ function Ink({ x, y, size, fill, children, outline = 3.2 }) {
 }
 
 // Symbole « Passe » : cercle barré.
-function Skip({ fill, s = 1 }) {
+export function Skip({ fill, s = 1 }) {
   return (
     <g transform={`scale(${s})`}>
       <circle r="17" fill="none" stroke={INK} strokeWidth="12" />
@@ -39,7 +39,7 @@ function Skip({ fill, s = 1 }) {
 }
 
 // Symbole « Inverse » : deux flèches en sens contraires.
-function Reverse({ fill, s = 1 }) {
+export function Reverse({ fill, s = 1 }) {
   const arrow = 'M-15 9 L5 -11 L-2 -13 L14 -16 L11 0 L7 -7 L-9 15 Z';
   return (
     <g transform={`scale(${s})`} strokeLinejoin="round">
@@ -64,7 +64,7 @@ function WildOval({ id }) {
   );
 }
 
-function MiniWild() {
+export function MiniWild() {
   return (
     <g>
       <path d="M0 0 L0 -7 A7 7 0 0 1 7 0 Z" fill={COLOR.blue} />

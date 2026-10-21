@@ -82,7 +82,11 @@
 .cards-game {
   width: 100%; max-width: 620px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;
   padding: 14px 12px 16px; border-radius: 26px; color: #fff;
-  background: radial-gradient(120% 70% at 50% 38%, #0D4C9E 0%, #00377D 55%, #00275A 100%);
+  position: relative;
+  background:
+    radial-gradient(38% 55% at 24% -4%, rgba(175, 204, 233, .26) 0%, rgba(175, 204, 233, 0) 72%),
+    radial-gradient(30% 45% at 78% -6%, rgba(175, 204, 233, .14) 0%, rgba(175, 204, 233, 0) 72%),
+    radial-gradient(120% 70% at 50% 38%, #0D4C9E 0%, #00377D 55%, #00275A 100%);
   box-shadow: 0 10px 30px rgba(0, 31, 77, .25);
   min-height: calc(100vh - 120px); min-height: calc(100dvh - 120px); justify-content: space-between;
 }
@@ -109,9 +113,6 @@
 
 /* Centre : pioche, défausse, sens du jeu */
 .cards-table { position: relative; display: flex; align-items: center; justify-content: center; gap: 30px; min-height: 190px; padding: 12px 0; }
-.dir-arrows { position: absolute; width: 230px; height: 230px; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
-.dir-arrows path { fill: none; stroke: rgba(255, 255, 255, .22); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
-.dir-arrows.ccw { transform: translate(-50%, -50%) scaleX(-1); }
 .draw-pile { position: relative; width: 64px; height: 96px; padding: 0; border: 0; background: none; border-radius: 10px; z-index: 1; }
 .draw-pile .pile-card { position: absolute; left: 0; top: 0; }
 .draw-pile .pile-card.p2 { transform: translate(3px, 3px); }
@@ -128,11 +129,62 @@
   border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--active) 55%, transparent) 0%, transparent 68%);
   transition: background .4s;
 }
-.discard-card { position: relative; }
-.discard-card.from-me { animation: card-from-me .38s cubic-bezier(.2, .8, .3, 1); }
-.discard-card.from-them { animation: card-from-them .38s cubic-bezier(.2, .8, .3, 1); }
-@keyframes card-from-me { from { transform: translateY(140px) rotate(14deg) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes card-from-them { from { transform: translateY(-140px) rotate(-14deg) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+.discard-slot { position: relative; z-index: 1; }
+.discard-card { position: absolute; left: 0; top: 0; }
+.discard-card.under { filter: brightness(.8); }
+
+/* Sens du jeu : flèches autour de la défausse, dans la couleur active, qui tournent */
+.dir-ring {
+  position: absolute; left: 50%; top: 50%; width: 214px; height: 214px; margin: -107px 0 0 -107px;
+  pointer-events: none; overflow: visible; z-index: -1;
+}
+.dir-ring.ccw { transform: scaleX(-1); }
+.dir-ring path {
+  fill: none; stroke: var(--c); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; opacity: .9;
+  transition: stroke .4s; filter: drop-shadow(0 0 5px var(--c));
+}
+.dir-ring-rot { animation: ring-turn 16s linear infinite; }
+.dir-ring.spin .dir-ring-spin { animation: ring-spin .7s cubic-bezier(.3, .7, .3, 1); }
+@keyframes ring-turn { to { transform: rotate(360deg); } }
+@keyframes ring-spin { from { transform: rotate(-300deg); } }
+
+/* Cartes en vol (de la main, de la pioche ou d'un adversaire) */
+.cards-fx { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 20; }
+.card-flight { position: absolute; transform-style: preserve-3d; will-change: transform; }
+.card-flight > span { position: absolute; left: 0; top: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.card-flight.flip > .back { transform: rotateY(180deg); }
+.card-flight .card-svg { filter: drop-shadow(0 12px 16px rgba(0, 0, 0, .38)); }
+
+/* Carte spéciale posée : halo, onde, symbole qui jaillit, étincelles */
+.card-burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 3; pointer-events: none; }
+.burst-halo {
+  position: absolute; left: -120px; top: -120px; width: 240px; height: 240px; border-radius: 50%;
+  background: radial-gradient(circle, var(--c) 0%, rgba(0, 0, 0, 0) 66%); animation: burst-halo 1.15s ease-out forwards;
+}
+.burst-wave { position: absolute; left: -60px; top: -60px; width: 120px; height: 120px; border-radius: 50%; border: 5px solid var(--c); animation: burst-wave .8s ease-out forwards; }
+.burst-sym {
+  position: absolute; left: -66px; top: -44px; width: 132px; height: 88px;
+  filter: drop-shadow(0 0 14px var(--c)) drop-shadow(0 4px 0 rgba(0, 0, 0, .3));
+  animation: burst-sym 1.15s cubic-bezier(.2, .9, .3, 1.3) forwards;
+}
+.burst-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.burst-spark {
+  position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 2px; background: #fff;
+  box-shadow: 0 0 10px var(--c); animation: burst-spark .9s ease-out .08s both;
+}
+@keyframes burst-halo { 0% { transform: scale(.3); opacity: 0; } 22% { transform: scale(1.05); opacity: .85; } 100% { transform: scale(1.3); opacity: 0; } }
+@keyframes burst-wave { from { transform: scale(.55); opacity: 1; } to { transform: scale(2.1); opacity: 0; } }
+@keyframes burst-sym {
+  0% { transform: translateY(16px) scale(.2); opacity: 0; }
+  28% { transform: translateY(-22px) scale(1.35); opacity: 1; }
+  72% { transform: translateY(-28px) scale(1.15); opacity: 1; }
+  100% { transform: translateY(-36px) scale(.9); opacity: 0; }
+}
+@keyframes burst-spark {
+  0% { transform: rotate(var(--a)) translateY(0) scale(.4); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: rotate(var(--a)) translateY(calc(-1 * var(--d))) scale(1); opacity: 0; }
+}
 .active-color {
   position: relative; margin-top: 8px; padding: 2px 12px; border-radius: 12px; background: var(--active);
   color: #fff; font-size: 13px; font-weight: 700; text-shadow: 0 1px 1px rgba(0, 0, 0, .35);
@@ -145,8 +197,11 @@
 
 /* État : dernière carte jouée, puis qui doit jouer */
 .cards-status { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; min-height: 48px; }
-.cards-status .last { font-size: 14px; color: rgba(255, 255, 255, .8); }
-.cards-status .last b { color: #fff; }
+.cards-log { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; min-height: 58px; }
+.log-line { font-size: 14px; line-height: 1.35; color: #fff; animation: log-in .3s ease-out; transition: opacity .3s, font-size .3s; }
+.log-line.age1 { opacity: .62; font-size: 13px; }
+.log-line.age2 { opacity: .34; font-size: 12px; }
+@keyframes log-in { from { transform: translateY(10px); opacity: 0; } }
 .cards-status .turn { font-size: 18px; font-weight: 700; display: inline-flex; align-items: center; flex-wrap: wrap; justify-content: center; }
 .cards-status .status-seconds { background: rgba(255, 255, 255, .16); color: #fff; }
 .cards-status .status-seconds.low { background: var(--yas-fuscia); }
@@ -163,14 +218,13 @@
 .hand-row { position: relative; margin: 0 auto; }
 .hand-card {
   position: absolute; bottom: 0; padding: 0; border: 0; background: none; border-radius: 10px; cursor: default;
-  transition: transform .18s ease, filter .18s ease;
+  transition: left .3s cubic-bezier(.2, .8, .3, 1), transform .18s ease, filter .18s ease;
 }
 .hand-card.playable { transform: translateY(-16px); cursor: pointer; }
 .hand-card.playable:hover { transform: translateY(-24px); }
 .hand-card.dim { filter: brightness(.62) saturate(.8); }
 .hand-card:disabled { cursor: default; }
-.hand-card.fresh { animation: card-deal .5s cubic-bezier(.2, .8, .3, 1); }
-@keyframes card-deal { from { transform: translateY(-120px) scale(.7); opacity: 0; } }
+.hand-card.incoming { visibility: hidden; }
 .cards-me { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: rgba(255, 255, 255, .85); }
 .cards-me b { color: #fff; }
 
@@ -340,3 +394,4 @@
 .cx-win { animation: cx-win .9s ease-in-out infinite; }
 @keyframes cx-win { 50% { opacity: .3; } }
 @media (prefers-reduced-motion: reduce) { .cx-drop, .cx-win { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .dir-ring-rot, .dir-ring-spin, .log-line { animation: none; } }

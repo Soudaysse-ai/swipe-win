@@ -302,6 +302,16 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   anneaux lumineux sur l'équipe qui a la main (bleu pour moi, rouge pour l'adversaire), bulle
   « Belle passe ! » au-dessus du receveur, traînée du ballon, « Premier à 3 » sous le chrono.
 
+## Évolution — animations de Yas Cards (modèle Plato « Ocho »)
+- La carte jouée vole de sa vraie place (ta main, ou l'éventail de l'adversaire en se retournant)
+  jusqu'à la défausse, en arc, et s'y pose légèrement inclinée sur la carte précédente. Ta carte part
+  dès que tu la touches ; elle revient en main si le serveur refuse le coup.
+- Les cartes piochées volent de la pioche vers le joueur, l'une après l'autre (retournées pour toi).
+- +2, +4, Passe, Inverse, Joker : halo dans la couleur, onde, symbole qui jaillit et étincelles.
+- Flèches du sens du jeu autour de la défausse, dans la couleur active, qui tournent (tour rapide
+  au changement de sens) ; journal des trois dernières actions ; la main se resserre en douceur.
+- Animations coupées si l'appareil demande moins de mouvements (`prefers-reduced-motion`).
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche
