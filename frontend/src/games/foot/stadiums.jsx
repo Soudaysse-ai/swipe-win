@@ -62,26 +62,50 @@ export function Pitch({ F, theme }) {
   const { W, H, goalTop: GT, goalBottom: GB, goalDepth: D, postR } = F;
   const M = MARGIN_SIDE; const E = MARGIN_END;
   const line = { stroke: theme.lines, strokeWidth: 3, fill: 'none' };
-  const goal = (x0, dir) => (
-    <g>
-      <rect x={dir < 0 ? x0 - D : x0} y={GT} width={D} height={GB - GT} fill="url(#foot-net)" />
-      <path d={`M${x0} ${GT} H${x0 + dir * D} V${GB} H${x0}`} stroke="#fff" strokeWidth="5" fill="none" strokeLinejoin="round" />
-      <circle cx={x0} cy={GT} r={postR + 1} fill="#fff" />
-      <circle cx={x0} cy={GB} r={postR + 1} fill="#fff" />
-    </g>
-  );
-  const half = (mirror) => {
-    const x = (v) => (mirror ? W - v : v);
-    const rect = (x1, x2, y1, y2) => <rect x={Math.min(x(x1), x(x2))} y={y1} width={Math.abs(x(x2) - x(x1))} height={y2 - y1} {...line} />;
+  // Cage métallique de Soccer Stars : filet quadrillé, cadre gris clair cerné, poteaux ronds.
+  const goal = (x0, dir) => {
+    const back = x0 + dir * D;
+    const net = [];
+    for (let k = 1; k < 4; k++) net.push(<line key={`d${k}`} x1={x0 + (dir * D * k) / 4} y1={GT} x2={x0 + (dir * D * k) / 4} y2={GB} />);
+    for (let y = GT + 20; y < GB; y += 20) net.push(<line key={`h${y}`} x1={x0} y1={y} x2={back} y2={y} />);
+    const frame = `M${x0} ${GT} H${back} V${GB} H${x0}`;
     return (
       <g>
-        {rect(0, 150, 105, 495)}
-        {rect(0, 60, 165, 435)}
-        <circle cx={x(112)} cy={H / 2} r="4" fill={theme.lines} />
-        <path d={`M${x(150)} ${H / 2 - 55} A 75 75 0 0 ${mirror ? 0 : 1} ${x(150)} ${H / 2 + 55}`} {...line} />
+        <rect x={Math.min(x0, back)} y={GT} width={D} height={GB - GT} fill="rgba(255,255,255,.12)" />
+        <g stroke="rgba(255,255,255,.7)" strokeWidth="1.6">{net}</g>
+        <path d={frame} stroke="#6B7684" strokeWidth="11" fill="none" strokeLinejoin="round" />
+        <path d={frame} stroke="#E7EAEE" strokeWidth="6.5" fill="none" strokeLinejoin="round" />
+        {[GT, GB].map(y => (
+          <g key={y}>
+            <circle cx={x0} cy={y} r={postR + 3} fill="#6B7684" />
+            <circle cx={x0} cy={y} r={postR + 0.5} fill="#F4F6F8" />
+          </g>
+        ))}
       </g>
     );
   };
+  // Une seule surface devant chaque but, avec son arc, comme dans Soccer Stars.
+  const half = (mirror) => {
+    const x = (v) => (mirror ? W - v : v);
+    const bw = 283; const bd = 92;
+    return (
+      <g>
+        <rect x={Math.min(x(0), x(bd))} y={H / 2 - bw / 2} width={bd} height={bw} {...line} />
+        <path d={`M${x(bd)} ${H / 2 - 60} A 60 60 0 0 ${mirror ? 0 : 1} ${x(bd)} ${H / 2 + 60}`} {...line} />
+      </g>
+    );
+  };
+  // Bordures grises autour du terrain (ouvertes devant les buts).
+  const boards = (
+    <g stroke="#C9CED6" strokeWidth="12" strokeLinecap="square" fill="none">
+      <line x1={-6} y1={-6} x2={W + 6} y2={-6} />
+      <line x1={-6} y1={H + 6} x2={W + 6} y2={H + 6} />
+      <line x1={-6} y1={-6} x2={-6} y2={GT - postR} />
+      <line x1={-6} y1={GB + postR} x2={-6} y2={H + 6} />
+      <line x1={W + 6} y1={-6} x2={W + 6} y2={GT - postR} />
+      <line x1={W + 6} y1={GB + postR} x2={W + 6} y2={H + 6} />
+    </g>
+  );
   // Arc de coin (vers l'intérieur) et petit drapeau planté vers l'extérieur.
   const corner = (cx, cy) => {
     const sx = cx === 0 ? 1 : -1; const sy = cy === 0 ? 1 : -1;
@@ -112,10 +136,11 @@ export function Pitch({ F, theme }) {
       {theme.sand && Array.from({ length: 60 }, (_, i) => (
         <circle key={i} cx={(i * 173) % W} cy={(i * 97) % H} r="2" fill="#C9A866" opacity=".5" />
       ))}
+      {boards}
       <rect x="0" y="0" width={W} height={H} {...line} />
       <line x1={W / 2} y1="0" x2={W / 2} y2={H} {...line} />
-      <circle cx={W / 2} cy={H / 2} r="90" {...line} />
-      <circle cx={W / 2} cy={H / 2} r="5" fill={theme.lines} />
+      <circle cx={W / 2} cy={H / 2} r="120" {...line} />
+      <circle cx={W / 2} cy={H / 2} r="7" fill={theme.lines} />
       {half(false)}{half(true)}
       {corner(0, 0)}{corner(W, 0)}{corner(0, H)}{corner(W, H)}
       {goal(0, -1)}{goal(W, 1)}

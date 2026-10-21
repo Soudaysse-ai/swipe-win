@@ -8,7 +8,8 @@
 // Avant-match : équipe (drapeau), formation et stade, puis écran « VS ».
 // Visée façon Soccer Stars : pose le doigt sur un de tes palets (ils brillent
 // quand c'est à toi), tire vers l'arrière : le cercle sombre grandit avec la
-// puissance, la flèche blanche montre la direction ; relâche pour tirer.
+// puissance, la flèche blanche montre la direction ; relâche pour tirer. Pas de
+// guide de trajectoire : on vise à l'œil. Étincelles jaunes à chaque choc.
 // Passe : si ton tir envoie le ballon sur un coéquipier, tu rejoues.
 // Ta cage est toujours en bas (téléphone en portrait) ou à gauche (paysage).
 import { forwardRef, memo, useEffect, useRef, useState } from 'react';
@@ -20,13 +21,12 @@ import { useGameEvents } from '../../player/pages/Match';
 import { TurnAvatar, Seconds, useTimeLeft } from '../common/Turn';
 import { FlagDisc, FlagBadge, TEAM_NAMES, TEAM_COLOR } from './flags';
 import { STADIUMS, Pitch, StadiumThumb, useStadium, MARGIN_SIDE, MARGIN_END } from './stadiums';
-import { predict, shoot, shotInput } from './physics';
+import { shoot, shotInput } from './physics';
 
 const MAX_DRAG = 170;   // traction (unités du terrain) pour la pleine puissance
 const MIN_POWER = 0.08;
 const MINE = '#5FE1FF';  // anneau de mes palets quand c'est à moi
 const THEIRS = '#FF5A5F'; // anneau des palets adverses pendant leur tour
-const PASS = '#7CF0A6';
 const VS_MS = 2400;
 const TRAIL = 6;         // points de la traînée du ballon
 // Palets neutres tant qu'une équipe n'est pas choisie.
@@ -114,37 +114,24 @@ const Ball = forwardRef(function Ball({ x, y, R, shadow, spinRef }, ref) {
   );
 });
 
-// Visée : cercle sombre qui grandit avec la puissance, flèche blanche dans la
-// direction du tir, et discret aperçu du trajet du ballon (vert si passe).
-function Aim({ origin, pull, R, pred, ballR, upright }) {
+// Visée comme dans Soccer Stars : cercle sombre qui grandit avec la puissance et
+// flèche blanche dans la direction du tir. Pas de guide de trajectoire : on vise
+// à l'œil un coéquipier, le ballon ou le but.
+function Aim({ origin, pull, R }) {
   const len = Math.hypot(pull[0], pull[1]);
   if (len < 2) return null;
   const power = Math.min(1, len / MAX_DRAG);
   const ux = pull[0] / len; const uy = pull[1] / len;
   const [ox, oy] = origin;
-  const start = [ox + ux * (R + 6), oy + uy * (R + 6)];
-  const tipLen = R + 18 + power * 104;
+  const start = [ox + ux * (R * 0.35), oy + uy * (R * 0.35)];
+  const tipLen = R + 14 + power * 96;
   const tip = [ox + ux * tipLen, oy + uy * tipLen];
-  const head = `${tip[0] + ux * 4},${tip[1] + uy * 4} ${tip[0] - ux * 20 - uy * 14},${tip[1] - uy * 20 + ux * 14} ${tip[0] - ux * 20 + uy * 14},${tip[1] - uy * 20 - ux * 14}`;
-  const ballPath = pred?.ball?.length > 1 ? pred.ball : null;
-  const end = ballPath ? ballPath[ballPath.length - 1] : null;
-  const pathColor = pred?.mate ? PASS : 'rgba(255,255,255,.75)';
+  const head = `${tip[0] + ux * 4},${tip[1] + uy * 4} ${tip[0] - ux * 18 - uy * 11},${tip[1] - uy * 18 + ux * 11} ${tip[0] - ux * 18 + uy * 11},${tip[1] - uy * 18 - ux * 11}`;
   return (
     <g pointerEvents="none">
-      <circle cx={ox} cy={oy} r={R + 14 + power * (MAX_DRAG - R - 14)} fill="rgba(4,24,12,.34)" />
-      {ballPath && (
-        <g>
-          <polyline points={ballPath.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={pathColor} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 14" />
-          {pred.mate && (
-            <g transform={`translate(${end[0]} ${end[1]}) rotate(${upright}) translate(0 ${-ballR - 20})`}>
-              <rect x="-36" y="-14" width="72" height="26" rx="13" fill="#0B5A2E" />
-              <text textAnchor="middle" dominantBaseline="central" y="-1" fontSize="16" fontWeight="800" fill="#fff" fontFamily="var(--yas-font)">PASSE</text>
-            </g>
-          )}
-        </g>
-      )}
-      <line x1={start[0]} y1={start[1]} x2={tip[0] - ux * 12} y2={tip[1] - uy * 12} stroke="rgba(0,0,0,.25)" strokeWidth="11" strokeLinecap="round" transform="translate(2 3)" />
-      <line x1={start[0]} y1={start[1]} x2={tip[0] - ux * 12} y2={tip[1] - uy * 12} stroke="#fff" strokeWidth="8" strokeLinecap="round" />
+      <circle cx={ox} cy={oy} r={R + 16 + power * (MAX_DRAG - R - 16)} fill="rgba(4,24,12,.36)" />
+      <line x1={start[0]} y1={start[1]} x2={tip[0] - ux * 12} y2={tip[1] - uy * 12} stroke="rgba(0,0,0,.25)" strokeWidth="9" strokeLinecap="round" transform="translate(2 3)" />
+      <line x1={start[0]} y1={start[1]} x2={tip[0] - ux * 12} y2={tip[1] - uy * 12} stroke="#fff" strokeWidth="6" strokeLinecap="round" />
       <polygon points={head} fill="#fff" strokeLinejoin="round" stroke="#fff" strokeWidth="3" />
     </g>
   );
@@ -269,6 +256,8 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   const bodyRefs = useRef([]);       // <g> des 10 palets puis du ballon
   const spinRef = useRef(null);
   const trailRefs = useRef([]);
+  const sparkRef = useRef(null);       // étincelles des chocs (ajoutées directement dans le SVG)
+  const reduceMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const anim = useRef(null);         // tir en cours d'animation
   const raf = useRef(null);
   const timers = useRef([]);
@@ -280,7 +269,6 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   const [vsUntil, setVsUntil] = useState(() => (
     v.phase === 'play' && !v.shots[v.players[0]] && !v.shots[v.players[1]] && serverNow() < (v.turnOpensAt || 0) ? v.turnOpensAt : 0));
   const [aim, setAim] = useState(null);         // { disc, origin, pointer }
-  const [pred, setPred] = useState(null);
   const [menu, setMenu] = useState(false);
   const [, setTick] = useState(0);
 
@@ -307,8 +295,31 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
     });
   }
 
+  // Sons et étincelles jaunes à chaque choc (positions fournies par la simulation).
   function sounds(hits, frameMs) {
-    hits.forEach(([f, kind, i]) => later(f * frameMs, () => sfx[kind]?.(i)));
+    hits.forEach(([f, kind, i, x, y]) => later(f * frameMs, () => {
+      sfx[kind]?.(i);
+      if (x != null && i >= 0.12) spark(x, y, i);
+    }));
+  }
+  function spark(x, y, i) {
+    const layer = sparkRef.current;
+    if (!layer || reduceMotion) return;
+    const n = 4 + Math.round(i * 6);
+    for (let k = 0; k < n; k++) {
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const ang = (k / n) * Math.PI * 2 + i * 3;
+      const dist = 18 + i * 34 + (k % 3) * 7;
+      c.setAttribute('cx', x); c.setAttribute('cy', y);
+      c.setAttribute('r', String(3 + (k % 2) * 1.6));
+      c.setAttribute('fill', k % 3 ? '#FFE45C' : '#FFC21A');
+      layer.appendChild(c);
+      const anim = c.animate([
+        { transform: 'translate(0px, 0px) scale(1)', opacity: 1 },
+        { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(.4)`, opacity: 0 },
+      ], { duration: 420 + (k % 3) * 60, easing: 'cubic-bezier(.2,.7,.3,1)' });
+      anim.onfinish = () => c.remove();
+    }
   }
 
   // Joue une trajectoire (images régulières, interpolées) ; `a.frames` peut être
@@ -361,7 +372,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
 
   function start(a) {
     anim.current = a;
-    setAim(null); setPred(null);
+    setAim(null);
     setHeld(a.frames[0]);
     sfx.kick(a.power);
     sounds(a.hits, a.frameMs);
@@ -458,14 +469,10 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
     svgRef.current.setPointerCapture?.(evt.pointerId);
     const origin = discsOf(side)[disc];
     setAim({ disc, origin, pointer: toField(evt) });
-    setPred(null);
   }
   function move(evt) {
     if (!aim) return;
-    const a = { ...aim, pointer: toField(evt) };
-    setAim(a);
-    const { dx, dy, len } = shotOf(a);
-    setPred(len >= MIN_POWER ? predict(v, me, a.disc, dx, dy) : null);
+    setAim({ ...aim, pointer: toField(evt) });
   }
   // Même règle que le serveur : but (cage de gauche → l'équipe de droite marque),
   // sinon passe tant que la limite de passes d'affilée n'est pas atteinte.
@@ -477,7 +484,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   async function up() {
     if (!aim) return;
     const a = aim;
-    setAim(null); setPred(null);
+    setAim(null);
     const { dx, dy, len } = shotOf(a);
     if (len < MIN_POWER) return;
     // Le tir part tout de suite à l'écran ; le serveur confirme ensuite.
@@ -506,7 +513,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   else if (goalFlash) status = <b>{goalFlash.own ? 'Contre son camp !' : `But de ${name(goalFlash.scorer)} !`}</b>;
   else if (passFlash) status = <><b>Belle passe !</b> {passFlash.userId === me ? 'Tu rejoues' : `${name(passFlash.userId)} rejoue`}{passesLeft > 0 ? '' : ' (dernière passe)'}</>;
   else if (animating) status = <>Tir en cours…</>;
-  else if (aim) status = <>Puissance <b>{power} %</b>{pred?.mate ? <> · <b>passe</b> en vue</> : null} · relâche pour tirer</>;
+  else if (aim) status = <>Puissance <b>{power} %</b> · relâche pour tirer</>;
   else if (canShoot) status = <><b>{v.passes ? 'Passe réussie, rejoue !' : 'À toi !'}</b> Tire un palet vers l'arrière <Seconds deadline={v.turnDeadline} /></>;
   else if (myTurn) status = <><b>À toi</b> dans un instant…</>;
   else status = <><b>{name(v.turn)}</b> {v.passes ? 'rejoue après une passe…' : 'prépare son tir…'}</>;
@@ -541,7 +548,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
 
       <div className="foot-field-wrap">
         <svg ref={svgRef} className="foot-field" viewBox={view.viewBox} role="img" aria-label="Terrain de Yas Foot"
-          onPointerMove={move} onPointerUp={up} onPointerCancel={() => { setAim(null); setPred(null); }}>
+          onPointerMove={move} onPointerUp={up} onPointerCancel={() => setAim(null)}>
           <defs>
             <pattern id="foot-net" width="10" height="10" patternUnits="userSpaceOnUse">
               <path d="M0 0 L10 10 M10 0 L0 10" stroke="rgba(255,255,255,.45)" strokeWidth="1.2" />
@@ -560,7 +567,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
           </defs>
           <g ref={fieldRef} transform={view.transform}>
             <StaticPitch F={F} theme={theme} />
-            {aim && <Aim origin={aim.origin} pull={pull} R={F.discR} pred={pred} ballR={F.ballR} upright={upright} />}
+            {aim && <Aim origin={aim.origin} pull={pull} R={F.discR} />}
             {Array.from({ length: TRAIL }, (_, i) => (
               <circle key={`tr${i}`} ref={(el) => { trailRefs.current[i] = el; }} r={F.ballR * (0.8 - i * 0.1)} fill="#fff" opacity="0" pointerEvents="none" />
             ))}
@@ -577,6 +584,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
               );
             }))}
             <Ball ref={(el) => { bodyRefs.current[10] = el; }} spinRef={spinRef} x={ballPos[0]} y={ballPos[1]} R={F.ballR} shadow={shadow} />
+            <g ref={sparkRef} pointerEvents="none" />
             {passFlash?.at && (
               <g className="foot-pass-bubble" transform={`translate(${passFlash.at[0]} ${passFlash.at[1]}) rotate(${upright}) translate(0 ${-F.discR - 26})`} pointerEvents="none">
                 <rect x="-66" y="-17" width="132" height="32" rx="9" fill="#fff" />

@@ -312,6 +312,16 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   au changement de sens) ; journal des trois dernières actions ; la main se resserre en douceur.
 - Animations coupées si l'appareil demande moins de mouvements (`prefers-reduced-motion`).
 
+## Évolution — Yas Foot 1.2 (proportions de Soccer Stars)
+- Mesures prises sur une vidéo de Soccer Stars : même rapport du terrain (1,67), même taille de
+  palets ; buts plus larges (40 % de la largeur au lieu de 33 %) et plus profonds, ballon plus gros
+  (rayon 18 au lieu de 15).
+- Placement « Classique » par défaut : gardien sur sa ligne, deux défenseurs, deux attaquants écartés.
+- Visée à l'œil : plus de guide de trajectoire, seulement le cercle sombre et la flèche blanche.
+- Étincelles jaunes à chaque choc ; cages métalliques au filet quadrillé, une seule surface avec son
+  arc, grand rond central, bordures grises.
+- Règles 1.2.0 (migration 012) ; les parties déjà jouées gardent leur version.
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

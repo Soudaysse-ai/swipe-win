@@ -24,7 +24,7 @@ test('migration additive d\'une base existante', async () => {
   await pool.query(`INSERT INTO answers (session_id, question_id, is_correct, response_time_ms) VALUES ($1,'q1',true,100), ($1,'q1',true,100)`, [s.rows[0].id]);
 
   const applied = await migrate(pool, { log: () => {} });
-  assert.deepEqual(applied, ['001_legacy_baseline.sql', '002_platform.sql', '003_reference_data.sql', '004_email_reset.sql', '005_training_bots.sql', '006_longer_turns.sql', '007_yas_foot.sql', '008_retire_penalty.sql', '009_quiz_visibility.sql', '010_foot_v1_1.sql', '011_account_recovery.sql']);
+  assert.deepEqual(applied, ['001_legacy_baseline.sql', '002_platform.sql', '003_reference_data.sql', '004_email_reset.sql', '005_training_bots.sql', '006_longer_turns.sql', '007_yas_foot.sql', '008_retire_penalty.sql', '009_quiz_visibility.sql', '010_foot_v1_1.sql', '011_account_recovery.sql', '012_foot_v1_2.sql']);
   assert.deepEqual(await migrate(pool, { log: () => {} }), [], 'ré-exécution sans effet');
 
   const counts = await pool.query(`SELECT (SELECT COUNT(*) FROM players)::int AS players, (SELECT COUNT(*) FROM sessions)::int AS sessions,

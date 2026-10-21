@@ -12,11 +12,12 @@
 
 const W = 1000;                 // longueur du terrain (axe x, buts à gauche et à droite)
 const H = 600;                  // largeur du terrain (axe y)
-const GOAL_TOP = 200;
-const GOAL_BOTTOM = 400;
-const GOAL_DEPTH = 55;
+// Proportions de Soccer Stars : buts larges (40 % de la largeur), ballon ≈ 6 %.
+const GOAL_TOP = 180;
+const GOAL_BOTTOM = 420;
+const GOAL_DEPTH = 60;
 const DISC_R = 32;
-const BALL_R = 15;
+const BALL_R = 18;
 const POST_R = 6;
 const DISC_MASS = 2;
 const BALL_MASS = 1;
@@ -121,7 +122,7 @@ function walls(b) {
  * joueur 1, ballon ; une image tous les `frameEvery` pas), le but éventuel
  * ('left' : cage de gauche, ou 'right'), la passe éventuelle ({ to } : palet
  * coéquipier touché) et les chocs ([image, 'ball' | 'disc' | 'wall' | 'post',
- * intensité 0–1]) pour les sons.
+ * intensité 0–1, x, y]) pour les sons et les étincelles.
  */
 function simulate(pos, userId, disc, vx, vy, { maxTicks = MAX_TICKS, frames: keepFrames = true, frameEvery = FRAME_EVERY } = {}) {
   const bodies = [];
@@ -136,13 +137,15 @@ function simulate(pos, userId, disc, vx, vy, { maxTicks = MAX_TICKS, frames: kee
   const frames = keepFrames ? [snap()] : null;
   const touches = [];   // palets ayant touché le ballon, dans l'ordre (sans doublon consécutif)
   const hits = [];
-  const hit = (t, kind, speed) => {
+  const hit = (t, kind, speed, at) => {
     if (speed < 0.6 || hits.length >= MAX_HITS) return;
     const f = Math.floor(t / frameEvery);
     const last = hits[hits.length - 1];
     if (last && last[0] === f && last[1] === kind) return;
-    hits.push([f, kind, Math.round(Math.min(1, speed / MAX_SPEED) * 100) / 100]);
+    hits.push([f, kind, Math.round(Math.min(1, speed / MAX_SPEED) * 100) / 100, Math.round(at.x), Math.round(at.y)]);
   };
+  // Point de contact entre deux corps (pour placer les étincelles).
+  const contact = (a, c) => ({ x: a.x + ((c.x - a.x) * a.r) / (a.r + c.r), y: a.y + ((c.y - a.y) * a.r) / (a.r + c.r) });
   let goal = null;
   let ticks = 0;
   for (let t = 1; t <= maxTicks; t++) {
@@ -157,15 +160,15 @@ function simulate(pos, userId, disc, vx, vy, { maxTicks = MAX_TICKS, frames: kee
           if (a.ball || c.ball) {
             const d = a.ball ? c : a;
             if (touches[touches.length - 1] !== d) touches.push(d);
-            hit(t, 'ball', speed);
-          } else hit(t, 'disc', speed);
+            hit(t, 'ball', speed, contact(a, c));
+          } else hit(t, 'disc', speed, contact(a, c));
         }
       }
       for (const b of bodies) {
         const p = posts(b);
-        if (p) hit(t, 'post', p);
+        if (p) hit(t, 'post', p, b);
         const w = walls(b);
-        if (w) hit(t, 'wall', w * (b.ball ? 1 : 0.7));
+        if (w) hit(t, 'wall', w * (b.ball ? 1 : 0.7), b);
       }
     }
     let moving = false;

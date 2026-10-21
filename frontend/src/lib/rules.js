@@ -27,7 +27,7 @@ export const RULES = {
   foot: [
     'Deux joueurs, 5 palets chacun, un ballon : du football de table.',
     'Avant le coup d\'envoi (15 s) : choisis ton équipe, ta formation et ton stade, puis « Je suis prêt ».',
-    'À ton tour, pose le doigt sur un de tes palets et tire vers l\'arrière, comme une fronde : la flèche montre la direction et la puissance, le guide la trajectoire prévue du ballon. Relâche pour tirer.',
+    'À ton tour, pose le doigt sur un de tes palets et tire vers l\'arrière, comme une fronde : le cercle sombre grandit avec la puissance et la flèche montre la direction. Pas de guide : vise à l\'œil un coéquipier, le ballon ou le but. Relâche pour tirer.',
     'Le palet file, rebondit sur les bords et les autres palets, et pousse le ballon. Une fois tout arrêté, c\'est à l\'adversaire.',
     'Passe : si ton tir envoie le ballon sur un de tes coéquipiers (avant qu\'un adversaire ne le touche), tu rejoues — deux passes de suite au plus.',
     'But : le ballon franchit entièrement la ligne entre les poteaux. Contre son camp, le but compte pour l\'adversaire. L\'équipe qui encaisse engage.',
