@@ -40,12 +40,14 @@ const MAX_PASSES = 2;
 // Formations de l'équipe qui attaque vers la droite (gardien, puis joueurs de champ) ;
 // l'autre équipe est symétrique.
 const FORMATIONS = {
+  // Placement de Soccer Stars : gardien sur sa ligne, deux défenseurs, deux attaquants écartés.
+  '2-2': { name: 'Classique', pos: [[26, 300], [164, 238], [164, 362], [308, 130], [308, 470]] },
   '1-2-1-1': { name: 'Équilibrée', pos: [[60, 300], [210, 170], [210, 430], [325, 300], [425, 300]] },
   '1-2-2': { name: 'Offensive', pos: [[60, 300], [200, 180], [200, 420], [405, 190], [405, 410]] },
   '1-3-1': { name: 'Défensive', pos: [[60, 300], [185, 140], [165, 300], [185, 460], [405, 300]] },
   '1-1-2-1': { name: 'Losange', pos: [[60, 300], [175, 300], [300, 170], [300, 430], [425, 300]] },
 };
-const DEFAULT_FORMATION = '1-2-1-1';
+const DEFAULT_FORMATION = '2-2';
 const FORMATION = FORMATIONS[DEFAULT_FORMATION].pos;
 // Équipes (codes pays) : drapeaux dessinés côté navigateur.
 const TEAMS = ['km', 'mg', 'sn', 'ma', 'ci', 'cm', 'ng', 'dz', 'gh', 'eg', 'tn', 'fr', 'br', 'ar', 'it', 'jp'];
@@ -338,7 +340,7 @@ function actionsCount(state, userId) {
 }
 
 module.exports = {
-  id: 'foot', rulesVersion: '1.1.0', minPlayers: 2, maxPlayers: 2,
+  id: 'foot', rulesVersion: '1.2.0', minPlayers: 2, maxPlayers: 2,
   init, view, apply, deadline, timeout, forfeit, result, actionsCount, resume,
   // Choix d'avant-match : chaque joueur choisit de son côté, sans dépendre du plateau.
   versionFreeActions: ['setup'],
