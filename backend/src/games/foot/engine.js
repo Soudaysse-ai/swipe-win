@@ -36,6 +36,10 @@ const END_PAUSE_MS = 2200;
 const VS_MS = 2600;             // écran « équipe contre équipe » avant le coup d'envoi
 const DISCS = 5;
 const MAX_PASSES = 2;
+// Après une belle passe, le receveur peut être replacé autour du ballon (distance
+// au ballon entre « collé » et PLACE_MAX), pour préparer son tir.
+const PLACE_MIN = DISC_R + BALL_R + 1;
+const PLACE_MAX = DISC_R + BALL_R + 95;
 
 // Formations de l'équipe qui attaque vers la droite (gardien, puis joueurs de champ) ;
 // l'autre équipe est symétrique.
@@ -128,6 +132,7 @@ function view(state) {
     goals: state.goals, goalsToWin: state.goalsToWin, turn: state.turn, phase: state.phase, seq: state.seq,
     teams: state.teams, formations: state.formations, ready: state.ready, setupEndsAt: state.setupEndsAt,
     passes: state.passes, maxPasses: MAX_PASSES, passCount: state.passCount,
+    passReceiver: state.passReceiver || null, place: { min: PLACE_MIN, max: PLACE_MAX },
     turnMs: state.turnMs, turnOpensAt: state.turnOpensAt, turnDeadline: state.turnDeadline,
     matchEndsAt: state.matchEndsAt, endAt: state.endAt, status: state.status, winner: state.winner,
     endReason: state.endReason, timeouts: state.timeouts,
@@ -186,6 +191,7 @@ function apply(state, userId, action, { now }) {
   if (state.status !== 'playing') throw new EngineError('GAME_OVER', 'La partie est terminée');
   if (!state.players.includes(userId)) throw new EngineError('NOT_PLAYER', 'Vous ne jouez pas dans cette partie');
   if (action?.type === 'setup') return applySetup(state, userId, action, now);
+  if (action?.type === 'place') return applyPlace(state, userId, action, now);
   if (action?.type !== 'shoot') throw new EngineError('BAD_ACTION', 'Action inconnue');
   if (state.phase === 'setup') throw new EngineError('NOT_OPEN', 'La partie n\'a pas encore commencé');
   if (state.phase !== 'play' || state.turn !== userId) throw new EngineError('NOT_YOUR_TURN', 'Ce n\'est pas ton tour');
@@ -197,7 +203,8 @@ function apply(state, userId, action, { now }) {
   const shot = shotVelocity(dx, dy);
   if (!shot) throw new EngineError('TOO_WEAK', 'Tire un peu plus fort');
   const { power } = shot;
-  const sim = simulate(state, userId, disc, shot.vx, shot.vy);
+  // Passe contrôlée tant qu'elle peut encore compter (limite de passes d'affilée).
+  const sim = simulate(state, userId, disc, shot.vx, shot.vy, { control: state.passes < MAX_PASSES });
 
   const s = structuredClone(state);
   s.discs = sim.discs;
@@ -205,6 +212,7 @@ function apply(state, userId, action, { now }) {
   s.seq += 1;
   s.shots[userId] += 1;
   s.timeouts[userId] = 0;
+  s.passReceiver = null;
   const animMs = Math.round(sim.frames.length * FRAME_MS);
   const [home, away] = s.players;
   const scorer = sim.goal === 'left' ? away : sim.goal === 'right' ? home : null;
@@ -229,6 +237,7 @@ function apply(state, userId, action, { now }) {
     // Passe réussie : le même joueur rejoue.
     s.passes += 1;
     s.passCount[userId] = (s.passCount[userId] || 0) + 1;
+    s.passReceiver = { userId, disc: pass.to };
     events.push({ type: 'pass', payload: { userId, from: disc, to: pass.to, count: s.passes, max: MAX_PASSES } });
   } else {
     s.turn = other(s, userId);
@@ -248,6 +257,31 @@ function apply(state, userId, action, { now }) {
     s.turnDeadline = opensAt + s.turnMs;
   }
   return { state: s, events };
+}
+
+// Replacement du receveur après une belle passe : autour du ballon, sur le terrain,
+// sans chevaucher un autre palet. Autant de fois que voulu avant de tirer.
+function applyPlace(state, userId, action, now) {
+  if (state.phase !== 'play' || state.turn !== userId) throw new EngineError('NOT_YOUR_TURN', 'Ce n\'est pas ton tour');
+  if (now < state.turnOpensAt) throw new EngineError('NOT_OPEN', 'Attends que le jeu s\'arrête');
+  const pr = state.passReceiver;
+  if (!pr || pr.userId !== userId) throw new EngineError('NO_PLACE', 'Tu peux replacer ton joueur seulement après une belle passe');
+  if (action.disc !== pr.disc) throw new EngineError('BAD_DISC', 'Seul le joueur qui a reçu la passe se replace');
+  const { x, y } = action;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) throw new EngineError('BAD_PLACE', 'Position invalide');
+  if (x < DISC_R || x > W - DISC_R || y < DISC_R || y > H - DISC_R) throw new EngineError('BAD_PLACE', 'Reste sur le terrain');
+  const [bx, by] = state.ball;
+  const db = Math.sqrt((x - bx) * (x - bx) + (y - by) * (y - by));
+  if (db < PLACE_MIN || db > PLACE_MAX) throw new EngineError('BAD_PLACE', 'Place ton joueur près du ballon');
+  for (const u of state.players) {
+    state.discs[u].forEach(([ox, oy], i) => {
+      if (u === userId && i === pr.disc) return;
+      if ((x - ox) * (x - ox) + (y - oy) * (y - oy) < (2 * DISC_R) * (2 * DISC_R)) throw new EngineError('BAD_PLACE', 'Un autre joueur est déjà là');
+    });
+  }
+  const s = structuredClone(state);
+  s.discs[userId][pr.disc] = [r2(x), r2(y)];
+  return { state: s, events: [{ type: 'placed', payload: { userId, disc: pr.disc, x: r2(x), y: r2(y) } }] };
 }
 
 function deadline(state) {
@@ -291,6 +325,7 @@ function timeout(state, { now, config }) {
   if (s.timeouts[u] >= (config.maxTimeouts || 3)) return forfeitInto(s, u, 'timeouts_limit', events);
   s.turn = other(s, u);
   s.passes = 0;
+  s.passReceiver = null;
   s.turnOpensAt = now;
   s.turnDeadline = now + s.turnMs;
   return { state: s, events };
@@ -340,12 +375,12 @@ function actionsCount(state, userId) {
 }
 
 module.exports = {
-  id: 'foot', rulesVersion: '1.2.0', minPlayers: 2, maxPlayers: 2,
+  id: 'foot', rulesVersion: '1.3.0', minPlayers: 2, maxPlayers: 2,
   init, view, apply, deadline, timeout, forfeit, result, actionsCount, resume,
   // Choix d'avant-match : chaque joueur choisit de son côté, sans dépendre du plateau.
   versionFreeActions: ['setup'],
   _internals: {
-    simulate, shotVelocity, formation, FORMATION, FORMATIONS, TEAMS, MAX_PASSES, MAX_SPEED, FRAME_MS, MIN_POWER, VS_MS,
+    simulate, shotVelocity, PLACE_MIN, PLACE_MAX, formation, FORMATION, FORMATIONS, TEAMS, MAX_PASSES, MAX_SPEED, FRAME_MS, MIN_POWER, VS_MS,
     FIELD,
   },
 };

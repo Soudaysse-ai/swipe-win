@@ -53,7 +53,7 @@ export default function ChatBar({ roomId, onHistory, disabledText }) {
         {bubbles.map(m => (
           <div key={m.id} className={`chat-bubble${m.userId === user?.id ? ' mine' : ''}`}>
             <Avatar id={m.avatar} size={22} />
-            <span><b>{m.userId === user?.id ? 'Moi' : m.username}</b> {m.body}</span>
+            <span><b>{m.username}</b> {m.body}</span>
           </div>
         ))}
       </div>

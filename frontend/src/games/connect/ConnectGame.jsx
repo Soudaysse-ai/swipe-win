@@ -36,7 +36,7 @@ export default function ConnectGame({ snapshot, me, sendAction }) {
       <div className="card tight row" style={{ flex: 1, gap: 8, boxShadow: active ? '0 0 0 3px var(--yas-blue)' : undefined, opacity: p?.connected === false ? 0.6 : 1 }}>
         <Avatar id={p?.avatar} size={36} online={p?.connected} />
         <div className="grow">
-          <div className="bold small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userId === me ? 'Moi' : p?.username}</div>
+          <div className="bold small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p?.username}</div>
           <div className="row tiny" style={{ gap: 4 }}>
             <span style={{ width: 12, height: 12, borderRadius: 6, background: DISC[v.colors[userId]], border: '1.5px solid #00377D' }} />
             {v.colors[userId] === 'yellow' ? 'Jaune' : 'Bleu'}

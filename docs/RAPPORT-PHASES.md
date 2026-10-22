@@ -346,6 +346,15 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   chat bleu nuit collée en bas ; le jeu occupe toute la place au milieu (grille de Connect cerclée de
   bleu clair pour ressortir sur le fond).
 
+## Évolution — Yas Foot 1.3 : belle passe contrôlée et replacement
+- Belle passe contrôlée : quand le ballon frappé par le tireur touche un coéquipier, il s'arrête collé à
+  lui, du côté du but adverse, sans rebondir (physique partagée serveur / navigateur, testée).
+- Le joueur rejoue et peut d'abord replacer le receveur autour du ballon : zone en pointillés, il touche
+  l'endroit voulu (action `place`, vérifiée par le serveur : près du ballon, sur le terrain, sans
+  chevaucher un autre palet). Le bot fait de même (receveur derrière le ballon, face au but).
+- Règles 1.3.0 (migration 013).
+- Dans tous les jeux, le pseudonyme du joueur remplace « Toi » / « Moi ».
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

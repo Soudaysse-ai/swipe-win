@@ -167,7 +167,8 @@ function Seat({ color, empty, player, name, active, home, place, out, deadline, 
 export default function LudoGame({ snapshot, me, sendAction, matchId }) {
   const v = snapshot.view;
   const byId = Object.fromEntries(snapshot.players.map(p => [p.userId, p]));
-  const name = (u) => (u === me ? 'Toi' : byId[u]?.username);
+  // Le pseudonyme de chacun, y compris le mien (plus de « Toi »).
+  const name = (u) => byId[u]?.username || '';
   const tokens = useSteppedTokens(v.tokens);
   const [rolling, setRolling] = useState(false);
   const [rollEnd, setRollEnd] = useState(0);  // instant où l'animation du dé s'arrête

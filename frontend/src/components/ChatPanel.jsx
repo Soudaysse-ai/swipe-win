@@ -91,7 +91,7 @@ export default function ChatPanel({ roomId, matchId, compact = false }) {
           <div key={m.id} className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
             <Avatar id={m.avatar} size={24} />
             <div className="grow small" style={{ lineHeight: 1.3 }}>
-              <b>{m.userId === user?.id ? 'Moi' : m.username}</b>{' '}
+              <b>{m.username}</b>{' '}
               <span style={{ fontSize: m.kind === 'reaction' ? 20 : undefined }}>{m.body}</span>
             </div>
             {m.userId !== user?.id && (

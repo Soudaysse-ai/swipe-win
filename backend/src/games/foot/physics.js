@@ -123,8 +123,12 @@ function walls(b) {
  * ('left' : cage de gauche, ou 'right'), la passe éventuelle ({ to } : palet
  * coéquipier touché) et les chocs ([image, 'ball' | 'disc' | 'wall' | 'post',
  * intensité 0–1, x, y]) pour les sons et les étincelles.
+ *
+ * `control` : une belle passe est « contrôlée » (comme dans Soccer Stars) : dès
+ * que le ballon, frappé par le tireur, touche un coéquipier, il s'arrête collé à
+ * lui, du côté du but adverse, et le receveur s'immobilise. Plus de rebond.
  */
-function simulate(pos, userId, disc, vx, vy, { maxTicks = MAX_TICKS, frames: keepFrames = true, frameEvery = FRAME_EVERY } = {}) {
+function simulate(pos, userId, disc, vx, vy, { maxTicks = MAX_TICKS, frames: keepFrames = true, frameEvery = FRAME_EVERY, control = false } = {}) {
   const bodies = [];
   for (const u of pos.players) {
     pos.discs[u].forEach(([x, y], i) => bodies.push({ x, y, vx: 0, vy: 0, r: DISC_R, m: DISC_MASS, damp: DAMP_DISC, owner: u, i }));
@@ -146,6 +150,19 @@ function simulate(pos, userId, disc, vx, vy, { maxTicks = MAX_TICKS, frames: kee
   };
   // Point de contact entre deux corps (pour placer les étincelles).
   const contact = (a, c) => ({ x: a.x + ((c.x - a.x) * a.r) / (a.r + c.r), y: a.y + ((c.y - a.y) * a.r) / (a.r + c.r) });
+  // Contrôle de la passe : ballon posé devant le receveur, vers le but adverse.
+  const goalX = pos.players[0] === userId ? W : 0;
+  let controlled = null;
+  const trap = (d) => {
+    controlled = d;
+    d.vx = 0; d.vy = 0;
+    ball.vx = 0; ball.vy = 0;
+    let gx = goalX - d.x; let gy = H / 2 - d.y;
+    const len = Math.sqrt(gx * gx + gy * gy) || 1;
+    gx /= len; gy /= len;
+    const reach = d.r + ball.r + 1;
+    ball.x = d.x + gx * reach; ball.y = d.y + gy * reach;
+  };
   let goal = null;
   let ticks = 0;
   for (let t = 1; t <= maxTicks; t++) {
@@ -161,6 +178,9 @@ function simulate(pos, userId, disc, vx, vy, { maxTicks = MAX_TICKS, frames: kee
             const d = a.ball ? c : a;
             if (touches[touches.length - 1] !== d) touches.push(d);
             hit(t, 'ball', speed, contact(a, c));
+            // Premier palet touché après le tireur : un coéquipier → passe contrôlée.
+            if (control && !controlled && touches[0] === shooter && d !== shooter && d.owner === userId
+              && touches.filter(x => x !== shooter).length === 1) trap(d);
           } else hit(t, 'disc', speed, contact(a, c));
         }
       }
@@ -187,7 +207,7 @@ function simulate(pos, userId, disc, vx, vy, { maxTicks = MAX_TICKS, frames: kee
     const next = touches.find(d => d !== shooter);
     if (next && next.owner === userId) pass = { to: next.i };
   }
-  const out = { discs: {}, ball: [r2(ball.x), r2(ball.y)], frames, goal, ticks, pass, hits };
+  const out = { discs: {}, ball: [r2(ball.x), r2(ball.y)], frames, goal, ticks, pass, hits, controlled: !!controlled };
   for (const u of pos.players) out.discs[u] = bodies.filter(b => b.owner === u).map(b => [r2(b.x), r2(b.y)]);
   return out;
 }

@@ -217,3 +217,41 @@ test('pas de passe si un adversaire touche le ballon en premier', () => {
   assert.ok(!out.events.some(e => e.type === 'pass'));
   assert.equal(out.state.turn, B);
 });
+
+test('belle passe contrôlée : le ballon reste collé au receveur, côté but adverse', () => {
+  const { s, now } = passSetup();
+  const out = engine.apply(s, A, { type: 'shoot', disc: 4, dx: 0.5, dy: 0 }, { now, config: CONFIG });
+  assert.ok(out.events.some(e => e.type === 'pass'));
+  const [rx, ry] = out.state.discs[A][3];
+  const [bx, by] = out.state.ball;
+  const d = Math.hypot(bx - rx, by - ry);
+  assert.ok(d <= FIELD.DISC_R + FIELD.BALL_R + 3, `ballon collé au receveur (distance ${d.toFixed(1)})`);
+  assert.ok(bx > rx, 'ballon devant le receveur, vers le but adverse (A attaque à droite)');
+  assert.deepEqual(out.state.passReceiver, { userId: A, disc: 3 });
+  // Sans contrôle (limite de passes atteinte), le ballon rebondit comme avant.
+  const loose = simulate(s, A, 4, 0.5 * 15, 0, { frames: false });
+  assert.ok(Math.hypot(loose.ball[0] - loose.discs[A][3][0], loose.ball[1] - loose.discs[A][3][1]) > d);
+});
+
+test('après une belle passe, le receveur se replace autour du ballon puis tire', () => {
+  const { s, now } = passSetup();
+  const out = engine.apply(s, A, { type: 'shoot', disc: 4, dx: 0.5, dy: 0 }, { now, config: CONFIG });
+  const st = out.state;
+  const t = st.turnOpensAt;
+  const [bx, by] = st.ball;
+  const { PLACE_MIN, PLACE_MAX } = engine._internals;
+  const spot = [bx - PLACE_MIN - 4, by];
+  // Seul le receveur, seulement autour du ballon, seulement à son tour.
+  assert.throws(() => engine.apply(st, A, { type: 'place', disc: 1, x: spot[0], y: spot[1] }, { now: t, config: CONFIG }), { code: 'BAD_DISC' });
+  assert.throws(() => engine.apply(st, A, { type: 'place', disc: 3, x: bx - PLACE_MAX - 30, y: by }, { now: t, config: CONFIG }), { code: 'BAD_PLACE' });
+  assert.throws(() => engine.apply(st, B, { type: 'place', disc: 3, x: spot[0], y: spot[1] }, { now: t, config: CONFIG }), { code: 'NOT_YOUR_TURN' });
+  assert.throws(() => engine.apply(st, A, { type: 'place', disc: 3, x: spot[0], y: spot[1] }, { now: t - 1, config: CONFIG }), { code: 'NOT_OPEN' });
+  const placed = engine.apply(st, A, { type: 'place', disc: 3, x: spot[0], y: spot[1] }, { now: t, config: CONFIG });
+  assert.deepEqual(placed.state.discs[A][3], spot);
+  assert.equal(placed.state.turn, A, 'toujours à lui de tirer');
+  assert.equal(placed.events[0].type, 'placed');
+  // Le tir suivant met fin au replacement.
+  const shot = engine.apply(placed.state, A, { type: 'shoot', disc: 3, dx: 0.8, dy: 0 }, { now: t, config: CONFIG });
+  assert.equal(shot.state.passReceiver, null);
+  assert.throws(() => engine.apply({ ...shot.state, turn: A }, A, { type: 'place', disc: 3, x: 300, y: 300 }, { now: shot.state.turnOpensAt, config: CONFIG }), { code: 'NO_PLACE' });
+});

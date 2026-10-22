@@ -27,8 +27,9 @@ test('la copie navigateur donne les mêmes trajectoires que le serveur', async (
     const v2 = sim.shotVelocity(dx, dy);
     assert.deepEqual(v1, v2);
     if (!v1) continue;
-    const server = physics.simulate(pos, u, disc, v1.vx, v1.vy);
-    const client = sim.simulate(pos, u, disc, v2.vx, v2.vy, { frameEvery: 1 });
+    const control = k % 2 === 0;   // passe contrôlée ou non : mêmes résultats des deux côtés
+    const server = physics.simulate(pos, u, disc, v1.vx, v1.vy, { control });
+    const client = sim.simulate(pos, u, disc, v2.vx, v2.vy, { frameEvery: 1, control });
     assert.deepEqual(client.discs, server.discs);
     assert.deepEqual(client.ball, server.ball);
     assert.equal(client.goal, server.goal);
