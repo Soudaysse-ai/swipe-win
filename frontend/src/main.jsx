@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { keepFresh } from './lib/freshness';
 import './styles/app.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -13,3 +14,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 }
+if (import.meta.env.PROD) keepFresh();

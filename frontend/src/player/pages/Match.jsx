@@ -15,6 +15,7 @@ import CoinBadge from '../../components/CoinBadge';
 import { Sheet, Spinner, Countdown, Confetti } from '../../components/ui';
 import { gameName, placeLabel, formatDuration } from '../../lib/format';
 import { levelLabel } from '../../components/BotPlay';
+import { useSoundEnabled } from '../../lib/sound';
 
 const GAMES = {
   connect: lazy(() => import('../../games/connect/ConnectGame')),
@@ -27,6 +28,8 @@ const GAMES = {
 // options) ; les autres partagent le bandeau de la plateforme et la « scène » bleue.
 const IMMERSIVE = new Set(['foot', 'connect', 'ludo', 'cards']);
 const OWN_HUD = new Set(['foot']);
+// Jeux qui ont des sons : bouton haut-parleur dans le bandeau (sons coupés par défaut).
+const SOUND_GAMES = new Set(['cards']);
 
 // Abonnement aux événements de jeu (animations) pour un match donné.
 export function useGameEvents(matchId, handler) {
@@ -168,6 +171,7 @@ export default function Match() {
   const [offline, setOffline] = useState({}); // userId -> until
   const [chatOpen, setChatOpen] = useState(false);
   const [resignOpen, setResignOpen] = useState(false);
+  const [soundOn, setSoundOn] = useSoundEnabled();
   const pending = useRef(false);
 
   const sync = useCallback(async () => {
@@ -255,7 +259,10 @@ export default function Match() {
             <b>{gameName(snap.gameId)}</b>
             {snap.training && <span className="hud-chip"><Icon name="bot" size={13} /> Entraînement</span>}
           </div>
-          <span className="hud-btn ghost" aria-hidden />
+          {SOUND_GAMES.has(snap.gameId)
+            ? <button type="button" className={`hud-btn${soundOn ? ' on' : ''}`} onClick={() => setSoundOn(!soundOn)} aria-pressed={soundOn}
+                aria-label={soundOn ? 'Couper les sons' : 'Activer les sons'}><Icon name={soundOn ? 'volume' : 'volumeOff'} size={20} /></button>
+            : <span className="hud-btn ghost" aria-hidden />}
         </div>
       )}
       {!immersive && <div className="row between">

@@ -2,7 +2,9 @@
 // - Fichiers /assets/* (nom avec empreinte) : cache d'abord.
 // - Navigation : réseau d'abord, page en cache si hors ligne.
 // - API et WebSocket : jamais mis en cache (les données de jeu viennent toujours du serveur).
-const CACHE = 'defi-yas-v1';
+// v2 : vide les caches v1, qui pouvaient contenir une page HTML à la place d'un
+// fichier de jeu disparu après une mise en ligne.
+const CACHE = 'defi-yas-v2';
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/', '/manifest.webmanifest', '/icon-192.png'])).then(() => self.skipWaiting()));
@@ -19,7 +21,8 @@ self.addEventListener('fetch', (e) => {
   if (url.pathname.startsWith('/assets/')) {
     e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then((res) => {
       const copy = res.clone();
-      if (res.ok) caches.open(CACHE).then(c => c.put(e.request, copy));
+      const html = (res.headers.get('content-type') || '').includes('text/html');
+      if (res.ok && !html) caches.open(CACHE).then(c => c.put(e.request, copy));
       return res;
     })));
     return;
