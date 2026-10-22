@@ -11,7 +11,10 @@
 //  - +2, +4, Passe, Inverse et Joker : halo dans la couleur, symbole qui jaillit ;
 //  - flèches du sens du jeu autour de la défausse, dans la couleur de la carte
 //    réellement posée (pas celle d'une carte encore en vol) ;
-//  - journal des dernières actions sous la table ; la main se resserre.
+//  - journal des dernières actions sous la table ;
+//  - ta main en éventail (arc), déplacée par transform (fluide sur téléphone) ; dès
+//    que tu joues, elle se calme sans attendre le serveur (plus de cartes qui restent
+//    levées puis retombent pendant l'aller-retour réseau).
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Sheet } from '../../components/ui';
 import { useGameEvents } from '../../player/pages/Match';
@@ -91,6 +94,9 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   const name = (u) => byId[u]?.username || '';
   const playing = v.status === 'playing';
   const myTurn = playing && v.turn === me;
+  // Commande envoyée, en attente du nouvel état : la main ne propose plus rien.
+  const [sentAt, setSentAt] = useState(null);
+  const busy = sentAt != null && sentAt === snapshot.version;
   const playable = new Set(v.playable);
   const others = v.players.filter(u => u !== me);
   const myCount = v.hand.length;
@@ -177,14 +183,18 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     const to = pileTarget(card);
     let key = null;
     if (from && to && !reducedMotion()) {
+      from.rot = Number(el?.dataset.rot) || 0;
+      from.w = cardW;
       pendingTop.current = card.id;
       setLeaving(s => new Set(s).add(card.id));
       const order = ++pileOrder.current;
       sfx.cardFlick();
-      key = fly({ card, from: { ...from, rot: 0 }, to, duration: 380 }, () => land(card, color, order));
+      key = fly({ card, from, to, duration: 380 }, () => land(card, color, order));
     }
+    setSentAt(snapshot.version);
     const ok = await sendAction({ type: 'play', cardId: card.id, ...(color ? { color } : {}), declareLastCard: declare && myCount === 2 });
     if (ok) { setDeclare(false); return; }
+    setSentAt(null);
     // Refusé : la carte reprend sa place, la défausse revient à l'état officiel.
     if (key) dropFlight(key);
     if (pendingTop.current === card.id) pendingTop.current = null;
@@ -194,7 +204,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   }
 
   async function play(card) {
-    if (!myTurn || !playable.has(card.id)) return;
+    if (!myTurn || busy || !playable.has(card.id)) return;
     if (card.kind === 'wild' || card.kind === 'wild4') { setWildCard(card); return; }
     await playCard(card);
   }
@@ -250,10 +260,12 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     if (added.length && from && !reducedMotion()) {
       setIncoming(s => new Set([...s, ...added.map(c => c.id)]));
       added.forEach((c, i) => {
-        const to = rectIn(handEls.current.get(c.id), root);
+        const el = handEls.current.get(c.id);
+        const to = rectIn(el, root);
         const done = () => setIncoming(s => { const n = new Set(s); n.delete(c.id); return n; });
         if (!to) { done(); return; }
-        fly({ card: c, flip: true, from: { ...from, w: 64, rot: 0 }, to: { ...to, rot: 0 }, delay: wait + i * STAGGER, duration: 480 }, done);
+        // Arrivée exactement dans l'angle de sa place dans l'éventail.
+        fly({ card: c, flip: true, from: { ...from, w: 64, rot: 0 }, to: { ...to, w: cardW, rot: Number(el.dataset.rot) || 0 }, delay: wait + i * STAGGER, duration: 480 }, done);
       });
     }
     for (const u of others) {
@@ -330,10 +342,17 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   const sortedHand = [...v.hand].filter(c => !leaving.has(c.id))
     .sort((a, b) => (order[a.color] ?? 9) - (order[b.color] ?? 9) || (a.value ?? 20) - (b.value ?? 20) || a.kind.localeCompare(b.kind));
 
-  // Éventail de la main : les cartes se chevauchent juste ce qu'il faut pour tenir.
-  const cardW = handW < 420 ? 66 : 80;
+  // Éventail de la main : arc léger, cartes qui se chevauchent juste ce qu'il faut.
+  const cardW = handW < 420 ? 76 : 88;
   const n = sortedHand.length;
-  const step = n > 1 ? Math.min(cardW * 0.72, (handW - cardW - 8) / (n - 1)) : 0;
+  const mid = (n - 1) / 2;
+  const spread = n > 1 ? Math.min(4.5, 30 / (n - 1)) : 0;     // degrés entre deux cartes
+  // Les cartes des bords, inclinées, débordent de leur place : on en tient compte.
+  const overhang = cardW * 1.5 * Math.sin((mid * spread * Math.PI) / 180);
+  const step = n > 1 ? Math.max(8, Math.min(cardW * 0.66, (handW - cardW - 2 * overhang - 14) / (n - 1))) : 0;
+  const drop = (i) => (mid ? ((i - mid) / mid) ** 2 * 12 : 0); // les bords descendent un peu
+  const LIFT = 20;
+  const handReady = myTurn && !busy;
 
   // Ce qui vient de se passer (journal), puis ce qu'on attend.
   const lp = v.lastPlay;
@@ -381,9 +400,9 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
             <DirectionRing color={activeColor} ccw={v.direction !== 1} spin={spin} />
             {burst && <Burst key={`glow-${burst.id}`} layer="glow" card={burst.card} color={burst.color} />}
             {shown.under && (
-              <div className="discard-card under" style={{ transform: `rotate(${tilt(shown.under.id)}deg)` }}><CardFace card={shown.under} width={PILE_W} /></div>
+              <div className="discard-card under" data-card={shown.under.id} style={{ transform: `rotate(${tilt(shown.under.id)}deg)` }}><CardFace card={shown.under} width={PILE_W} /></div>
             )}
-            <div key={top.id} className="discard-card" style={{ transform: `rotate(${tilt(top.id)}deg)` }}><CardFace card={top} width={PILE_W} /></div>
+            <div key={top.id} className="discard-card" data-card={top.id} style={{ transform: `rotate(${tilt(top.id)}deg)` }}><CardFace card={top} width={PILE_W} /></div>
             {burst && <Burst key={`burst-${burst.id}`} layer="front" card={burst.card} color={burst.color} />}
           </div>
           {wildTop && <span className="active-color">{COLOR_NAME[shownColor]}</span>}
@@ -414,13 +433,14 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
       ) : null}
 
       <div className="cards-hand" ref={handRef} aria-label="Ma main">
-        <div className="hand-row" style={{ width: cardW + step * Math.max(0, n - 1), height: cardW * 1.5 + 4 }}>
+        <div className="hand-row" style={{ width: cardW + step * Math.max(0, n - 1), height: cardW * 1.5 + 16 }}>
           {sortedHand.map((c, i) => {
-            const ok = myTurn && playable.has(c.id);
+            const ok = handReady && playable.has(c.id);
             return (
-              <button key={c.id} type="button" ref={(el) => { if (el) handEls.current.set(c.id, el); else handEls.current.delete(c.id); }}
+              <button key={c.id} type="button" data-card={c.id} data-rot={(i - mid) * spread} ref={(el) => { if (el) handEls.current.set(c.id, el); else handEls.current.delete(c.id); }}
                 className={`hand-card${ok ? ' playable' : ''}${incoming.has(c.id) ? ' incoming' : ''}`}
-                style={{ left: i * step, zIndex: i }} onClick={() => play(c)} disabled={!myTurn}
+                style={{ transform: `translate(${i * step}px, ${drop(i) - (ok ? LIFT : 0)}px) rotate(${(i - mid) * spread}deg)`, zIndex: i }}
+                onClick={() => play(c)} disabled={!handReady}
                 aria-label={`${cardName(c)}${ok ? ' (jouable)' : ''}`}>
                 <CardFace card={c} width={cardW} />
               </button>

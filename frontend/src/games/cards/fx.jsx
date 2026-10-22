@@ -55,7 +55,7 @@ export function Flight({ f, onDone }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const w = f.to.w;
   return (
-    <div ref={ref} className={`card-flight${f.flip ? ' flip' : ''}`}
+    <div ref={ref} className={`card-flight${f.flip ? ' flip' : ''}`} data-card={f.card?.id}
       style={{ left: f.to.x - w / 2, top: f.to.y - w * 0.75, width: w, height: w * 1.5 }}>
       {f.card && <span className="face"><CardFace card={f.card} width={w} /></span>}
       {(!f.card || f.flip) && <span className="back"><CardBack width={w} /></span>}
