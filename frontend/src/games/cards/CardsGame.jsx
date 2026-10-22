@@ -17,6 +17,10 @@ import { useGameEvents } from '../../player/pages/Match';
 import { TurnAvatar, Seconds } from '../common/Turn';
 import { CardFace, CardBack, COLOR, COLOR_NAME, cardName } from './CardFace';
 import { Flight, Burst, DirectionRing, isSpecial, rectIn, reducedMotion } from './fx';
+import { sfx } from '../../lib/sound';
+
+// Son de la carte qui arrive sur la défausse, selon son effet.
+const LAND_SOUND = { draw2: () => sfx.cardPlus(false), wild4: () => sfx.cardPlus(true), skip: () => sfx.cardSkip(), reverse: () => sfx.cardReverse(), wild: () => sfx.cardWild() };
 
 const TURN_RING = '#FFD100';
 const PILE_W = 96;
@@ -153,6 +157,8 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     const cur = shownRef.current.top;
     if (cur?.id === card.id) return;
     setShown({ top: card, under: cur });
+    sfx.cardLand();
+    LAND_SOUND[card.kind]?.();
     if (isSpecial(card) && !reducedMotion()) {
       const c = card.kind === 'wild' || card.kind === 'wild4' ? COLOR[color] || COLOR[v.activeColor] : COLOR[card.color];
       setBurst({ id: card.id, card, color: c });
@@ -170,6 +176,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
       pendingTop.current = card.id;
       setLeaving(s => new Set(s).add(card.id));
       const order = ++pileOrder.current;
+      sfx.cardFlick();
       key = fly({ card, from: { ...from, rot: 0 }, to, duration: 380 }, () => land(card, color, order));
     }
     const ok = await sendAction({ type: 'play', cardId: card.id, ...(color ? { color } : {}), declareLastCard: declare && myCount === 2 });
@@ -230,6 +237,9 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     const ids = v.hand.map(c => c.id);
     const added = v.hand.filter(c => !known.current.has(c.id));
     known.current = new Set(ids);
+    // Bruit de carte piochée, une fois par carte (moi ou un adversaire).
+    const drawn = added.length + others.reduce((n, u) => n + Math.max(0, Math.min(8, v.counts[u] - (prevCounts.current?.[u] ?? v.counts[u]))), 0);
+    for (let i = 0; i < drawn; i++) after(i * STAGGER, () => sfx.cardDraw());
     if (added.length && from && !reducedMotion()) {
       setIncoming(s => new Set([...s, ...added.map(c => c.id)]));
       added.forEach((c, i) => {
@@ -280,8 +290,9 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     if (e.type === 'cards_drawn' && p.count) line = <>{who(p.userId)} {mine(p.userId) ? 'pioches' : 'pioche'} {p.count} carte{p.count > 1 ? 's' : ''}{p.reason === 'draw2' ? ' (+2)' : p.reason === 'wild4' ? ' (+4)' : ''}</>;
     if (e.type === 'skipped') line = <>{mine(p.userId) ? 'Tu passes ton tour' : `${name(p.userId)} passe son tour`}</>;
     if (e.type === 'reversed') line = <>Changement de sens !</>;
-    if (e.type === 'reshuffle') line = <>La défausse est mélangée dans la pioche</>;
+    if (e.type === 'reshuffle') { line = <>La défausse est mélangée dans la pioche</>; sfx.shuffle(); }
     if (e.type === 'turn_timeout') line = <>Temps écoulé pour {obj(p.userId)}</>;
+    if (e.type === 'last_card') sfx.lastCard();
     if (e.type === 'last_card') line = <>{mine(p.userId) ? 'Tu annonces' : `${name(p.userId)} annonce`} : <b>Dernière carte !</b></>;
     if (e.type === 'challenge_result') {
       const t = p.success ? `Contestation réussie : ${mine(p.by) ? 'tu pioches' : `${name(p.by)} pioche`} 4`
@@ -294,6 +305,16 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     }
     if (line) setLog(l => [...l.slice(-2), { key: ++seq.current, line }]);
   });
+
+  // Petit signal quand la main revient ; fanfare si je gagne.
+  const wasMine = useRef(myTurn);
+  useEffect(() => {
+    if (myTurn && !wasMine.current) sfx.turn();
+    wasMine.current = myTurn;
+  }, [myTurn]);
+  useEffect(() => {
+    if (v.status !== 'playing' && v.winner === me) sfx.fanfare();
+  }, [v.status, v.winner]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const canDraw = myTurn && v.phase === 'play' && !playable.size;
   const canDeclareNow = v.vulnerable === me;

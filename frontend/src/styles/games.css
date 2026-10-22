@@ -530,3 +530,4 @@
 .stage-ludo .ludo { max-width: min(560px, calc(100vh - 330px)); max-width: min(560px, max(300px, calc(100dvh - 330px))); }
 /* Cartes blanches posées sur la scène : texte Midnight Blue */
 .match-page.stage .card, .match-page.stage .game-status { color: var(--yas-blue); }
+.hud-btn.on { background: #FFD100; color: #00377D; }

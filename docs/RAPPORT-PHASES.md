@@ -355,6 +355,13 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
 - Règles 1.3.0 (migration 013).
 - Dans tous les jeux, le pseudonyme du joueur remplace « Toi » / « Moi ».
 
+## Évolution — Yas Cards : sons
+- Sons synthétisés dans le navigateur (WebAudio, aucun fichier à télécharger) : carte lancée, carte
+  posée, carte piochée (une par carte, au rythme de l'animation), +2 / +4, passe ton tour, sens
+  inversé, joker, « Dernière carte ! », mélange de la pioche, début de mon tour, fanfare de victoire.
+- Coupés par défaut, comme pour Yas Foot : bouton haut-parleur dans le bandeau du haut ; le choix est
+  mémorisé sur l'appareil et partagé entre les jeux.
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

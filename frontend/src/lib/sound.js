@@ -1,5 +1,6 @@
-// Sons des jeux, synthétisés dans le navigateur (Web Audio) : aucun fichier à
-// télécharger. Coupés par défaut ; le joueur les active lui-même (choix mémorisé).
+// Sons des jeux (Yas Foot, Yas Cards), synthétisés dans le navigateur (Web Audio) :
+// aucun fichier à télécharger. Coupés par défaut ; le joueur les active lui-même
+// (choix mémorisé, commun à tous les jeux).
 import { useEffect, useState } from 'react';
 
 const KEY = 'dy_sound';
@@ -136,6 +137,63 @@ export const sfx = {
     const c = audio(); if (!c) return;
     tone(c, { from: 880, dur: 0.09, gain: 0.07 });
     tone(c, { from: 1320, t: 0.08, dur: 0.12, gain: 0.07 });
+  },
+  // ── Yas Cards ──
+  // Carte qui part de la main (petit « fff » de carton).
+  cardFlick() {
+    const c = audio(); if (!c) return;
+    burst(c, { dur: 0.09, gain: 0.13, freq: 2600, q: 0.9, type: 'highpass', attack: 0.01 });
+  },
+  // Carte posée sur la défausse : claquement sec.
+  cardLand() {
+    const c = audio(); if (!c) return;
+    burst(c, { dur: 0.05, gain: 0.22, freq: 1500, q: 1.1 });
+    tone(c, { type: 'triangle', from: 210, to: 120, dur: 0.07, gain: 0.12 });
+  },
+  // Carte piochée : glissé doux.
+  cardDraw() {
+    const c = audio(); if (!c) return;
+    burst(c, { dur: 0.16, gain: 0.08, freq: 1800, q: 0.6, attack: 0.04 });
+  },
+  // +2 / +4 : coup sourd puis deux notes qui montent.
+  cardPlus(big = false) {
+    const c = audio(); if (!c) return;
+    tone(c, { from: 140, to: 60, dur: 0.22, gain: 0.32 });
+    tone(c, { type: 'square', from: 523, t: 0.08, dur: 0.1, gain: 0.05 });
+    tone(c, { type: 'square', from: big ? 880 : 784, t: 0.18, dur: 0.16, gain: 0.05 });
+    if (big) tone(c, { type: 'square', from: 1175, t: 0.3, dur: 0.2, gain: 0.05 });
+  },
+  // Passe ton tour : « bzz » descendant.
+  cardSkip() {
+    const c = audio(); if (!c) return;
+    tone(c, { type: 'sawtooth', from: 330, to: 150, dur: 0.22, gain: 0.07 });
+  },
+  // Changement de sens : glissando aller-retour.
+  cardReverse() {
+    const c = audio(); if (!c) return;
+    tone(c, { type: 'triangle', from: 400, to: 900, dur: 0.16, gain: 0.1 });
+    tone(c, { type: 'triangle', from: 900, to: 400, t: 0.16, dur: 0.16, gain: 0.1 });
+  },
+  // Joker : arpège scintillant.
+  cardWild() {
+    const c = audio(); if (!c) return;
+    [784, 988, 1175, 1568].forEach((f, i) => tone(c, { type: 'triangle', from: f, t: i * 0.06, dur: 0.16, gain: 0.08 }));
+  },
+  // « Dernière carte ! » : deux bips vifs.
+  lastCard() {
+    const c = audio(); if (!c) return;
+    tone(c, { type: 'square', from: 988, dur: 0.08, gain: 0.07 });
+    tone(c, { type: 'square', from: 1319, t: 0.1, dur: 0.14, gain: 0.07 });
+  },
+  // Défausse mélangée dans la pioche.
+  shuffle() {
+    const c = audio(); if (!c) return;
+    for (let i = 0; i < 6; i++) burst(c, { t: i * 0.05, dur: 0.04, gain: 0.08, freq: 2200 + i * 150, q: 1 });
+  },
+  // Victoire : petite fanfare.
+  fanfare() {
+    const c = audio(); if (!c) return;
+    [523, 659, 784, 1047].forEach((f, i) => tone(c, { type: 'triangle', from: f, t: i * 0.11, dur: i === 3 ? 0.45 : 0.14, gain: 0.11 }));
   },
   tick() {
     const c = audio(); if (!c) return;
