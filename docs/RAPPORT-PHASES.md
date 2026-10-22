@@ -338,6 +338,14 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
 - Score et état du tour flottent en haut sur un bandeau translucide de hauteur fixe (le terrain ne
   bouge plus quand le texte change) ; barre de chat collée en bas, toute la largeur.
 
+## Évolution — tous les jeux en plein écran
+- Yas Connect, Yas Ludo et Yas Cards se jouent aussi en plein écran, sur une « scène » aux couleurs
+  de la plateforme (fond Midnight Blue de l'accueil, accents jaunes, cartes blanches) : pas de rupture
+  entre la plateforme et le jeu.
+- Bandeau translucide en haut (abandon, nom du jeu, pastille Entraînement), comme Yas Foot ; barre de
+  chat bleu nuit collée en bas ; le jeu occupe toute la place au milieu (grille de Connect cerclée de
+  bleu clair pour ressortir sur le fond).
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

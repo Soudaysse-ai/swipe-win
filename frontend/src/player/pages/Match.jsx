@@ -23,7 +23,10 @@ const GAMES = {
   foot: lazy(() => import('../../games/foot/FootGame')),
 };
 // Jeux affichés en plein écran (ils dessinent eux-mêmes boutons d'abandon et d'options).
-const IMMERSIVE = new Set(['foot']);
+// Tous les jeux se jouent en plein écran. Yas Foot a son propre bandeau (score,
+// options) ; les autres partagent le bandeau de la plateforme et la « scène » bleue.
+const IMMERSIVE = new Set(['foot', 'connect', 'ludo', 'cards']);
+const OWN_HUD = new Set(['foot']);
 
 // Abonnement aux événements de jeu (animations) pour un match donné.
 export function useGameEvents(matchId, handler) {
@@ -235,11 +238,26 @@ export default function Match() {
   const Game = GAMES[snap.gameId];
   const others = snap.players.filter(p => p.userId !== user?.id);
   const bots = snap.players.filter(p => p.isBot);
-  // Jeux plein écran : leur propre barre (abandon, options) remplace l'en-tête.
+  // Plein écran : le bandeau du jeu (ou celui de la plateforme) remplace l'en-tête.
   const immersive = IMMERSIVE.has(snap.gameId) && snap.status !== 'READY' && !!snap.view;
+  const stage = immersive && !OWN_HUD.has(snap.gameId);
+  const game = Game && snap.view && (
+    <Game snapshot={snap} me={user?.id} sendAction={sendAction} matchId={matchId}
+      onResign={() => setResignOpen(true)} onChat={snap.training ? null : () => setChatOpen(true)} />
+  );
 
   return (
-    <div className={`stack match-page${immersive ? ' immersive' : ''}`} style={{ marginTop: -8 }}>
+    <div className={`stack match-page${immersive ? ' immersive' : ''}${stage ? ` stage stage-${snap.gameId}` : ''}`} style={{ marginTop: -8 }}>
+      {stage && (
+        <div className="game-hud">
+          <button type="button" className="hud-btn" onClick={() => setResignOpen(true)} aria-label="Abandonner"><Icon name="flag" size={20} /></button>
+          <div className="game-hud-title">
+            <b>{gameName(snap.gameId)}</b>
+            {snap.training && <span className="hud-chip"><Icon name="bot" size={13} /> Entraînement</span>}
+          </div>
+          <span className="hud-btn ghost" aria-hidden />
+        </div>
+      )}
       {!immersive && <div className="row between">
         <button className="btn sm ghost" onClick={() => setResignOpen(true)} aria-label="Abandonner"><Icon name="flag" size={18} /> Abandonner</button>
         <span className="match-title">
@@ -266,8 +284,7 @@ export default function Match() {
         </div>
       ) : (
         <Suspense fallback={<Spinner center />}>
-          <Game snapshot={snap} me={user?.id} sendAction={sendAction} matchId={matchId}
-            onResign={() => setResignOpen(true)} onChat={snap.training ? null : () => setChatOpen(true)} />
+          {stage ? <div className="game-stage">{game}</div> : game}
         </Suspense>
       )}
       {/* Barre de chat en bas de tous les jeux, comme dans Soccer Stars. */}

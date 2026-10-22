@@ -47,9 +47,9 @@ export default function ConnectGame({ snapshot, me, sendAction }) {
   };
 
   return (
-    <div className="stack">
+    <div className="stack connect">
       <div className="row" style={{ gap: 8 }}>{v.players.map(u => <div key={u} style={{ flex: 1, display: 'flex' }}>{playerBox(u)}</div>)}</div>
-      <div className="center bold" aria-live="polite">
+      <div className="center bold connect-status" aria-live="polite">
         {v.status === 'finished' ? (v.winner ? `${v.winner === me ? 'Tu as' : `${byId[v.winner]?.username} a`} aligné 4 jetons !` : 'Grille pleine : match nul')
           : myTurn ? 'À toi de jouer !' : `Au tour de ${byId[v.turn]?.username}…`}
       </div>
@@ -68,7 +68,7 @@ export default function ConnectGame({ snapshot, me, sendAction }) {
                 <stop offset=".55" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".2" />
               </linearGradient>
             </defs>
-            <rect width={VB_W} height={VB_H} rx="48" fill="#00377D" />
+            <rect x="3" y="3" width={VB_W - 6} height={VB_H - 6} rx="46" fill="#0A4796" stroke="#5F99D2" strokeWidth="6" />
             {hover !== null && myTurn && v.board[ROWS - 1][hover] === null && (
               <rect x={PAD + hover * CELL + 4} y={PAD - 6} width={CELL - 8} height={ROWS * CELL + 12} rx="40" fill="#fff" fillOpacity=".12" />
             )}
@@ -100,7 +100,7 @@ export default function ConnectGame({ snapshot, me, sendAction }) {
           })}
         </div>
       </div>
-      <p className="tiny muted center">{v.moveCount} coup(s) joué(s)</p>
+      <p className="tiny muted center connect-count">{v.moveCount} coup(s) joué(s)</p>
     </div>
   );
 }
