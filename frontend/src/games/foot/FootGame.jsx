@@ -507,14 +507,14 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
 
   let status;
   if (!playing) status = <b>Coup de sifflet final</b>;
-  else if (setup) status = <><b>Avant-match</b> : choisis ton équipe, ta formation et ton stade</>;
+  else if (setup) status = <><b>Avant-match</b> : équipe, formation, stade</>;
   else if (vsUntil) status = <b>Coup d'envoi !</b>;
   else if (v.phase === 'ending') status = <b>Coup de sifflet final !</b>;
   else if (goalFlash) status = <b>{goalFlash.own ? 'Contre son camp !' : `But de ${name(goalFlash.scorer)} !`}</b>;
   else if (passFlash) status = <><b>Belle passe !</b> {passFlash.userId === me ? 'Tu rejoues' : `${name(passFlash.userId)} rejoue`}{passesLeft > 0 ? '' : ' (dernière passe)'}</>;
   else if (animating) status = <>Tir en cours…</>;
-  else if (aim) status = <>Puissance <b>{power} %</b> · relâche pour tirer</>;
-  else if (canShoot) status = <><b>{v.passes ? 'Passe réussie, rejoue !' : 'À toi !'}</b> Tire un palet vers l'arrière <Seconds deadline={v.turnDeadline} /></>;
+  else if (aim) status = <>Puissance <b>{power} %</b> · relâche</>;
+  else if (canShoot) status = <><b>{v.passes ? 'Belle passe, rejoue !' : 'À toi !'}</b> Tire vers l'arrière <Seconds deadline={v.turnDeadline} /></>;
   else if (myTurn) status = <><b>À toi</b> dans un instant…</>;
   else status = <><b>{name(v.turn)}</b> {v.passes ? 'rejoue après une passe…' : 'prépare son tir…'}</>;
 
@@ -532,7 +532,9 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   );
 
   return (
-    <div className={`foot${portrait ? ' portrait' : ''}`}>
+    <div className={`foot${portrait ? ' portrait' : ''}`} style={{ '--stadium': theme.bg }}>
+      {/* Score et état du tour flottent au-dessus de la pelouse, comme dans Soccer Stars. */}
+      <div className="foot-hud">
       <div className="foot-top">
         {onResign && <button type="button" className="foot-icon" onClick={onResign} aria-label="Abandonner"><Icon name="flag" size={20} /></button>}
         <div className="foot-board">
@@ -544,6 +546,11 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
           {scoreBox(opp, 'right')}
         </div>
         <button type="button" className="foot-icon" onClick={() => setMenu(true)} aria-label="Options : son, stade, chat"><Icon name="settings" size={20} /></button>
+      </div>
+      <p className="foot-status" aria-live="polite">
+        {snapshot.training && <span className="foot-training"><Icon name="bot" size={13} /> Entraînement</span>}
+        <span className="dot" style={{ background: v.turn ? color(v.turn) : '#3BA55C' }} /><span>{status}</span>
+      </p>
       </div>
 
       <div className="foot-field-wrap">
@@ -620,11 +627,6 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
           </div>
         )}
       </div>
-
-      <p className="game-status foot-status" aria-live="polite">
-        {snapshot.training && <span className="chip sky foot-training"><Icon name="bot" size={14} /> Entraînement</span>}
-        <span className="dot" style={{ background: v.turn ? color(v.turn) : '#3BA55C' }} /><span>{status}</span>
-      </p>
 
       <Sheet open={menu} onClose={() => setMenu(false)} label="Options du match">
         <div className="stack lg">

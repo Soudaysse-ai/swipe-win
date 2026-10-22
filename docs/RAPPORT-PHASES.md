@@ -332,6 +332,12 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   l'icône de chat de l'en-tête. Contre le bot, elle indique que le chat s'ouvre contre un vrai joueur.
 - Plateaux légèrement réduits pour que la barre ne les recouvre jamais (vérifié par un test E2E par jeu).
 
+## Évolution — Yas Foot en plein écran
+- Comme Soccer Stars, la pelouse et les tribunes occupent tout l'écran : l'herbe est dessinée bien
+  au-delà du terrain et remplit les bords, quel que soit le format (téléphone, tablette, ordinateur).
+- Score et état du tour flottent en haut sur un bandeau translucide de hauteur fixe (le terrain ne
+  bouge plus quand le texte change) ; barre de chat collée en bas, toute la largeur.
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

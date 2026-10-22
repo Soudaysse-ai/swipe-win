@@ -159,8 +159,9 @@ export function Pitch({ F, theme }) {
           <stop offset="0" stopColor="#F2F4F7" /><stop offset=".55" stopColor="#D3D8DF" /><stop offset="1" stopColor="#B4BCC6" />
         </linearGradient>
       </defs>
-      <rect x={-D - E} y={-M} width={W + 2 * (D + E)} height={H + 2 * M} fill={theme.bg} />
-      <rect x={-D - E} y={-M} width={W + 2 * (D + E)} height={H + 2 * M} fill={`url(#turf-${id})`} />
+      {/* Herbe tout autour, bien au-delà du cadre : elle remplit l'écran quel que soit son format. */}
+      <rect x={-3000} y={-3000} width={W + 6000} height={H + 6000} fill={theme.bg} />
+      <rect x={-3000} y={-3000} width={W + 6000} height={H + 6000} fill={`url(#turf-${id})`} />
       {/* Tribunes le long des deux touches */}
       <Stand x={-8} y={-M + 3} w={W + 16} h={M - T - 9} colors={theme.crowd} seed={1} theme={theme} />
       <Stand x={-8} y={H + T + 6} w={W + 16} h={M - T - 9} colors={theme.crowd} seed={2} theme={theme} flip />
