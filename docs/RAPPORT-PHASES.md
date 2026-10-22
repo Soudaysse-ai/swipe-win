@@ -362,6 +362,16 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
 - Coupés par défaut, comme pour Yas Foot : bouton haut-parleur dans le bandeau du haut ; le choix est
   mémorisé sur l'appareil et partagé entre les jeux.
 
+## Correctif — mises à jour qui n'arrivaient pas sur les téléphones
+- Un site resté ouvert (onglet ou application installée) gardait l'ancien code. Il vérifie maintenant
+  la version en ligne au retour sur le site et toutes les 5 minutes, et se recharge tout seul (jamais
+  pendant une partie : au moment où le joueur la quitte).
+- Vercel renvoyait la page d'accueil à la place d'un fichier de jeu disparu, et le service worker
+  pouvait la garder en cache : un jeu restait alors périmé ou cassé sur l'appareil. Les fichiers
+  absents répondent désormais 404, le service worker ne met plus de page HTML en cache pour un
+  fichier de jeu et vide son ancien cache (v2) ; un fichier de jeu introuvable déclenche un
+  rechargement unique.
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche
