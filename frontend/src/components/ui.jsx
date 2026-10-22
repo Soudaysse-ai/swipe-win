@@ -84,14 +84,15 @@ export function LeagueBadge({ league }) {
 
 // Barre de temps calée sur l'horloge du serveur.
 export function TimerBar({ deadline, total, label = true }) {
-  const [now, setNow] = useState(serverNow());
+  const [, setTick] = useState(0);
   useEffect(() => {
     if (!deadline) return undefined;
-    const t = setInterval(() => setNow(serverNow()), 200);
+    const t = setInterval(() => setTick(n => n + 1), 200);
     return () => clearInterval(t);
   }, [deadline]);
   if (!deadline) return null;
-  const left = Math.max(0, deadline - now);
+  // Heure lue à chaque rendu (une heure vieille de 200 ms affichait « 31 s » sur un tour de 30 s).
+  const left = Math.max(0, deadline - serverNow());
   const ratio = Math.min(1, left / total);
   return (
     <div className="row" style={{ gap: 8 }}>

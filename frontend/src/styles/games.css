@@ -56,12 +56,18 @@
 .seat-avatar.timing { background: conic-gradient(var(--pc) calc(var(--p) * 1turn), var(--yas-blue-15) 0); }
 .seat-avatar.timing.low { background: conic-gradient(var(--yas-fuscia) calc(var(--p) * 1turn), var(--yas-blue-15) 0); }
 .seat-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.seat-info b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Pseudo sur deux lignes au besoin (le dé, à côté, ne le coupe plus en « Audit 8… »). */
+.seat-info b {
+  font-size: 14px; line-height: 1.15; overflow: hidden; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
 .seat-meta { font-size: 12px; color: var(--yas-blue-70); }
 .seat-meta .chip { height: 22px; }
 .status-seconds { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 10px; background: var(--yas-sky-10); font-weight: 700; font-size: 14px; }
 .status-seconds.low { background: var(--yas-fuscia-30, #FFD0CF); }
 
+/* Statut sur une ou deux lignes : hauteur fixe, le plateau ne saute plus à chaque tour. */
+.ludo .game-status { min-height: 66px; }
 .ludo-board-wrap { position: relative; border-radius: 18px; overflow: hidden; box-shadow: var(--yas-shadow-card); background: #fff; }
 .ludo-board { display: block; width: 100%; height: auto; touch-action: manipulation; }
 .ludo-token { transition: transform .14s ease-in-out; }
@@ -131,7 +137,6 @@
 }
 .discard-slot { position: relative; z-index: 1; }
 .discard-card { position: absolute; left: 0; top: 0; }
-.discard-card.under { filter: brightness(.8); }
 
 /* Sens du jeu : flèches autour de la défausse, dans la couleur active, qui tournent */
 .dir-ring {
@@ -157,6 +162,7 @@
 
 /* Carte spéciale posée : halo, onde, symbole qui jaillit, étincelles */
 .card-burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 3; pointer-events: none; }
+.card-burst.glow { z-index: 0; }   /* sous la carte : elle garde sa couleur */
 .burst-halo {
   position: absolute; left: -120px; top: -120px; width: 240px; height: 240px; border-radius: 50%;
   background: radial-gradient(circle, var(--c) 0%, rgba(0, 0, 0, 0) 66%); animation: burst-halo 1.15s ease-out forwards;
@@ -218,11 +224,15 @@
 .hand-row { position: relative; margin: 0 auto; }
 .hand-card {
   position: absolute; bottom: 0; padding: 0; border: 0; background: none; border-radius: 10px; cursor: default;
-  transition: left .3s cubic-bezier(.2, .8, .3, 1), transform .18s ease, filter .18s ease;
+  transition: left .3s cubic-bezier(.2, .8, .3, 1), transform .18s ease, box-shadow .18s ease;
 }
-.hand-card.playable { transform: translateY(-16px); cursor: pointer; }
+/* Cartes jouables : soulevées et cerclées de jaune. Les autres gardent leurs vraies
+   couleurs (pas d'assombrissement : un jaune terni passait pour un vert). */
+.hand-card.playable {
+  transform: translateY(-16px); cursor: pointer; border-radius: 11% / 7.33%;
+  box-shadow: 0 0 0 2.5px #FFD100, 0 8px 18px rgba(255, 209, 0, .35);
+}
 .hand-card.playable:hover { transform: translateY(-24px); }
-.hand-card.dim { filter: brightness(.62) saturate(.8); }
 .hand-card:disabled { cursor: default; }
 .hand-card.incoming { visibility: hidden; }
 .cards-me { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: rgba(255, 255, 255, .85); }

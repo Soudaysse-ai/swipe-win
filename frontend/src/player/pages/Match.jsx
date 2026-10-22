@@ -129,7 +129,7 @@ function Results({ ended, me, onRematch, onBotRematch, gameId }) {
                 <span className="rank-num">{p.place}</span>
                 <Avatar id={p.avatar} size={40} />
                 <span className="tx-text grow">
-                  <b>{p.userId === me ? 'Toi' : p.username}{p.isBot && <span className="chip sky bot-chip">Bot</span>}</b>
+                  <b>{p.username}{p.isBot && <span className="chip sky bot-chip">Bot</span>}</b>
                   <span>{p.outcome === 'win' ? 'Vainqueur' : p.outcome === 'draw' ? 'Nul' : p.outcome === 'loss' ? 'Défaite' : ''}
                     {p.stats?.goals != null ? ` · ${p.stats.goals} but(s)` : ''}{p.stats?.cardsLeft != null ? ` · ${p.stats.cardsLeft} carte(s)` : ''}</span>
                 </span>

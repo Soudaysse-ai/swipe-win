@@ -6,13 +6,15 @@ import { serverNow } from '../../lib/socket';
 
 // Temps restant (millisecondes) avant l'échéance, mis à jour plusieurs fois par seconde.
 export function useTimeLeft(deadline) {
-  const [now, setNow] = useState(serverNow());
+  const [, setTick] = useState(0);
   useEffect(() => {
     if (!deadline) return undefined;
-    const t = setInterval(() => setNow(serverNow()), 200);
+    const t = setInterval(() => setTick(n => n + 1), 200);
     return () => clearInterval(t);
   }, [deadline]);
-  return deadline ? Math.max(0, deadline - now) : null;
+  // Heure lue à chaque rendu : au début d'un tour, pas d'heure périmée (le chrono
+  // affichait un instant plus que la durée du tour).
+  return deadline ? Math.max(0, deadline - serverNow()) : null;
 }
 
 export function TurnAvatar({ player, color, active, deadline, total, size = 42 }) {

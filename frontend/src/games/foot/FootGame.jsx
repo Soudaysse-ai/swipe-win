@@ -266,6 +266,9 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   // l'arrivée pendant « BUT ! ») : l'animation, elle, déplace directement le SVG.
   const [held, setHeld] = useState(null);
   const [goalFlash, setGoalFlash] = useState(null);
+  // Score d'avant le tir, affiché pendant qu'il se joue : le nouveau score (et le coup
+  // de sifflet final) n'apparaissent qu'avec « BUT ! », pas quand le ballon part.
+  const [scoreHold, setScoreHold] = useState(null);
   const [passFlash, setPassFlash] = useState(null);
   const [vsUntil, setVsUntil] = useState(() => (
     v.phase === 'play' && !v.shots[v.players[0]] && !v.shots[v.players[1]] && serverNow() < (v.turnOpensAt || 0) ? v.turnOpensAt : 0));
@@ -353,6 +356,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
 
   function finish(a) {
     anim.current = null;
+    setScoreHold(null);
     const out = a.server || a.result;   // le serveur fait foi
     const last = a.frames[a.frames.length - 1];
     if (out.goal) {
@@ -375,6 +379,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
     anim.current = a;
     setAim(null);
     setHeld(a.frames[0]);
+    setScoreHold(s => s || v.score);
     sfx.kick(a.power);
     sounds(a.hits, a.frameMs);
     run(a);
@@ -388,6 +393,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
     clearSounds();
     paint(official(), null);
     setHeld(null);
+    setScoreHold(null);
   }
 
   useGameEvents(matchId, (e) => {
@@ -530,8 +536,9 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   if (!playing) status = <b>Coup de sifflet final</b>;
   else if (setup) status = <><b>Avant-match</b> : équipe, formation, stade</>;
   else if (vsUntil) status = <b>Coup d'envoi !</b>;
-  else if (v.phase === 'ending') status = <b>Coup de sifflet final !</b>;
+  else if (scoreHold) status = <>Tir en cours…</>;
   else if (goalFlash) status = <b>{goalFlash.own ? 'Contre son camp !' : `But de ${name(goalFlash.scorer)} !`}</b>;
+  else if (v.phase === 'ending') status = <b>Coup de sifflet final !</b>;
   else if (passFlash) status = <><b>Belle passe !</b> {passFlash.userId === me ? 'Tu rejoues' : `${name(passFlash.userId)} rejoue`}{passesLeft > 0 ? '' : ' (dernière passe)'}</>;
   else if (animating) status = <>Tir en cours…</>;
   else if (aim) status = <>Puissance <b>{power} %</b> · relâche</>;
@@ -550,7 +557,7 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
         {team(u) && <span className="foot-flag-mini"><FlagBadge code={team(u)} size={18} /></span>}
       </span>
       <span className="foot-name">{name(u)}</span>
-      <span className="foot-score">{v.score[u]}</span>
+      <span className="foot-score">{(scoreHold || v.score)[u]}</span>
     </div>
   );
 

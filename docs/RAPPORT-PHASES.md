@@ -372,6 +372,28 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   fichier de jeu et vide son ancien cache (v2) ; un fichier de jeu introuvable déclenche un
   rechargement unique.
 
+## Correctif — vérification complète des jeux (parties filmées image par image)
+- Yas Cards, « les cartes changent de couleur » :
+  - le halo des cartes spéciales passait par-dessus la carte (un Joker noir devenait vert une seconde) :
+    il est désormais dessous, seuls le symbole et les étincelles jaillissent au-dessus ;
+  - les cartes non jouables étaient assombries (un jaune terni passait pour un vert ou du kaki) : elles
+    gardent leurs vraies couleurs, les cartes jouables sont soulevées et cerclées de jaune ;
+  - la carte du dessous de la défausse n'est plus ternie ;
+  - l'anneau et la couleur active suivent la carte réellement posée (plus d'anneau rouge autour d'une
+    carte jaune pendant que la carte rouge vole encore) ;
+  - les cartes piochées à cause d'un +2 / +4 partent quand ce +2 / +4 est posé, plus avant ;
+  - retournement des cartes en vol (dos → face) sans backface-visibility, mal géré par certains
+    téléphones (face et dos qui clignotent).
+- Yas Foot : le score (et « Coup de sifflet final ») ne change plus quand le ballon part, mais au
+  moment du « BUT ! ».
+- Yas Ludo : le plateau ne saute plus à chaque tour (texte d'état de hauteur fixe) ; pseudo sur deux
+  lignes au lieu d'être coupé par le dé.
+- Chronomètres : plus de « 31 s » sur un tour de 30 s (heure lue à chaque affichage ; horloge du serveur
+  estimée par aller-retour, sans le biais du temps de transport des messages).
+- Écran de résultat : le pseudo remplace « Toi ».
+- Vérifié : parties contre bots des 4 jeux (mobile et ordinateur, 1 à 3 bots), aucune erreur de console ;
+  relevé image par image : anneau toujours de la couleur de la carte, aucun clignotement, plateau fixe.
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche
