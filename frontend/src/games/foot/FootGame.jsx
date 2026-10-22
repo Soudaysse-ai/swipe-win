@@ -245,7 +245,8 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   const shadow = shadowOffset(view.angle);
   const upright = -view.angle;
   const byId = Object.fromEntries(snapshot.players.map(p => [p.userId, p]));
-  const name = (u) => (u === me ? 'Toi' : byId[u]?.username);
+  // Le pseudonyme de chacun, y compris le mien (plus de « Toi »).
+  const name = (u) => byId[u]?.username || '';
   const opp = v.players.find(u => u !== me) || v.players[1];
   const meId = v.players.includes(me) ? me : v.players[0];
   const [theme, setStadium] = useStadium();
@@ -437,6 +438,9 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   const myTurn = playing && v.phase === 'play' && v.turn === me;
   const canShoot = myTurn && !animating && !vsUntil && serverNow() >= v.turnOpensAt;
   const theirTurn = playing && v.phase === 'play' && v.turn && v.turn !== me && !animating && !vsUntil;
+  // Après une belle passe : je peux replacer le receveur autour du ballon avant de tirer.
+  const receiver = canShoot && v.passReceiver?.userId === me ? v.passReceiver.disc : null;
+  const placing = receiver !== null && !aim;
 
   // Petit signal sonore quand la main revient.
   const wasMine = useRef(false);
@@ -481,6 +485,23 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
     const pass = !goal && sim.pass && (v.passes || 0) < (v.maxPasses || 2) ? sim.pass.to : null;
     return { goal, pass };
   }
+  // Touche sur la pelouse, près du ballon : le receveur s'y place (mêmes règles que le serveur).
+  const [placeNote, setPlaceNote] = useState(null);
+  function placeAt(evt) {
+    if (!placing || evt.target.closest?.('.foot-disc')) return;
+    const [x, y] = toField(evt);
+    const [bx, by] = v.ball;
+    const d = Math.hypot(x - bx, y - by);
+    const R = F.discR;
+    let why = null;
+    if (d > v.place.max) why = 'Trop loin du ballon';
+    else if (d < v.place.min) why = 'Trop près du ballon';
+    else if (x < R || x > F.W - R || y < R || y > F.H - R) why = 'Reste sur le terrain';
+    else if (v.players.some(u => v.discs[u].some(([ox, oy], i) => !(u === me && i === receiver) && Math.hypot(ox - x, oy - y) < 2 * R))) why = 'Un autre joueur est déjà là';
+    if (why) { setPlaceNote(why); later(1400, () => setPlaceNote(null)); return; }
+    setPlaceNote(null);
+    sendAction({ type: 'place', disc: receiver, x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 });
+  }
   async function up() {
     if (!aim) return;
     const a = aim;
@@ -507,14 +528,16 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
 
   let status;
   if (!playing) status = <b>Coup de sifflet final</b>;
-  else if (setup) status = <><b>Avant-match</b> : choisis ton équipe, ta formation et ton stade</>;
+  else if (setup) status = <><b>Avant-match</b> : équipe, formation, stade</>;
   else if (vsUntil) status = <b>Coup d'envoi !</b>;
   else if (v.phase === 'ending') status = <b>Coup de sifflet final !</b>;
   else if (goalFlash) status = <b>{goalFlash.own ? 'Contre son camp !' : `But de ${name(goalFlash.scorer)} !`}</b>;
   else if (passFlash) status = <><b>Belle passe !</b> {passFlash.userId === me ? 'Tu rejoues' : `${name(passFlash.userId)} rejoue`}{passesLeft > 0 ? '' : ' (dernière passe)'}</>;
   else if (animating) status = <>Tir en cours…</>;
-  else if (aim) status = <>Puissance <b>{power} %</b> · relâche pour tirer</>;
-  else if (canShoot) status = <><b>{v.passes ? 'Passe réussie, rejoue !' : 'À toi !'}</b> Tire un palet vers l'arrière <Seconds deadline={v.turnDeadline} /></>;
+  else if (aim) status = <>Puissance <b>{power} %</b> · relâche</>;
+  else if (placing && placeNote) status = <><b>{placeNote}</b></>;
+  else if (placing) status = <><b>Belle passe !</b> Replace-toi, puis tire</>;
+  else if (canShoot) status = <><b>{v.passes ? 'Belle passe, rejoue !' : 'À toi !'}</b> Tire vers l'arrière <Seconds deadline={v.turnDeadline} /></>;
   else if (myTurn) status = <><b>À toi</b> dans un instant…</>;
   else status = <><b>{name(v.turn)}</b> {v.passes ? 'rejoue après une passe…' : 'prépare son tir…'}</>;
 
@@ -532,7 +555,9 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
   );
 
   return (
-    <div className={`foot${portrait ? ' portrait' : ''}`}>
+    <div className={`foot${portrait ? ' portrait' : ''}`} style={{ '--stadium': theme.bg }}>
+      {/* Score et état du tour flottent au-dessus de la pelouse, comme dans Soccer Stars. */}
+      <div className="foot-hud">
       <div className="foot-top">
         {onResign && <button type="button" className="foot-icon" onClick={onResign} aria-label="Abandonner"><Icon name="flag" size={20} /></button>}
         <div className="foot-board">
@@ -545,10 +570,15 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
         </div>
         <button type="button" className="foot-icon" onClick={() => setMenu(true)} aria-label="Options : son, stade, chat"><Icon name="settings" size={20} /></button>
       </div>
+      <p className="foot-status" aria-live="polite">
+        {snapshot.training && <span className="foot-training"><Icon name="bot" size={13} /> Entraînement</span>}
+        <span className="dot" style={{ background: v.turn ? color(v.turn) : '#3BA55C' }} /><span>{status}</span>
+      </p>
+      </div>
 
       <div className="foot-field-wrap">
         <svg ref={svgRef} className="foot-field" viewBox={view.viewBox} role="img" aria-label="Terrain de Yas Foot"
-          onPointerMove={move} onPointerUp={up} onPointerCancel={() => setAim(null)}>
+          onPointerMove={move} onPointerUp={up} onPointerCancel={() => setAim(null)} onClick={placeAt}>
           <defs>
             <pattern id="foot-net" width="10" height="10" patternUnits="userSpaceOnUse">
               <path d="M0 0 L10 10 M10 0 L0 10" stroke="rgba(255,255,255,.45)" strokeWidth="1.2" />
@@ -567,6 +597,12 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
           </defs>
           <g ref={fieldRef} transform={view.transform}>
             <StaticPitch F={F} theme={theme} />
+            {placing && (
+              <g pointerEvents="none" className="place-zone">
+                <circle cx={v.ball[0]} cy={v.ball[1]} r={v.place.max} fill="rgba(255,255,255,.14)" stroke="#fff" strokeWidth="3" strokeDasharray="10 9" />
+                <circle cx={v.ball[0]} cy={v.ball[1]} r={v.place.min} fill="none" stroke="rgba(255,255,255,.5)" strokeWidth="2" strokeDasharray="4 6" />
+              </g>
+            )}
             {aim && <Aim origin={aim.origin} pull={pull} R={F.discR} />}
             {Array.from({ length: TRAIL }, (_, i) => (
               <circle key={`tr${i}`} ref={(el) => { trailRefs.current[i] = el; }} r={F.ballR * (0.8 - i * 0.1)} fill="#fff" opacity="0" pointerEvents="none" />
@@ -575,7 +611,9 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
               const owner = v.players[t];
               const mine = owner === me && t === side;
               // Anneaux lumineux sur l'équipe qui a la main (comme Soccer Stars).
-              const ring = mine && canShoot && (!aim || aim.disc === i) ? MINE : (!mine && theirTurn && owner === v.turn ? THEIRS : null);
+              const ring = mine && canShoot && (!aim || aim.disc === i)
+                ? (placing && i === receiver ? '#FFD100' : MINE)
+                : (!mine && theirTurn && owner === v.turn ? THEIRS : null);
               return (
                 <Disc key={`${t}-${i}`} ref={(el) => { bodyRefs.current[t * 5 + i] = el; }} x={x} y={y} R={F.discR}
                   team={team(owner)} neutral={t} upright={upright} shadow={shadow} ring={ring}
@@ -620,11 +658,6 @@ export default function FootGame({ snapshot, me, sendAction, matchId, onResign, 
           </div>
         )}
       </div>
-
-      <p className="game-status foot-status" aria-live="polite">
-        {snapshot.training && <span className="chip sky foot-training"><Icon name="bot" size={14} /> Entraînement</span>}
-        <span className="dot" style={{ background: v.turn ? color(v.turn) : '#3BA55C' }} /><span>{status}</span>
-      </p>
 
       <Sheet open={menu} onClose={() => setMenu(false)} label="Options du match">
         <div className="stack lg">

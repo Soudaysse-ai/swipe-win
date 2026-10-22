@@ -29,7 +29,7 @@ export const RULES = {
     'Avant le coup d\'envoi (15 s) : choisis ton équipe, ta formation et ton stade, puis « Je suis prêt ».',
     'À ton tour, pose le doigt sur un de tes palets et tire vers l\'arrière, comme une fronde : le cercle sombre grandit avec la puissance et la flèche montre la direction. Pas de guide : vise à l\'œil un coéquipier, le ballon ou le but. Relâche pour tirer.',
     'Le palet file, rebondit sur les bords et les autres palets, et pousse le ballon. Une fois tout arrêté, c\'est à l\'adversaire.',
-    'Passe : si ton tir envoie le ballon sur un de tes coéquipiers (avant qu\'un adversaire ne le touche), tu rejoues — deux passes de suite au plus.',
+    'Belle passe : si ton tir envoie le ballon sur un de tes coéquipiers (avant qu\'un adversaire ne le touche), il le contrôle : le ballon s\'arrête collé à lui, côté but adverse. Tu rejoues, et tu peux d\'abord replacer ce joueur autour du ballon (touche la zone en pointillés) pour bien tirer. Deux passes de suite au plus.',
     'But : le ballon franchit entièrement la ligne entre les poteaux. Contre son camp, le but compte pour l\'adversaire. L\'équipe qui encaisse engage.',
     'Le premier à 3 buts gagne. Sinon, à la fin des 5 minutes, le score décide (match nul possible).',
     '20 secondes pour tirer : sinon la main passe ; 3 fois de suite, c\'est forfait.',

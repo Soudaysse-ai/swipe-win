@@ -326,6 +326,35 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   s'affichent en bulle quelques secondes. Désactivée en entraînement contre le bot.
 - Règles 1.2.0 (migration 012) ; les parties déjà jouées gardent leur version.
 
+## Évolution — chat en bas de tous les jeux
+- La barre de chat de Yas Foot (message libre, réactions, messages rapides, bulles des messages
+  reçus, historique) est maintenant en bas de Yas Connect, Yas Ludo et Yas Cards aussi. Elle remplace
+  l'icône de chat de l'en-tête. Contre le bot, elle indique que le chat s'ouvre contre un vrai joueur.
+- Plateaux légèrement réduits pour que la barre ne les recouvre jamais (vérifié par un test E2E par jeu).
+
+## Évolution — Yas Foot en plein écran
+- Comme Soccer Stars, la pelouse et les tribunes occupent tout l'écran : l'herbe est dessinée bien
+  au-delà du terrain et remplit les bords, quel que soit le format (téléphone, tablette, ordinateur).
+- Score et état du tour flottent en haut sur un bandeau translucide de hauteur fixe (le terrain ne
+  bouge plus quand le texte change) ; barre de chat collée en bas, toute la largeur.
+
+## Évolution — tous les jeux en plein écran
+- Yas Connect, Yas Ludo et Yas Cards se jouent aussi en plein écran, sur une « scène » aux couleurs
+  de la plateforme (fond Midnight Blue de l'accueil, accents jaunes, cartes blanches) : pas de rupture
+  entre la plateforme et le jeu.
+- Bandeau translucide en haut (abandon, nom du jeu, pastille Entraînement), comme Yas Foot ; barre de
+  chat bleu nuit collée en bas ; le jeu occupe toute la place au milieu (grille de Connect cerclée de
+  bleu clair pour ressortir sur le fond).
+
+## Évolution — Yas Foot 1.3 : belle passe contrôlée et replacement
+- Belle passe contrôlée : quand le ballon frappé par le tireur touche un coéquipier, il s'arrête collé à
+  lui, du côté du but adverse, sans rebondir (physique partagée serveur / navigateur, testée).
+- Le joueur rejoue et peut d'abord replacer le receveur autour du ballon : zone en pointillés, il touche
+  l'endroit voulu (action `place`, vérifiée par le serveur : près du ballon, sur le terrain, sans
+  chevaucher un autre palet). Le bot fait de même (receveur derrière le ballon, face au but).
+- Règles 1.3.0 (migration 013).
+- Dans tous les jeux, le pseudonyme du joueur remplace « Toi » / « Moi ».
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

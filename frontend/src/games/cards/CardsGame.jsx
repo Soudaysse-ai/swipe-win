@@ -81,7 +81,8 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   const [declare, setDeclare] = useState(false);
   const [handRef, handW] = useWidth();
   const byId = Object.fromEntries(snapshot.players.map(p => [p.userId, p]));
-  const name = (u) => (u === me ? 'Toi' : byId[u]?.username);
+  // Le pseudonyme de chacun, y compris le mien (plus de « Toi »).
+  const name = (u) => byId[u]?.username || '';
   const playing = v.status === 'playing';
   const myTurn = playing && v.turn === me;
   const playable = new Set(v.playable);
@@ -398,7 +399,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
 
       <div className="cards-me">
         <TurnAvatar player={byId[me]} color={TURN_RING} active={myTurn} deadline={v.turnDeadline} total={v.turnMs} size={38} />
-        <span><b>Toi</b> · {myCount} carte{myCount > 1 ? 's' : ''} en main</span>
+        <span><b>{name(me)}</b> · {myCount} carte{myCount > 1 ? 's' : ''} en main</span>
       </div>
 
       <div className="cards-fx" aria-hidden>

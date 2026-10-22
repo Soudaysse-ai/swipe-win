@@ -155,8 +155,21 @@ test('Yas Foot contre un bot : tir à la fronde, trajectoire reçue, le bot rép
   assert.ok(shot.payload.frames.length > 3);
   assert.equal(shot.payload.frames[0].length, 11);
 
-  // Le bot joue à son tour, une fois l'animation terminée côté serveur.
-  const botShot = await ca.waitFor('game:event', e => e.matchId === res.matchId && e.type === 'shot' && e.payload.userId !== alice.userId, { timeout: 20_000 });
+  // Le bot joue à son tour, une fois l'animation terminée côté serveur. Si le tir
+  // d'Alice a donné une belle passe, elle rejoue d'abord (jusqu'à ce que la main passe).
+  const botShotP = ca.waitFor('game:event', e => e.matchId === res.matchId && e.type === 'shot' && e.payload.userId !== alice.userId, { timeout: 30_000 });
+  let gotBot = false;
+  botShotP.then(() => { gotBot = true; }, () => {});
+  for (let k = 0; k < 4 && !gotBot; k++) {
+    await new Promise(r => setTimeout(r, 300));
+    const cur = (await ca.emit('match:sync', { matchId: res.matchId })).snapshot;
+    if (cur.view.turn === alice.userId && Date.now() >= cur.view.turnOpensAt) {
+      await ca.emit('match:action', {
+        matchId: res.matchId, commandId: crypto.randomUUID(), version: cur.version, action: { type: 'shoot', disc: 0, dx: 0.2, dy: 0.9 },
+      });
+    } else await new Promise(r => setTimeout(r, 1500));
+  }
+  const botShot = await botShotP;
   assert.ok(botShot.payload.frames.length > 1);
 
   const ended = ca.waitFor('match:ended', e => e.matchId === res.matchId);

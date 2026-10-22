@@ -16,5 +16,7 @@ export function shotInput(dx, dy) {
 export function shoot(view, userId, disc, dx, dy) {
   const v = shotVelocity(dx, dy);
   if (!v) return null;
-  return { ...simulate(view, userId, disc, v.vx, v.vy, { frameEvery: 1 }), power: v.power, frameMs: TICK_MS };
+  // Passe contrôlée tant qu'elle peut encore compter : même règle que le serveur.
+  const control = (view.passes || 0) < (view.maxPasses || 2);
+  return { ...simulate(view, userId, disc, v.vx, v.vy, { frameEvery: 1, control }), power: v.power, frameMs: TICK_MS };
 }

@@ -3,7 +3,7 @@
 // Normal et Difficile essaient plusieurs tirs avec la vraie physique du jeu et
 // gardent le meilleur résultat (but, ballon avancé, cage protégée) ; le tir
 // réellement joué garde une petite imprécision, plus forte au niveau Facile.
-const { simulate, FIELD, MIN_POWER, MAX_SPEED, FORMATIONS, TEAMS, MAX_PASSES } = require('../foot/engine')._internals;
+const { simulate, FIELD, MIN_POWER, MAX_SPEED, FORMATIONS, TEAMS, MAX_PASSES, PLACE_MIN } = require('../foot/engine')._internals;
 
 const { W, H, GOAL_TOP, GOAL_BOTTOM, DISC_R, BALL_R } = FIELD;
 const NOISE_DEG = { easy: 14, normal: 6, hard: 1.5 };
@@ -77,7 +77,7 @@ function chooseShot(view, me, level, rng) {
   if (sims && list.length) {
     let bestScore = -Infinity;
     for (const c of list.slice(0, sims)) {
-      const sim = simulate(view, me, c.disc, c.dx * MAX_SPEED, c.dy * MAX_SPEED, { frames: false, maxTicks: 520 });
+      const sim = simulate(view, me, c.disc, c.dx * MAX_SPEED, c.dy * MAX_SPEED, { frames: false, maxTicks: 520, control: (view.passes || 0) < MAX_PASSES });
       const score = evaluate(view, me, sim) + c.pre;
       if (score > bestScore) { bestScore = score; best = c; }
     }
@@ -99,6 +99,24 @@ function chooseShot(view, me, level, rng) {
   return { disc: best.disc, dx: Math.round(dx * 1000) / 1000, dy: Math.round(dy * 1000) / 1000 };
 }
 
+// Après une belle passe : le receveur se place juste derrière le ballon, dans
+// l'axe du but adverse (si la place est libre), pour pouvoir frapper.
+function choosePlace(view, me) {
+  const pr = view.passReceiver;
+  if (!pr || pr.userId !== me) return null;
+  const home = view.players[0] === me;
+  const [bx, by] = view.ball;
+  const tx = home ? W : 0; const ty = H / 2;
+  const l = Math.hypot(tx - bx, ty - by) || 1;
+  const x = Math.round((bx - ((tx - bx) / l) * (PLACE_MIN + 4)) * 100) / 100;
+  const y = Math.round((by - ((ty - by) / l) * (PLACE_MIN + 4)) * 100) / 100;
+  const [cx, cy] = view.discs[me][pr.disc];
+  if (Math.hypot(cx - x, cy - y) < 6) return null; // déjà en place
+  if (x < DISC_R || x > W - DISC_R || y < DISC_R || y > H - DISC_R) return null;
+  const blocked = view.players.some(u => view.discs[u].some(([ox, oy], i) => !(u === me && i === pr.disc) && Math.hypot(ox - x, oy - y) < 2 * DISC_R));
+  return blocked ? null : { type: 'place', disc: pr.disc, x, y };
+}
+
 function decide(view, botId, { level = 'normal', rng }) {
   if (view.status !== 'playing') return null;
   if (view.phase === 'setup') {
@@ -106,8 +124,12 @@ function decide(view, botId, { level = 'normal', rng }) {
     return { action: chooseSetup(view, botId, { level, rng }), think: [1200, 2400] };
   }
   if (view.phase !== 'play' || view.turn !== botId) return null;
+  if (level !== 'easy') {
+    const place = choosePlace(view, botId);
+    if (place) return { action: place, notBefore: view.turnOpensAt, think: [700, 1200] };
+  }
   // La décision est calculée une fois par tour (programmation puis exécution).
-  const key = `${botId}:${view.seq}:${view.turnOpensAt}:${level}`;
+  const key = `${botId}:${view.seq}:${view.turnOpensAt}:${level}:${view.discs[botId].flat().join(',')}`;
   let shot = cache.get(key);
   if (!shot) {
     shot = chooseShot(view, botId, level, rng);
@@ -117,4 +139,4 @@ function decide(view, botId, { level = 'normal', rng }) {
   return { action: { type: 'shoot', ...shot }, notBefore: view.turnOpensAt, think: [1400, 2600] };
 }
 
-module.exports = { decide, _internals: { chooseShot, chooseSetup, candidates, evaluate } };
+module.exports = { decide, _internals: { chooseShot, chooseSetup, choosePlace, candidates, evaluate } };
