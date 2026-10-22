@@ -1,7 +1,7 @@
 // Les autres jeux se lancent entre deux téléphones et répondent aux
 // actions de l'interface (la logique reste côté serveur).
 import { test, expect } from '@playwright/test';
-import { startDuel } from './helpers';
+import { startDuel, tapVisible } from './helpers';
 
 const SHOTS = process.env.E2E_SHOTS_DIR;
 
@@ -23,7 +23,7 @@ test('Yas Cards : mains privées et première action', async ({ browser }) => {
   const first = await a.getByText(/À toi|Aucune carte jouable/).isVisible() ? a : b;
   const playable = first.getByRole('button', { name: /\(jouable\)/ });
   if (await playable.count()) {
-    await playable.first().click();
+    await tapVisible(first, playable.first());
     const colorSheet = first.getByRole('dialog', { name: 'Choisir une couleur' });
     if (await colorSheet.isVisible().catch(() => false)) await colorSheet.getByRole('button', { name: 'Rouge' }).click();
     await expect(first.getByText('6 cartes en main')).toBeVisible();

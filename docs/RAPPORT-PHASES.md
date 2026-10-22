@@ -394,6 +394,17 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
 - Vérifié : parties contre bots des 4 jeux (mobile et ordinateur, 1 à 3 bots), aucune erreur de console ;
   relevé image par image : anneau toujours de la couleur de la carte, aucun clignotement, plateau fixe.
 
+## Évolution — Yas Cards : main en éventail, plus calme sur mobile
+- Vérifié avec un délai réseau de téléphone simulé (150 ms dans chaque sens) et chaque carte suivie par
+  son identifiant, image par image : aucune carte en double, aucune carte jouée qui revient.
+- Ce qui donnait l'impression que « plusieurs cartes ressortent » : après avoir joué, les autres cartes
+  jouables restaient levées pendant l'aller-retour réseau, puis retombaient. Dès qu'une carte est jouée,
+  la main se calme sans attendre le serveur.
+- Main redessinée : éventail en arc, cartes plus grandes (76 px sur mobile), déplacements par transform
+  (fluides sur téléphone) ; carte jouable soulevée avec une lueur douce ; jamais hors de l'écran. Les
+  cartes en vol partent et arrivent dans l'angle de leur place dans l'éventail.
+- Lueur colorée derrière la défausse atténuée.
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

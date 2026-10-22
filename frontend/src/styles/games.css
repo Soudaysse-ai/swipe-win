@@ -132,7 +132,7 @@
 .discard { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
 .discard::before {
   content: ''; position: absolute; left: 50%; top: 50%; width: 150px; height: 150px; transform: translate(-50%, -54%);
-  border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--active) 55%, transparent) 0%, transparent 68%);
+  border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--active) 28%, transparent) 0%, transparent 68%);
   transition: background .4s;
 }
 .discard-slot { position: relative; z-index: 1; }
@@ -223,16 +223,12 @@
 .cards-hand { width: 100%; overflow: visible; padding-top: 18px; }
 .hand-row { position: relative; margin: 0 auto; }
 .hand-card {
-  position: absolute; bottom: 0; padding: 0; border: 0; background: none; border-radius: 10px; cursor: default;
-  transition: left .3s cubic-bezier(.2, .8, .3, 1), transform .18s ease, box-shadow .18s ease;
+  position: absolute; left: 0; bottom: 12px; padding: 0; border: 0; background: none; border-radius: 11% / 7.33%;
+  cursor: default; transform-origin: 50% 100%; will-change: transform;
+  transition: transform .32s cubic-bezier(.2, .8, .25, 1), filter .2s ease;
 }
-/* Cartes jouables : soulevées et cerclées de jaune. Les autres gardent leurs vraies
-   couleurs (pas d'assombrissement : un jaune terni passait pour un vert). */
-.hand-card.playable {
-  transform: translateY(-16px); cursor: pointer; border-radius: 11% / 7.33%;
-  box-shadow: 0 0 0 2.5px #FFD100, 0 8px 18px rgba(255, 209, 0, .35);
-}
-.hand-card.playable:hover { transform: translateY(-24px); }
+/* Cartes jouables : soulevées, lueur douce (pas de cadre, pas de changement de couleur). */
+.hand-card.playable { cursor: pointer; filter: drop-shadow(0 0 7px rgba(255, 209, 0, .85)); }
 .hand-card:disabled { cursor: default; }
 .hand-card.incoming { visibility: hidden; }
 .cards-me { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: rgba(255, 255, 255, .85); }

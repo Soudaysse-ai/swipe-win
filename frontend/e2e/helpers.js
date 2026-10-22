@@ -46,3 +46,17 @@ export async function startDuel(browser, gameId) {
   await expect(b).toHaveURL(/\/match\//, { timeout: 10000 });
   return { a, b, close: async () => { await ctxA.close(); await ctxB.close(); } };
 }
+
+// Touche une carte de l'éventail sur sa partie visible (comme un doigt) : son
+// centre peut être recouvert par la carte voisine.
+export async function tapVisible(page, locator) {
+  const pt = await locator.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    for (let y = r.top + 12; y < r.bottom; y += 6) {
+      for (let x = r.left + 4; x < r.right; x += 4) if (el.contains(document.elementFromPoint(x, y))) return [x, y];
+    }
+    return null;
+  });
+  if (!pt) throw new Error('Carte sans partie visible');
+  await page.mouse.click(pt[0], pt[1]);
+}
