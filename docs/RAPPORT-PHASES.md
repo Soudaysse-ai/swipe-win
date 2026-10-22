@@ -326,6 +326,12 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   s'affichent en bulle quelques secondes. Désactivée en entraînement contre le bot.
 - Règles 1.2.0 (migration 012) ; les parties déjà jouées gardent leur version.
 
+## Évolution — chat en bas de tous les jeux
+- La barre de chat de Yas Foot (message libre, réactions, messages rapides, bulles des messages
+  reçus, historique) est maintenant en bas de Yas Connect, Yas Ludo et Yas Cards aussi. Elle remplace
+  l'icône de chat de l'en-tête. Contre le bot, elle indique que le chat s'ouvre contre un vrai joueur.
+- Plateaux légèrement réduits pour que la barre ne les recouvre jamais (vérifié par un test E2E par jeu).
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

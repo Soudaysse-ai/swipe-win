@@ -394,8 +394,8 @@ img, svg { display: block; }
 .match-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
 .match-title .chip { gap: 4px; }
 .bot-chip { margin-left: 8px; vertical-align: 2px; }
-.connect-board { width: 100%; max-width: 560px; max-width: max(300px, calc((100vh - 250px) * 1.1)); max-width: max(300px, calc((100dvh - 250px) * 1.1)); margin: 0 auto; }
-.ludo-board { max-width: 560px; max-width: max(300px, calc(100vh - 290px)); max-width: max(300px, calc(100dvh - 290px)); margin: 0 auto; }
+.connect-board { width: 100%; max-width: 560px; max-width: max(300px, calc((100vh - 306px) * 1.1)); max-width: max(300px, calc((100dvh - 306px) * 1.1)); margin: 0 auto; }
+.ludo-board { max-width: 560px; max-width: max(300px, calc(100vh - 346px)); max-width: max(300px, calc(100dvh - 346px)); margin: 0 auto; }
 
 /* ── Accueil connecté (inspiré de l'application Yas) ─────────────────────── */
 /* Bandeau Sunshine Yellow sous la barre, Pulse en accent, cartes qui le chevauchent */

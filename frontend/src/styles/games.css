@@ -88,7 +88,7 @@
     radial-gradient(30% 45% at 78% -6%, rgba(175, 204, 233, .14) 0%, rgba(175, 204, 233, 0) 72%),
     radial-gradient(120% 70% at 50% 38%, #0D4C9E 0%, #00377D 55%, #00275A 100%);
   box-shadow: 0 10px 30px rgba(0, 31, 77, .25);
-  min-height: calc(100vh - 120px); min-height: calc(100dvh - 120px); justify-content: space-between;
+  min-height: calc(100vh - 182px); min-height: calc(100dvh - 182px); justify-content: space-between;
 }
 .card-svg { display: block; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .3)); }
 

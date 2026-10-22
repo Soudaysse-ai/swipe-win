@@ -246,9 +246,7 @@ export default function Match() {
           <span className="h3">{gameName(snap.gameId)}</span>
           {snap.training && <span className="chip sky"><Icon name="bot" size={14} /> Entraînement</span>}
         </span>
-        {snap.training
-          ? <span className="icon-btn" aria-hidden />
-          : <button className="icon-btn" onClick={() => setChatOpen(true)} aria-label="Chat et réactions"><Icon name="chat" /></button>}
+        <span className="icon-btn" aria-hidden />
       </div>}
 
       {others.filter(p => !p.connected && !p.forfeited).map(p => (
@@ -272,8 +270,8 @@ export default function Match() {
             onResign={() => setResignOpen(true)} onChat={snap.training ? null : () => setChatOpen(true)} />
         </Suspense>
       )}
-      {/* Jeux plein écran : barre de chat en bas, comme dans Soccer Stars. */}
-      {immersive && (
+      {/* Barre de chat en bas de tous les jeux, comme dans Soccer Stars. */}
+      {snap.status !== 'READY' && !!snap.view && (
         <ChatBar roomId={snap.training ? null : snap.roomId} onHistory={() => setChatOpen(true)}
           disabledText="Le chat s'ouvre quand tu joues contre un vrai joueur" />
       )}
