@@ -9,7 +9,8 @@
 //    tu la touches, sans attendre le serveur (elle revient s'il refuse) ;
 //  - les cartes piochées volent de la pioche vers le joueur, l'une après l'autre ;
 //  - +2, +4, Passe, Inverse et Joker : halo dans la couleur, symbole qui jaillit ;
-//  - flèches du sens du jeu autour de la défausse, dans la couleur active ;
+//  - flèches du sens du jeu autour de la défausse, dans la couleur de la carte
+//    réellement posée (pas celle d'une carte encore en vol) ;
 //  - journal des dernières actions sous la table ; la main se resserre.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Sheet } from '../../components/ui';
@@ -25,6 +26,7 @@ const LAND_SOUND = { draw2: () => sfx.cardPlus(false), wild4: () => sfx.cardPlus
 const TURN_RING = '#FFD100';
 const PILE_W = 96;
 const STAGGER = 140;      // délai entre deux cartes piochées
+const CAUSE_MS = 480;     // une pioche forcée (+2, +4) attend que sa carte soit posée
 const BURST_MS = 1150;
 
 function useWidth() {
@@ -105,7 +107,8 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   const [flights, setFlights] = useState([]);
   const landings = useRef(new Map());
   const seq = useRef(0);
-  const [shown, setShown] = useState({ top: v.top, under: null });   // ce que montre la défausse
+  // Ce que montre la défausse, avec la couleur en jeu pour cette carte.
+  const [shown, setShown] = useState({ top: v.top, under: null, color: v.activeColor });
   const shownRef = useRef(shown);
   shownRef.current = shown;
   const pendingTop = useRef(null);       // carte en vol vers la défausse
@@ -156,11 +159,12 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     shownOrder.current = order;
     const cur = shownRef.current.top;
     if (cur?.id === card.id) return;
-    setShown({ top: card, under: cur });
+    const wild = card.kind === 'wild' || card.kind === 'wild4';
+    setShown({ top: card, under: cur, color: wild ? color || v.activeColor : card.color });
     sfx.cardLand();
     LAND_SOUND[card.kind]?.();
     if (isSpecial(card) && !reducedMotion()) {
-      const c = card.kind === 'wild' || card.kind === 'wild4' ? COLOR[color] || COLOR[v.activeColor] : COLOR[card.color];
+      const c = wild ? COLOR[color] || COLOR[v.activeColor] : COLOR[card.color];
       setBurst({ id: card.id, card, color: c });
       after(BURST_MS, () => setBurst(b => (b?.id === card.id ? null : b)));
     }
@@ -185,7 +189,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     if (key) dropFlight(key);
     if (pendingTop.current === card.id) pendingTop.current = null;
     setLeaving(s => { const n = new Set(s); n.delete(card.id); return n; });
-    if (shownRef.current.top?.id === card.id) setShown({ top: v.top, under: null });
+    if (shownRef.current.top?.id === card.id) setShown({ top: v.top, under: null, color: v.activeColor });
     shownOrder.current = ++pileOrder.current;
   }
 
@@ -237,16 +241,19 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     const ids = v.hand.map(c => c.id);
     const added = v.hand.filter(c => !known.current.has(c.id));
     known.current = new Set(ids);
+    // Une carte vole encore vers la défausse (le +2 ou le +4 qui fait piocher) :
+    // les cartes piochées partent quand elle est posée, pas avant.
+    const wait = v.top.id !== shownRef.current.top?.id || pendingTop.current ? CAUSE_MS : 0;
     // Bruit de carte piochée, une fois par carte (moi ou un adversaire).
     const drawn = added.length + others.reduce((n, u) => n + Math.max(0, Math.min(8, v.counts[u] - (prevCounts.current?.[u] ?? v.counts[u]))), 0);
-    for (let i = 0; i < drawn; i++) after(i * STAGGER, () => sfx.cardDraw());
+    for (let i = 0; i < drawn; i++) after(wait + i * STAGGER, () => sfx.cardDraw());
     if (added.length && from && !reducedMotion()) {
       setIncoming(s => new Set([...s, ...added.map(c => c.id)]));
       added.forEach((c, i) => {
         const to = rectIn(handEls.current.get(c.id), root);
         const done = () => setIncoming(s => { const n = new Set(s); n.delete(c.id); return n; });
         if (!to) { done(); return; }
-        fly({ card: c, flip: true, from: { ...from, w: 64, rot: 0 }, to: { ...to, rot: 0 }, delay: i * STAGGER, duration: 480 }, done);
+        fly({ card: c, flip: true, from: { ...from, w: 64, rot: 0 }, to: { ...to, rot: 0 }, delay: wait + i * STAGGER, duration: 480 }, done);
       });
     }
     for (const u of others) {
@@ -254,7 +261,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
       const gained = v.counts[u] - before;
       if (gained > 0 && gained <= 8 && from && !reducedMotion()) {
         const to = oppSource(u);
-        if (to) for (let i = 0; i < gained; i++) fly({ card: null, from: { ...from, w: 64, rot: 0 }, to: { ...to, rot: 0 }, delay: i * STAGGER, duration: 420 });
+        if (to) for (let i = 0; i < gained; i++) fly({ card: null, from: { ...from, w: 64, rot: 0 }, to: { ...to, rot: 0 }, delay: wait + i * STAGGER, duration: 420 });
       }
     }
     prevCounts.current = v.counts;
@@ -344,7 +351,10 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
 
   const top = shown.top || v.top;
   const wildTop = top.kind === 'wild' || top.kind === 'wild4';
-  const activeColor = COLOR[v.activeColor];
+  // Couleur en jeu affichée : celle de la carte posée. Tant qu'une nouvelle carte est
+  // en vol, l'anneau garde la couleur de la carte visible.
+  const shownColor = top.id === v.top.id ? v.activeColor : shown.color || v.activeColor;
+  const activeColor = COLOR[shownColor];
 
   return (
     <div className="cards-game" ref={rootRef}>
@@ -369,13 +379,14 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
         <div className="discard" style={{ '--active': activeColor }} aria-label={`Carte du dessus : ${cardName(v.top)}, couleur active ${COLOR_NAME[v.activeColor]}`}>
           <div className="discard-slot" ref={slotRef} style={{ width: PILE_W, height: PILE_W * 1.5 }}>
             <DirectionRing color={activeColor} ccw={v.direction !== 1} spin={spin} />
+            {burst && <Burst key={`glow-${burst.id}`} layer="glow" card={burst.card} color={burst.color} />}
             {shown.under && (
               <div className="discard-card under" style={{ transform: `rotate(${tilt(shown.under.id)}deg)` }}><CardFace card={shown.under} width={PILE_W} /></div>
             )}
             <div key={top.id} className="discard-card" style={{ transform: `rotate(${tilt(top.id)}deg)` }}><CardFace card={top} width={PILE_W} /></div>
-            {burst && <Burst key={`burst-${burst.id}`} card={burst.card} color={burst.color} />}
+            {burst && <Burst key={`burst-${burst.id}`} layer="front" card={burst.card} color={burst.color} />}
           </div>
-          {wildTop && <span className="active-color">{COLOR_NAME[v.activeColor]}</span>}
+          {wildTop && <span className="active-color">{COLOR_NAME[shownColor]}</span>}
         </div>
         {banner && <div className="table-banner"><span>{banner}</span></div>}
       </div>
@@ -408,7 +419,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
             const ok = myTurn && playable.has(c.id);
             return (
               <button key={c.id} type="button" ref={(el) => { if (el) handEls.current.set(c.id, el); else handEls.current.delete(c.id); }}
-                className={`hand-card${ok ? ' playable' : ''}${myTurn && !ok ? ' dim' : ''}${incoming.has(c.id) ? ' incoming' : ''}`}
+                className={`hand-card${ok ? ' playable' : ''}${incoming.has(c.id) ? ' incoming' : ''}`}
                 style={{ left: i * step, zIndex: i }} onClick={() => play(c)} disabled={!myTurn}
                 aria-label={`${cardName(c)}${ok ? ' (jouable)' : ''}`}>
                 <CardFace card={c} width={cardW} />

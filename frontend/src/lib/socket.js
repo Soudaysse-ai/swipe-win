@@ -9,7 +9,7 @@ let currentToken = null;
 let pingTimer = null;
 const bus = new Map(); // event -> Set<fn>
 const status = { connected: false, everConnected: false, error: null };
-export const clock = { offset: 0 }; // serverNow - Date.now()
+export const clock = { offset: 0, synced: false }; // offset : serverNow - Date.now()
 
 function dispatch(event, payload) {
   const set = bus.get(event);
@@ -51,7 +51,13 @@ export function connectSocket(token) {
     }
   });
   socket.onAny((event, payload) => {
-    if (payload && typeof payload.serverNow === 'number') clock.offset = payload.serverNow - Date.now();
+    // Un message met du temps à arriver : cette mesure retarde toujours l'heure du
+    // serveur (d'où des « 31 s » sur un tour de 30 s). Elle ne sert qu'avant la
+    // première mesure aller-retour (ping), ou si elle montre le serveur plus en avance.
+    if (payload && typeof payload.serverNow === 'number') {
+      const sample = payload.serverNow - Date.now();
+      if (!clock.synced || sample > clock.offset) clock.offset = sample;
+    }
     dispatch(event, payload);
   });
   pingTimer = setInterval(ping, 20000);
@@ -62,7 +68,7 @@ function ping() {
   if (!socket?.connected) return;
   const sentAt = Date.now();
   socket.timeout(5000).emit('ping', { sentAt }, (err, res) => {
-    if (!err && res?.serverNow) clock.offset = res.serverNow - (sentAt + Date.now()) / 2;
+    if (!err && res?.serverNow) { clock.offset = res.serverNow - (sentAt + Date.now()) / 2; clock.synced = true; }
   });
 }
 
