@@ -12,6 +12,9 @@
 //  - flèches du sens du jeu autour de la défausse, dans la couleur de la carte
 //    réellement posée (pas celle d'une carte encore en vol) ;
 //  - journal des dernières actions sous la table ;
+//  - comme Plato : les cartes jouables brillent ; un premier toucher met la carte en
+//    avant, un second la joue (pas de carte jouée par erreur) ; pour piocher, on
+//    touche la pioche (pas de bouton) ;
 //  - ta main en éventail (arc), déplacée par transform (fluide sur téléphone) ; dès
 //    que tu joues, elle se calme sans attendre le serveur (plus de cartes qui restent
 //    levées puis retombent pendant l'aller-retour réseau).
@@ -216,6 +219,14 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     shownOrder.current = ++pileOrder.current;
   }
 
+  // Premier toucher : la carte passe en avant. Second toucher : elle est jouée.
+  const [picked, setPicked] = useState(null);
+  function tap(card) {
+    if (!myTurn || busy || !playable.has(card.id)) return;
+    if (picked !== card.id) { setPicked(card.id); sfx.tick(); return; }
+    setPicked(null);
+    play(card);
+  }
   async function play(card) {
     if (!myTurn || busy || !playable.has(card.id)) return;
     if (card.kind === 'wild' || card.kind === 'wild4') { setWildCard(card); return; }
@@ -229,7 +240,13 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
 
   // Nouvelle carte sur la défausse dans l'état officiel : la faire voler depuis
   // son joueur (si ce n'est pas déjà mon vol en cours).
+  // Seulement quand le serveur annonce une nouvelle carte : quand ma carte se pose avant
+  // sa réponse (réseau mobile), l'ancienne carte du serveur n'est pas « nouvelle » (elle
+  // revolait depuis l'adversaire et recouvrait la mienne un instant).
+  const lastTop = useRef(v.top.id);
   useEffect(() => {
+    if (v.top.id === lastTop.current) return;
+    lastTop.current = v.top.id;
     if (v.top.id === shown.top?.id || pendingTop.current === v.top.id) return;
     const lp = v.lastPlay;
     const byPlay = lp && lp.card?.id === v.top.id;
@@ -241,7 +258,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     const card = v.top; const color = lp.chosenColor;
     const order = ++pileOrder.current;
     fly({ card, from: { ...from, rot: 0 }, to, flip: lp.userId !== me, duration: 460 }, () => land(card, color, order));
-  }, [v.top.id, shown.top?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [v.top.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Mes cartes quittent la liste « en vol » quand le serveur les a retirées de ma main.
   const handIds = v.hand.map(c => c.id).join(',');
@@ -368,8 +385,10 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   const overhang = cardW * 1.5 * Math.sin((mid * spread * Math.PI) / 180);
   const step = n > 1 ? Math.max(8, Math.min(cardW * 0.66, (handW - cardW - 2 * overhang - 14) / (n - 1))) : 0;
   const drop = (i) => (mid ? ((i - mid) / mid) ** 2 * 12 : 0); // les bords descendent un peu
-  const LIFT = 20;
+  const LIFT = 30;
   const handReady = myTurn && !busy;
+  // La carte mise en avant retombe si le tour passe ou si elle n'est plus jouable.
+  useEffect(() => { if (picked && (!handReady || !playable.has(picked))) setPicked(null); });
 
   // Ce qui vient de se passer (journal), puis ce qu'on attend.
   const lp = v.lastPlay;
@@ -382,10 +401,10 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   else if (myTurn) {
     turnLine = v.phase === 'challenge' ? `${name(v.challenge?.by)} t'a mis un +4 !`
       : v.phase === 'drawn' ? 'Joue la carte piochée ou passe'
-        : playable.size ? 'À toi : choisis une carte' : 'Aucune carte jouable : pioche';
+        : playable.size ? (picked && playable.has(picked) ? 'Touche-la encore pour la jouer' : 'À toi : choisis une carte') : 'Aucune carte jouable : touche la pioche';
   } else turnLine = v.phase === 'challenge' ? `${name(v.turn)} décide s'il conteste le +4…` : `Au tour de ${name(v.turn)}…`;
 
-  const acting = (myTurn && v.phase === 'drawn') || canDraw || canDeclareNow || canPreDeclare;
+  const acting = (myTurn && v.phase === 'drawn') || canDeclareNow || canPreDeclare;
   const top = shown.top || v.top;
   const wildTop = top.kind === 'wild' || top.kind === 'wild4';
   // Couleur en jeu affichée : celle de la carte posée. Tant qu'une nouvelle carte est
@@ -394,7 +413,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   const activeColor = COLOR[shownColor];
 
   return (
-    <div className={`cards-game ${fit}${acting ? ' acting' : ''}`} ref={rootRef}>
+    <div className={`cards-game ${fit}${acting ? ' acting' : ''}`} ref={rootRef} onClick={() => picked && setPicked(null)}>
       <div className={`cards-opps n${others.length}`}>
         {others.map(u => (
           <Opponent key={u} player={byId[u]} name={name(u)} count={v.counts[u]} solo={others.length === 1}
@@ -439,7 +458,6 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
 
       {acting ? (
         <div className="cards-actions">
-          {canDraw && <button className="btn md" onClick={() => sendAction({ type: 'draw' })}>Piocher une carte</button>}
           {myTurn && v.phase === 'drawn' && <button className="btn md outline-light" onClick={() => sendAction({ type: 'pass' })}>Passer</button>}
           {canDeclareNow && <button className="last-card-btn" onClick={() => sendAction({ type: 'last_card' })}>Dernière carte !</button>}
           {!canDeclareNow && canPreDeclare && (
@@ -454,11 +472,14 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
         <div className="hand-row" style={{ width: cardW + step * Math.max(0, n - 1), height: cardW * 1.5 + 16 }}>
           {sortedHand.map((c, i) => {
             const ok = handReady && playable.has(c.id);
+            const sel = ok && picked === c.id;
             return (
               <button key={c.id} type="button" data-card={c.id} data-rot={(i - mid) * spread} ref={(el) => { if (el) handEls.current.set(c.id, el); else handEls.current.delete(c.id); }}
-                className={`hand-card${ok ? ' playable' : ''}${incoming.has(c.id) ? ' incoming' : ''}`}
-                style={{ transform: `translate(${i * step}px, ${drop(i) - (ok ? LIFT : 0)}px) rotate(${(i - mid) * spread}deg)`, zIndex: i }}
-                onClick={() => play(c)} disabled={!handReady}
+                className={`hand-card${ok ? ' playable' : ''}${sel ? ' picked' : ''}${incoming.has(c.id) ? ' incoming' : ''}`}
+                style={{ transform: sel
+                  ? `translate(${i * step}px, ${drop(i) - LIFT}px) rotate(${((i - mid) * spread) / 2}deg) scale(1.14)`
+                  : `translate(${i * step}px, ${drop(i)}px) rotate(${(i - mid) * spread}deg)`, zIndex: sel ? 60 : i }}
+                onClick={(e) => { e.stopPropagation(); tap(c); }} disabled={!handReady}
                 aria-label={`${cardName(c)}${ok ? ' (jouable)' : ''}`}>
                 <CardFace card={c} width={cardW} />
               </button>

@@ -23,12 +23,18 @@ test('Yas Cards : mains privées et première action', async ({ browser }) => {
   const first = await a.getByText(/À toi|Aucune carte jouable/).isVisible() ? a : b;
   const playable = first.getByRole('button', { name: /\(jouable\)/ });
   if (await playable.count()) {
-    await tapVisible(first, playable.first());
+    // Comme sur Plato : un premier toucher met la carte en avant, un second la joue.
+    const card = playable.first();
+    await tapVisible(first, card);
+    await expect(card).toHaveClass(/picked/);
+    await tapVisible(first, card);
     const colorSheet = first.getByRole('dialog', { name: 'Choisir une couleur' });
     if (await colorSheet.isVisible().catch(() => false)) await colorSheet.getByRole('button', { name: 'Rouge' }).click();
     await expect(first.getByText('6 cartes en main')).toBeVisible();
   } else {
-    await first.getByRole('button', { name: 'Piocher une carte' }).click();
+    // Pas de bouton : on touche la pioche.
+    await first.getByRole('button', { name: /^Piocher \(/ }).click();
+    await expect(first.getByText('8 cartes en main')).toBeVisible();
   }
   if (SHOTS) await first.screenshot({ path: `${SHOTS}/cards.png`, fullPage: true });
   await close();
