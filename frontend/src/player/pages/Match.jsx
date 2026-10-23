@@ -165,7 +165,13 @@ export default function Match() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const conn = useConnectionStatus();
-  const [snap, setSnap] = useState(null);
+  const [snap, setSnapRaw] = useState(null);
+  // Un état plus ancien que celui affiché (réponse de resynchronisation ou message
+  // arrivé en retard sur un réseau mobile) est ignoré : sinon le jeu reculait d'un
+  // coup (la défausse revenait à la carte d'avant, puis la bonne carte revolait).
+  const setSnap = useCallback((s) => setSnapRaw(cur => (
+    s && cur && s.matchId === cur.matchId && s.version < cur.version ? cur : s
+  )), []);
   const [ended, setEnded] = useState(null);
   const [missing, setMissing] = useState(false);
   const [offline, setOffline] = useState({}); // userId -> until

@@ -417,6 +417,17 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
 - Bot de Yas Cards un peu plus posé (2,2 à 3,2 s pour jouer une carte) ; bandeau « Tu passes ton
   tour » quand l'adversaire te fait sauter ton tour.
 
+## Évolution — Yas Cards façon Plato : choisir puis jouer, piocher en touchant la pioche
+- Comme sur Plato : les cartes jouables brillent ; un premier toucher met la carte en avant (plus grande,
+  au-dessus), un second la joue ; toucher ailleurs annule. Plus de carte jouée par erreur.
+- Plus de bouton « Piocher » : la pioche brille et se soulève quand il faut piocher, on la touche.
+- Bug corrigé (cause des cartes qui « changent de couleur » et « ressortent ») : sur réseau mobile, quand
+  ma carte se posait avant la réponse du serveur, l'écran prenait l'ancienne carte du serveur pour une
+  nouvelle, la refaisait voler depuis l'adversaire par-dessus la mienne, puis la mienne revolait. La
+  défausse ne réagit plus qu'à une vraie nouvelle carte annoncée par le serveur. De plus, un état de
+  partie plus ancien que celui affiché (resynchronisation, message en retard) est ignoré (tous les jeux).
+- Vérifié avec délai réseau et messages en désordre (jusqu'à 600 ms) : 0 retour en arrière (12 avant).
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche
