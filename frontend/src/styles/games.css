@@ -220,7 +220,7 @@
 .last-card-btn.on, .last-card-btn:not([aria-pressed]) { background: #FFD100; animation: pile-call 1.1s ease-in-out infinite; }
 
 /* Ta main : éventail de cartes, les cartes jouables sont levées */
-.cards-hand { width: 100%; overflow: visible; padding-top: 18px; }
+.cards-hand { width: 100%; overflow: visible; padding-top: 24px; }   /* place pour la carte soulevée */
 .hand-row { position: relative; margin: 0 auto; }
 .hand-card {
   position: absolute; left: 0; bottom: 12px; padding: 0; border: 0; background: none; border-radius: 11% / 7.33%;
@@ -502,8 +502,11 @@
 .hud-chip { display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 8px; border-radius: 11px; background: #AFCCE9; color: #00377D; font-size: 11.5px; font-weight: 700; flex-shrink: 0; }
 .game-stage {
   flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  display: flex; flex-direction: column; justify-content: center; padding: 4px 12px 10px;
+  display: flex; flex-direction: column; padding: 4px 12px 10px;
 }
+/* Centré verticalement par des marges automatiques : si le jeu est plus haut que l'écran,
+   il défile au lieu de déborder en haut, hors d'atteinte (justify-content: center le coupait). */
+.game-stage > * { margin-top: auto; margin-bottom: auto; }
 .game-stage > * { width: 100%; }
 .match-page.stage > .alert { position: absolute; top: calc(env(safe-area-inset-top) + 60px); left: 12px; right: 12px; z-index: 6; }
 /* Chat en bas : bleu nuit de la plateforme, toute la largeur */
@@ -533,7 +536,28 @@
 .stage-ludo .ludo-seat.active { color: #00377D; }
 .stage-ludo .ludo-board-wrap { box-shadow: 0 14px 30px rgba(0, 0, 0, .3); }
 .stage-ludo .ludo-board { max-width: none; }
-.stage-ludo .ludo { max-width: min(560px, calc(100vh - 330px)); max-width: min(560px, max(300px, calc(100dvh - 330px))); }
+/* Seul le plateau se réduit sur un écran court : les joueurs gardent toute la largeur (pseudos lisibles). */
+.stage-ludo .ludo { max-width: 560px; }
+.stage-ludo .ludo-board-wrap { width: 100%; max-width: calc(100vh - 346px); max-width: max(300px, calc(100dvh - 346px)); margin: 0 auto; }
 /* Cartes blanches posées sur la scène : texte Midnight Blue */
 .match-page.stage .card, .match-page.stage .game-status { color: var(--yas-blue); }
 .hud-btn.on { background: #FFD100; color: #00377D; }
+
+/* Yas Cards sur écran court (Safari avec ses barres) : tout tient, rien ne se chevauche. */
+.cards-game.short, .cards-game.tiny { gap: 6px; padding-top: 2px; padding-bottom: 6px; }
+.cards-game.short .cards-table, .cards-game.tiny .cards-table { min-height: 0; padding: 4px 0; gap: 24px; }
+.cards-game.short .discard::before, .cards-game.tiny .discard::before { width: 120px; height: 120px; }
+.cards-game.short .cards-log, .cards-game.tiny .cards-log { min-height: 38px; }
+.cards-game.short .log-line.age2, .cards-game.tiny .log-line.age2 { display: none; }
+.cards-game.short .cards-status .turn, .cards-game.tiny .cards-status .turn { font-size: 16px; }
+.cards-game.short .cards-hand, .cards-game.tiny .cards-hand { padding-top: 22px; }
+.cards-game.short .cards-me, .cards-game.tiny .cards-me { display: none; }
+.cards-game.tiny .opp-fan, .cards-game.tiny .cards-opp.solo .opp-fan { height: 40px; transform: scale(.72); transform-origin: 50% 0; }
+.cards-game.short .cards-opp.solo .opp-fan { height: 48px; transform: scale(.85); transform-origin: 50% 0; }
+.cards-game.tiny .cards-table { gap: 36px; }
+.cards-game.tiny .cards-opp { gap: 2px; padding: 2px 4px; }
+.cards-game.tiny .draw-pile { transform: scale(.85); }
+.cards-game.tiny .cards-log { min-height: 19px; }
+.cards-game.tiny .log-line.age1 { display: none; }
+.cards-game.short.acting .cards-log, .cards-game.tiny.acting .cards-log { display: none; }   /* les boutons prennent sa place */
+.cards-game.short .cards-actions .btn, .cards-game.tiny .cards-actions .btn { height: 38px; }

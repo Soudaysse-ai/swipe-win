@@ -405,6 +405,18 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   cartes en vol partent et arrivent dans l'angle de leur place dans l'éventail.
 - Lueur colorée derrière la défausse atténuée.
 
+## Correctif — Yas Cards lisible sur iPhone (Safari et ses barres)
+- Vidéo du joueur : le haut du jeu (l'adversaire, d'où partent ses cartes) était coupé et inaccessible ;
+  « Passer » recouvrait le texte, la main recouvrait « À toi ». Cause : la scène centrait verticalement
+  un contenu plus haut que l'écran (justify-content: center) ; elle utilise désormais des marges
+  automatiques, le contenu défile au lieu d'être coupé (tous les jeux).
+- Yas Cards s'adapte à la hauteur disponible (< 780 px et < 690 px) : défausse et cartes plus petites,
+  journal réduit, boutons à la place du journal pendant ton tour, éventail adverse réduit. Vérifié à
+  600, 660, 740 et 844 px : tout tient, aucun chevauchement (mesuré à chaque image d'une partie).
+- Yas Ludo : seul le plateau se réduit sur écran court, les joueurs gardent leur largeur.
+- Bot de Yas Cards un peu plus posé (2,2 à 3,2 s pour jouer une carte) ; bandeau « Tu passes ton
+  tour » quand l'adversaire te fait sauter ton tour.
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche

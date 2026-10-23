@@ -27,7 +27,18 @@ import { sfx } from '../../lib/sound';
 const LAND_SOUND = { draw2: () => sfx.cardPlus(false), wild4: () => sfx.cardPlus(true), skip: () => sfx.cardSkip(), reverse: () => sfx.cardReverse(), wild: () => sfx.cardWild() };
 
 const TURN_RING = '#FFD100';
-const PILE_W = 96;
+// Taille d'écran : Safari avec ses barres laisse peu de hauteur ; tout doit tenir
+// sans défiler ni se chevaucher (sinon le haut, avec l'adversaire, était coupé).
+function useScreenFit() {
+  const get = () => (typeof window === 'undefined' ? 'normal' : window.innerHeight < 690 ? 'tiny' : window.innerHeight < 780 ? 'short' : 'normal');
+  const [fit, setFit] = useState(get);
+  useEffect(() => {
+    const on = () => setFit(get());
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+  return fit;
+}
 const STAGGER = 140;      // délai entre deux cartes piochées
 const CAUSE_MS = 480;     // une pioche forcée (+2, +4) attend que sa carte soit posée
 const BURST_MS = 1150;
@@ -89,6 +100,8 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   const [banner, setBanner] = useState(null);
   const [declare, setDeclare] = useState(false);
   const [handRef, handW] = useWidth();
+  const fit = useScreenFit();
+  const PILE_W = fit === 'tiny' ? 70 : fit === 'short' ? 80 : 96;
   const byId = Object.fromEntries(snapshot.players.map(p => [p.userId, p]));
   // Le pseudonyme de chacun, y compris le mien (plus de « Toi »).
   const name = (u) => byId[u]?.username || '';
@@ -307,7 +320,11 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     let line = null;
     if (e.type === 'card_played') line = <>{who(p.userId)} {mine(p.userId) ? 'joues' : 'joue'} <CardWord card={p.card} color={p.chosenColor} />{p.chosenColor && <> · couleur <ColorWord color={p.chosenColor} /></>}</>;
     if (e.type === 'cards_drawn' && p.count) line = <>{who(p.userId)} {mine(p.userId) ? 'pioches' : 'pioche'} {p.count} carte{p.count > 1 ? 's' : ''}{p.reason === 'draw2' ? ' (+2)' : p.reason === 'wild4' ? ' (+4)' : ''}</>;
-    if (e.type === 'skipped') line = <>{mine(p.userId) ? 'Tu passes ton tour' : `${name(p.userId)} passe son tour`}</>;
+    if (e.type === 'skipped') {
+      line = <>{mine(p.userId) ? 'Tu passes ton tour' : `${name(p.userId)} passe son tour`}</>;
+      // Bien visible : sinon on ne comprend pas pourquoi l'adversaire rejoue aussitôt.
+      if (mine(p.userId)) show('Tu passes ton tour');
+    }
     if (e.type === 'reversed') line = <>Changement de sens !</>;
     if (e.type === 'reshuffle') { line = <>La défausse est mélangée dans la pioche</>; sfx.shuffle(); }
     if (e.type === 'turn_timeout') line = <>Temps écoulé pour {obj(p.userId)}</>;
@@ -343,7 +360,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     .sort((a, b) => (order[a.color] ?? 9) - (order[b.color] ?? 9) || (a.value ?? 20) - (b.value ?? 20) || a.kind.localeCompare(b.kind));
 
   // Éventail de la main : arc léger, cartes qui se chevauchent juste ce qu'il faut.
-  const cardW = handW < 420 ? 76 : 88;
+  const cardW = fit === 'tiny' ? 62 : fit === 'short' ? 68 : handW < 420 ? 76 : 88;
   const n = sortedHand.length;
   const mid = (n - 1) / 2;
   const spread = n > 1 ? Math.min(4.5, 30 / (n - 1)) : 0;     // degrés entre deux cartes
@@ -368,6 +385,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
         : playable.size ? 'À toi : choisis une carte' : 'Aucune carte jouable : pioche';
   } else turnLine = v.phase === 'challenge' ? `${name(v.turn)} décide s'il conteste le +4…` : `Au tour de ${name(v.turn)}…`;
 
+  const acting = (myTurn && v.phase === 'drawn') || canDraw || canDeclareNow || canPreDeclare;
   const top = shown.top || v.top;
   const wildTop = top.kind === 'wild' || top.kind === 'wild4';
   // Couleur en jeu affichée : celle de la carte posée. Tant qu'une nouvelle carte est
@@ -376,7 +394,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   const activeColor = COLOR[shownColor];
 
   return (
-    <div className="cards-game" ref={rootRef}>
+    <div className={`cards-game ${fit}${acting ? ' acting' : ''}`} ref={rootRef}>
       <div className={`cards-opps n${others.length}`}>
         {others.map(u => (
           <Opponent key={u} player={byId[u]} name={name(u)} count={v.counts[u]} solo={others.length === 1}
@@ -419,7 +437,7 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
         <span className="turn">{turnLine}{myTurn && <Seconds deadline={v.turnDeadline} />}</span>
       </div>
 
-      {(myTurn && v.phase === 'drawn') || canDraw || canDeclareNow || canPreDeclare ? (
+      {acting ? (
         <div className="cards-actions">
           {canDraw && <button className="btn md" onClick={() => sendAction({ type: 'draw' })}>Piocher une carte</button>}
           {myTurn && v.phase === 'drawn' && <button className="btn md outline-light" onClick={() => sendAction({ type: 'pass' })}>Passer</button>}

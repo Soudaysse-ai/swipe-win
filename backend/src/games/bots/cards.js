@@ -88,14 +88,16 @@ function decide(view, botId, { level = 'normal', rng }) {
   if (view.phase === 'drawn') {
     const card = view.hand.find(c => c.id === view.drawnCardId && view.playable.includes(c.id));
     return card
-      ? { action: playAction(view, card, level, rng), think: [1100, 1600] }
-      : { action: { type: 'pass' }, think: [1000, 1500] };
+      ? { action: playAction(view, card, level, rng), think: [1500, 2100] }
+      : { action: { type: 'pass' }, think: [1300, 1800] };
   }
   if (view.phase === 'play') {
+    // Rythme d'un vrai joueur : le temps de voir la carte précédente se poser et de
+    // suivre le coup (en duel, Passe et Inverse font rejouer le bot aussitôt).
     const card = chooseCard(view, botId, { level, rng });
     return card
-      ? { action: playAction(view, card, level, rng), think: [1600, 2600] }
-      : { action: { type: 'draw' }, think: [1400, 2100] };
+      ? { action: playAction(view, card, level, rng), think: [2200, 3200] }
+      : { action: { type: 'draw' }, think: [1900, 2700] };
   }
   return null;
 }
