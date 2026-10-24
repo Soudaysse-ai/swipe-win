@@ -16,7 +16,10 @@
 //    la couleur active : contestation gagnée → l'auteur pioche 4 (le contestataire
 //    joue normalement) ; perdue → le contestataire pioche 6 et perd son tour.
 //    Seul le verdict est révélé, jamais la main de l'auteur.
-//  - Pas de cumul des +2 / +4.
+//  - Règles 1.1 : un +4 peut être renvoyé avec un autre +4 (le cumul passe au suivant :
+//    +8, +12…). Accepter fait piocher tout le cumul. Contester porte sur le dernier +4 :
+//    bluff → son auteur pioche le cumul ; sinon le contestataire pioche le cumul + 2.
+//    Pas de cumul des +2.
 //  - Dernière carte : à 1 carte, le joueur doit l'annoncer (avant ou juste après avoir
 //    joué). Tant que le joueur suivant n'a pas agi, un adversaire peut le signaler :
 //    pénalité de 2 cartes.
@@ -92,7 +95,7 @@ function init({ players, rng, now, config }) {
     turn: order[rng.int(order.length)],
     phase: 'play',              // play | drawn | challenge
     drawnCardId: null,
-    pendingWild4: null,         // { by, victim, illegal }
+    pendingWild4: null,         // { by, victim, illegal, count }
     declared: {},               // userId -> a annoncé « Dernière carte »
     vulnerable: null,           // userId à 1 carte sans annonce (signalable)
     forfeited: [],
@@ -120,7 +123,7 @@ function view(state, viewerId) {
     turn: state.turn,
     phase: state.phase,
     drawnCardId: state.turn === viewerId ? state.drawnCardId : null,
-    challenge: state.pendingWild4 ? { by: state.pendingWild4.by, victim: state.pendingWild4.victim } : null,
+    challenge: state.pendingWild4 ? { by: state.pendingWild4.by, victim: state.pendingWild4.victim, count: state.pendingWild4.count || 4 } : null,
     declared: state.declared,
     vulnerable: state.vulnerable,
     forfeited: state.forfeited,
@@ -139,6 +142,8 @@ function playableIds(s, userId) {
     const c = s.hands[userId].find(x => x.id === s.drawnCardId);
     return c && matches(c, top(s), s.activeColor) ? [c.id] : [];
   }
+  // Face à un +4 : seul un autre +4 peut être posé (renvoi, le cumul passe au suivant).
+  if (s.phase === 'challenge') return s.hands[userId].filter(c => c.kind === 'wild4').map(c => c.id);
   if (s.phase !== 'play') return [];
   return s.hands[userId].filter(c => matches(c, top(s), s.activeColor)).map(c => c.id);
 }
@@ -185,6 +190,7 @@ function finish(s, winner, events, reason = 'out_of_cards') {
   s.phase = null;
   s.turnDeadline = null;
   s.vulnerable = null;
+  s.pendingWild4 = null;
   events.push({ type: 'game_over', payload: { winner } });
 }
 
@@ -237,12 +243,13 @@ function playCard(s, userId, cardId, chosenColor, declare, now, events) {
     }
     case 'wild4': {
       const victim = nextFrom(s, userId);
-      s.pendingWild4 = { by: userId, victim, illegal: illegalWild4 };
+      const count = (s.pendingWild4?.count || 0) + 4;   // renvoi : le cumul grossit
+      s.pendingWild4 = { by: userId, victim, illegal: illegalWild4, count };
       s.turn = victim;
       s.phase = 'challenge';
       s.drawnCardId = null;
       s.turnDeadline = now + s.turnMs;
-      events.push({ type: 'wild4_pending', payload: { by: userId, victim } });
+      events.push({ type: 'wild4_pending', payload: { by: userId, victim, count } });
       return undefined;
     }
     default:
@@ -252,20 +259,21 @@ function playCard(s, userId, cardId, chosenColor, declare, now, events) {
 
 function resolveWild4(s, victim, challenge, now, events) {
   const { by, illegal } = s.pendingWild4;
+  const count = s.pendingWild4.count || 4;
   s.pendingWild4 = null;
   if (!challenge) {
-    draw(s, victim, 4, events, 'wild4');
+    draw(s, victim, count, events, 'wild4');
     events.push({ type: 'skipped', payload: { userId: victim } });
     return beginTurn(s, nextFrom(s, victim), now);
   }
   if (illegal) {
-    draw(s, by, 4, events, 'challenge_lost');
+    draw(s, by, count, events, 'challenge_lost');
     s.stats[victim].challengesWon += 1;
-    events.push({ type: 'challenge_result', payload: { by, victim, success: true } });
+    events.push({ type: 'challenge_result', payload: { by, victim, success: true, count } });
     return beginTurn(s, victim, now); // le contestataire joue normalement
   }
-  draw(s, victim, 6, events, 'challenge_failed');
-  events.push({ type: 'challenge_result', payload: { by, victim, success: false } });
+  draw(s, victim, count + 2, events, 'challenge_failed');
+  events.push({ type: 'challenge_result', payload: { by, victim, success: false, count } });
   return beginTurn(s, nextFrom(s, victim), now);
 }
 
@@ -307,8 +315,14 @@ function apply(state, userId, action, { now, rng }) {
   closeLastCardWindow(s, userId);
 
   if (s.phase === 'challenge') {
-    if (type !== 'challenge' && type !== 'accept') throw new EngineError('BAD_PHASE', 'Accepte ou conteste le +4');
-    resolveWild4(s, userId, type === 'challenge', now, events);
+    if (type === 'play') {
+      // Renvoi du +4 avec un autre +4.
+      const card = s.hands[userId].find(c => c.id === action.cardId);
+      if (!card || card.kind !== 'wild4') throw new EngineError('BAD_PHASE', 'Face à un +4 : accepte, conteste ou renvoie un +4');
+      playCard(s, userId, action.cardId, action.color, !!action.declareLastCard, now, events);
+    } else if (type === 'challenge' || type === 'accept') {
+      resolveWild4(s, userId, type === 'challenge', now, events);
+    } else throw new EngineError('BAD_PHASE', 'Face à un +4 : accepte, conteste ou renvoie un +4');
   } else if (type === 'play') {
     playCard(s, userId, action.cardId, action.color, !!action.declareLastCard, now, events);
   } else if (type === 'draw') {
@@ -421,7 +435,7 @@ function actionsCount(state, userId) {
 }
 
 module.exports = {
-  id: 'cards', rulesVersion: '1.0.0', minPlayers: 2, maxPlayers: 4,
+  id: 'cards', rulesVersion: '1.1.0', minPlayers: 2, maxPlayers: 4,
   init, view, apply, deadline, timeout, forfeit, result, actionsCount, resume,
   _internals: { buildDeck, matches, cardPoints, playableIds, COLORS },
 };

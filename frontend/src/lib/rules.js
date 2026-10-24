@@ -20,9 +20,10 @@ export const RULES = {
     'Pose une carte de la même couleur, du même chiffre ou du même symbole, ou une carte Joker.',
     'Aucune carte jouable ? Pioche : si la carte piochée est jouable, tu peux la poser.',
     'Passe ⦸ : le suivant passe son tour. Inverse ⟲ : change de sens (à 2 : comme Passe). +2 : le suivant pioche 2 et passe.',
-    'Joker : choisis la couleur. Joker +4 : choisis la couleur, le suivant pioche 4 — autorisé seulement sans carte de la couleur demandée. Le suivant peut contester !',
+    'Joker : choisis la couleur. Joker +4 : choisis la couleur, le suivant pioche 4 — autorisé seulement sans carte de la couleur demandée.',
+    'Face à un +4, trois choix : l\'accepter (tu pioches), le renvoyer avec ton propre +4 (le suivant pioche le cumul : 8, 12…), ou contester si tu penses que l\'autre a bluffé (gagné : il pioche le cumul ; perdu : tu pioches le cumul + 2).',
     'À une carte, appuie sur « Dernière carte » avant qu\'un adversaire ne te signale (+2 cartes).',
-    'Le premier sans carte gagne. Pas de cumul des +2 / +4 en V1.',
+    'Le premier sans carte gagne. Les +2 ne se cumulent pas.',
   ],
   foot: [
     'Deux joueurs, 5 palets chacun, un ballon : du football de table.',

@@ -348,8 +348,9 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
     if (e.type === 'last_card') sfx.lastCard();
     if (e.type === 'last_card') line = <>{mine(p.userId) ? 'Tu annonces' : `${name(p.userId)} annonce`} : <b>Dernière carte !</b></>;
     if (e.type === 'challenge_result') {
-      const t = p.success ? `Contestation réussie : ${mine(p.by) ? 'tu pioches' : `${name(p.by)} pioche`} 4`
-        : `+4 régulier : ${mine(p.victim) ? 'tu pioches' : `${name(p.victim)} pioche`} 6`;
+      const k = p.count || 4;
+      const t = p.success ? `Contestation réussie : ${mine(p.by) ? 'tu pioches' : `${name(p.by)} pioche`} ${k}`
+        : `+4 régulier : ${mine(p.victim) ? 'tu pioches' : `${name(p.victim)} pioche`} ${k + 2}`;
       show(t); line = <>{t}</>;
     }
     if (e.type === 'last_card_caught') {
@@ -399,11 +400,14 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
   let turnLine;
   if (!playing) turnLine = v.winner === me ? 'Tu as posé ta dernière carte !' : `${name(v.winner)} a gagné la manche`;
   else if (myTurn) {
-    turnLine = v.phase === 'challenge' ? `${name(v.challenge?.by)} t'a mis un +4 !`
+    turnLine = v.phase === 'challenge' ? `${name(v.challenge?.by)} t'a mis un +${v.challenge?.count || 4} !`
       : v.phase === 'drawn' ? 'Joue la carte piochée ou passe'
         : playable.size ? (picked && playable.has(picked) ? 'Touche-la encore pour la jouer' : 'À toi : choisis une carte') : 'Aucune carte jouable : touche la pioche';
   } else turnLine = v.phase === 'challenge' ? `${name(v.turn)} décide s'il conteste le +4…` : `Au tour de ${name(v.turn)}…`;
 
+  // Face à un +4 : le cumul en jeu, et mon +4 pour le renvoyer.
+  const stack = v.challenge?.count || 4;
+  const myWild4 = v.phase === 'challenge' && myTurn ? v.hand.find(c => c.kind === 'wild4' && playable.has(c.id)) : null;
   const acting = (myTurn && v.phase === 'drawn') || canDeclareNow || canPreDeclare;
   const top = shown.top || v.top;
   const wildTop = top.kind === 'wild' || top.kind === 'wild4';
@@ -506,14 +510,19 @@ export default function CardsGame({ snapshot, me, sendAction, matchId }) {
         </div>
       </Sheet>
 
-      <Sheet open={myTurn && v.phase === 'challenge'} center onClose={() => {}} label="+4">
+      <Sheet open={myTurn && v.phase === 'challenge' && !wildCard && !busy} center onClose={() => {}} label="+4">
         <div className="stack center">
           <div style={{ display: 'flex', justifyContent: 'center' }}><CardFace card={v.top} width={84} /></div>
-          <h2 className="h3">{name(v.challenge?.by)} t'a mis un +4</h2>
-          <p className="small">Un +4 n'est autorisé que si son auteur n'avait aucune carte de la couleur active. Tu penses qu'il bluffe ?</p>
-          <p className="tiny muted">Contestation gagnée : il pioche 4 et tu joues. Perdue : tu pioches 6.</p>
-          <button className="btn block" onClick={() => sendAction({ type: 'accept' })}>Accepter (+4)</button>
-          <button className="btn block blue" onClick={() => sendAction({ type: 'challenge' })}>Contester</button>
+          <h2 className="h3">{name(v.challenge?.by)} t'a mis un +{stack}</h2>
+          {myWild4 && (
+            <button className="btn block" onClick={() => play(myWild4)}>Renvoyer mon +4 (+{stack + 4} pour le suivant)</button>
+          )}
+          <button className={`btn block${myWild4 ? ' outline' : ''}`} onClick={() => sendAction({ type: 'accept' })}>Accepter (je pioche {stack})</button>
+          <button className="btn block blue" onClick={() => sendAction({ type: 'challenge' })}>Contester : il a bluffé</button>
+          <p className="tiny muted">
+            Contester, ce n'est pas renvoyer : tu affirmes que {name(v.challenge?.by)} avait une carte de la couleur demandée.
+            Gagné : il pioche {stack} et tu joues. Perdu : tu pioches {stack + 2}.
+          </p>
         </div>
       </Sheet>
     </div>

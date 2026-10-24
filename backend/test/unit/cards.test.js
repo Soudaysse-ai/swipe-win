@@ -148,7 +148,41 @@ test('+4 contesté et illégal : l\'auteur pioche 4, le contestataire joue', () 
   assert.equal(s.turn, B);
   assert.equal(s.phase, 'play');
   const verdict = out.events.find(e => e.type === 'challenge_result');
-  assert.deepEqual(verdict.payload, { by: A, victim: B, success: true });
+  assert.deepEqual(verdict.payload, { by: A, victim: B, success: true, count: 4 });
+});
+
+test('+4 renvoyé avec un autre +4 : le cumul passe au suivant, qui pioche 8', () => {
+  let s = setup(3, { hands: { [A]: ['W4-1', n('blue', 1)], [B]: ['W4-2', n('red', 2)], [C]: [n('red', 3)] }, top: n('red', 7) });
+  s = act(s, A, { type: 'play', cardId: 'W4-1', color: 'blue' });
+  assert.deepEqual(engine.view(s, B).playable, ['W4-2'], 'seul un +4 peut être posé face à un +4');
+  s = act(s, B, { type: 'play', cardId: 'W4-2', color: 'green' });
+  assert.equal(s.phase, 'challenge');
+  assert.equal(s.turn, C);
+  assert.equal(s.activeColor, 'green');
+  assert.equal(engine.view(s, C).challenge.count, 8);
+  s = act(s, C, { type: 'accept' });
+  assert.equal(s.hands[C].length, 9);
+  assert.equal(s.hands[B].length, 1);
+  assert.equal(s.turn, A, 'C pioche 8 et passe son tour');
+  assert.equal(total(s), 108);
+});
+
+test('+4 renvoyé puis contesté : bluff → l\'auteur du dernier +4 pioche le cumul ; sinon cumul + 2', () => {
+  // B renvoie alors qu'il avait du bleu (couleur demandée par A) : bluff.
+  let s = setup(3, { hands: { [A]: ['W4-1', n('blue', 1)], [B]: ['W4-2', n('blue', 2)], [C]: [n('red', 3)] }, top: n('red', 7) });
+  s = act(s, A, { type: 'play', cardId: 'W4-1', color: 'blue' });
+  s = act(s, B, { type: 'play', cardId: 'W4-2', color: 'green' });
+  const out = engine.apply(s, C, { type: 'challenge' }, ctx());
+  assert.equal(out.state.hands[B].length, 1 + 8);
+  assert.equal(out.state.turn, C);
+  assert.deepEqual(out.events.find(e => e.type === 'challenge_result').payload, { by: B, victim: C, success: true, count: 8 });
+  // B renvoie sans carte de la couleur demandée : renvoi régulier, C pioche 10.
+  let t = setup(3, { hands: { [A]: ['W4-1', n('blue', 1)], [B]: ['W4-2', n('red', 2)], [C]: [n('red', 3)] }, top: n('red', 7) });
+  t = act(t, A, { type: 'play', cardId: 'W4-1', color: 'blue' });
+  t = act(t, B, { type: 'play', cardId: 'W4-2', color: 'green' });
+  t = act(t, C, { type: 'challenge' });
+  assert.equal(t.hands[C].length, 11);
+  assert.equal(t.turn, A);
 });
 
 test('+4 contesté mais légal : le contestataire pioche 6 et perd son tour', () => {

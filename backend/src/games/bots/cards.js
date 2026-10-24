@@ -83,6 +83,9 @@ function decide(view, botId, { level = 'normal', rng }) {
 
   if (view.turn !== botId) return null;
   if (view.phase === 'challenge') {
+    // Un +4 en main : le bot le renvoie (le cumul passe au suivant), sauf parfois en facile.
+    const back = view.hand.find(c => view.playable.includes(c.id));
+    if (back && (level !== 'easy' || roll(rng, 50))) return { action: playAction(view, back, level, rng), think: [1800, 2800] };
     return { action: { type: roll(rng, CHALLENGE_CHANCE[level] ?? 0) ? 'challenge' : 'accept' }, think: [1600, 2600] };
   }
   if (view.phase === 'drawn') {

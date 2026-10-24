@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import Icon from './Icon';
 import { serverNow } from '../lib/socket';
@@ -40,14 +41,17 @@ export function Sheet({ open, onClose, children, center = false, label }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
   if (!open) return null;
-  return (
+  // Rendue au niveau de la page : à l'intérieur d'une zone qui défile (la scène d'un
+  // jeu), Safari sur iPhone découpait la feuille (choix de couleur coupé par le chat).
+  return createPortal(
     <div className={`sheet-backdrop${center ? ' center' : ''}`} onClick={onClose} role="presentation">
       <div className={`sheet${center ? ' center' : ''}`} role="dialog" aria-modal="true" aria-label={label}
         onClick={(e) => e.stopPropagation()}>
         {!center && <div className="grabber" />}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

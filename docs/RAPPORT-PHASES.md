@@ -428,6 +428,14 @@ Jeu ajouté le 11/10/2026 (migration 007, classement Elo) ; il remplace Yas Pena
   partie plus ancien que celui affiché (resynchronisation, message en retard) est ignoré (tous les jeux).
 - Vérifié avec délai réseau et messages en désordre (jusqu'à 600 ms) : 0 retour en arrière (12 avant).
 
+## Évolution — Yas Cards 1.1 : renvoyer un +4 ; feuilles jamais coupées
+- Face à un +4, on peut le renvoyer avec son propre +4 : le cumul passe au suivant (+8, +12…).
+  Accepter fait piocher le cumul ; contester porte sur le dernier +4 (bluff → son auteur pioche le
+  cumul ; sinon le contestataire pioche le cumul + 2). Pas de cumul des +2. Le bot renvoie aussi.
+  Règles 1.1.0 (migration 014) ; la fenêtre du +4 explique que « Contester » n'est pas « renvoyer ».
+- Feuilles (choix de couleur, +4…) rendues au niveau de la page : sur iPhone, Safari les découpait
+  dans la scène du jeu (bas caché par la barre de chat, titre blanc sur blanc).
+
 ## Phase 12 — Déploiement
 **Effectué le 11/10/2026** après validation : site sur Vercel (www.defi-yas.com), API sur Render
 (`defi-yas-api`, plan payant toujours actif), base Neon de production (sauvegarde préalable : branche
